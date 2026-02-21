@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Briefer{% endblock %}</title>
+  <style>
+    /* ── Reset & base ──────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink:        #1a1a1a;
+      --ink-light:  #555;
+      --ink-faint:  #888;
+      --paper:      #f8f6f0;
+      --rule:       #ccc;
+      --accent:     #1a1a1a;
+      --cat-geo:    #8b0000;
+      --cat-tech:   #003580;
+      --cat-fin:    #1a4a1a;
+      --cat-sci:    #4a1a4a;
+      --cat-health: #4a3000;
+    }
+
+    body {
+      font-family: Georgia, "Times New Roman", Times, serif;
+      background: var(--paper);
+      color: var(--ink);
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ────────────────────────────────────────────────────────────── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 1.5rem; }
+
+    /* ── Masthead ───────────────────────────────────────────────────────────── */
+    .masthead {
+      border-bottom: 3px double var(--ink);
+      padding: 1.5rem 0 0.75rem;
+      text-align: center;
+    }
+    .masthead h1 {
+      font-size: 3.5rem;
+      letter-spacing: 0.12em;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+    .masthead .tagline {
+      font-size: 0.8rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-top: 0.25rem;
+    }
+    .masthead .dateline {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--ink-faint);
+      border-top: 1px solid var(--rule);
+      margin-top: 0.75rem;
+      padding-top: 0.4rem;
+    }
+
+    /* ── Category label ─────────────────────────────────────────────────────── */
+    .cat-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+      color: white;
+      display: inline-block;
+      margin-bottom: 0.4rem;
+    }
+    .cat-geopolitics { background: var(--cat-geo); }
+    .cat-technology  { background: var(--cat-tech); }
+    .cat-finance     { background: var(--cat-fin); }
+    .cat-science     { background: var(--cat-sci); }
+    .cat-health      { background: var(--cat-health); }
+
+    /* ── Footer ─────────────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--rule);
+      margin-top: 3rem;
+      padding: 1.5rem 0;
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--ink-faint);
+    }
+
+    {% block extra_styles %}{% endblock %}
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <header class="masthead">
+      <h1>Briefer</h1>
+      <p class="tagline">A daily global intelligence briefing</p>
+      <div class="dateline">
+        <span>{{ today }}</span>
+        <span>Built {{ build_time }}</span>
+      </div>
+    </header>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+      briefer.news &nbsp;·&nbsp; Powered by Claude &nbsp;·&nbsp; Built {{ build_time }}
+    </footer>
+
+  </div>
+</body>
+</html>

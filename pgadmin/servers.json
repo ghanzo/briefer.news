@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Briefer DB",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "briefer",
+      "Username": "briefer",
+      "SSLMode": "prefer",
+      "PassFile": "/pgpass"
+    }
+  }
+}
