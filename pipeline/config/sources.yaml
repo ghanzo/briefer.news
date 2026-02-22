@@ -260,6 +260,41 @@ sources:
     tier: 1
 
   # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — FINANCE & BANKING REGULATORS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "SEC — Press Releases"
+    type: rss
+    url: "https://www.sec.gov/rss/news/pressreleases.rss"
+    category: finance
+    tier: 1
+
+  - name: "CFTC — Press Releases"
+    type: rss
+    url: "https://www.cftc.gov/rss/pressreleases"
+    category: finance
+    tier: 1
+
+  - name: "FDIC — Press Releases"
+    type: rss
+    url: "https://www.fdic.gov/news/press-releases/rss.xml"
+    category: finance
+    tier: 1
+
+  - name: "OCC — News Releases"
+    type: rss
+    url: "https://www.occ.gov/news-issuances/news-releases/rss.xml"
+    category: finance
+    tier: 1
+
+  - name: "BLS — Economic News Releases"
+    type: rss
+    url: "https://www.bls.gov/feed/news_release.rss"
+    category: finance
+    tier: 1
+    # Jobs reports, CPI, PPI, employment cost index — market-moving data releases
+
+  # ════════════════════════════════════════════════════════════════════════════
   # TIER 1 — NATIONAL SECURITY & CYBER
   # ════════════════════════════════════════════════════════════════════════════
 
@@ -271,9 +306,10 @@ sources:
 
   - name: "CISA — Alerts & Advisories"
     type: rss
-    url: "https://www.cisa.gov/uscert/ncas/alerts.xml"
+    url: "https://www.cisa.gov/uscert/ncas/all.xml"
     category: technology
     tier: 1
+    # Fixed URL: all.xml (30 entries) vs alerts.xml (broken)
 
   - name: "GAO — Reports & Testimonies"
     type: rss
@@ -334,6 +370,13 @@ sources:
     category: energy
     tier: 1
 
+  - name: "FERC — Federal Register (Rules & Orders)"
+    type: rss
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-energy-regulatory-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
+    category: energy
+    tier: 1
+    # Grid interconnection, transmission rules, pipeline certificates (162 entries confirmed)
+
   - name: "Federal Reserve — Speeches"
     type: rss
     url: "https://www.federalreserve.gov/feeds/speeches.xml"
@@ -381,6 +424,31 @@ sources:
     tier: 1
     # Note: returns ~1800 entries on first fetch — pipeline deduplicates by url_hash
 
+  - name: "FDA — Press Announcements"
+    type: rss
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-announcements/rss.xml"
+    category: health
+    tier: 1
+
+  - name: "FDA — Drug Approvals"
+    type: rss
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/fda-drug-approvals/rss.xml"
+    category: health
+    tier: 1
+
+  - name: "FDA — Medical Devices"
+    type: rss
+    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml"
+    category: health
+    tier: 1
+
+  - name: "HHS — Federal Register (Rules & Notices)"
+    type: rss
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
+    category: health
+    tier: 1
+    # CMS rules, ACA changes, public health declarations (200 entries confirmed)
+
   - name: "USGS — News"
     type: rss
     url: "https://www.usgs.gov/news/all/feed"
@@ -404,6 +472,32 @@ sources:
     url: "https://www.nist.gov/news-events/news/rss.xml"
     category: technology
     tier: 1
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — TECHNOLOGY & COMMUNICATIONS AGENCIES
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "Commerce Dept — Federal Register (Rules & Notices)"
+    type: rss
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=commerce-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
+    category: technology
+    tier: 1
+    # Trade policy coordination, export controls, tech standards (200 entries confirmed)
+
+  - name: "NTIA — News"
+    type: rss
+    url: "https://www.ntia.gov/rss.xml"
+    category: technology
+    tier: 1
+    # Broadband, spectrum policy, internet governance
+    # Note: ntia.gov has SSL chain gap — may fail in Docker; add verify:false support if needed
+
+  - name: "NIST — Artificial Intelligence"
+    type: rss
+    url: "https://www.nist.gov/artificial-intelligence/rss.xml"
+    category: technology
+    tier: 1
+    # AI Safety Institute, AI Risk Management Framework, AI evaluation updates
 
   # ════════════════════════════════════════════════════════════════════════════
   # CHINESE STATE MEDIA — disabled (RSS feeds mostly dead/stale; revisit later)
@@ -476,20 +570,19 @@ sources:
     # Note: URL pattern unverified (404 in test) — find correct URL from state.gov/rss-feeds
 
   # ════════════════════════════════════════════════════════════════════════════
-  # NO RSS AVAILABLE — agencies to scrape via custom methods later
+  # NO RSS AVAILABLE — covered by web_scrape or Federal Register fallback
   # ════════════════════════════════════════════════════════════════════════════
-  # White House    — Trump admin dropped RSS entirely
-  # Treasury       — no RSS, email-only
-  # OFAC           — RSS retired Jan 31 2025; use Federal Register or SLS API
-  # USTR           — no RSS on current site
-  # FBI            — press release RSS removed; wanted-persons RSS not useful
-  # ODNI           — no public RSS feed
-  # ARPA-E         — no RSS; publishes via energy.gov CMS only
-  # DOE            — RSS exists but returns 2020 content; effectively broken
-  # FTC            — 404 on all known RSS patterns
-  # FCC            — connection refused; anti-scraping or no RSS
+  # White House    — covered by web_scrape (presidential-actions, articles, fact-sheets)
+  # DOE            — direct RSS broken (2020 content); covered by web_scrape newsroom
+  # ARPA-E         — covered by web_scrape press-releases
+  # FTC            — direct RSS working (ftc.gov/feeds/press-release.xml) — see above
+  # FCC            — website blocks scrapers; covered by Federal Register RSS
+  # Treasury       — direct RSS working (home.treasury.gov) — see TRADE section
+  # OFAC           — RSS retired Jan 31 2025; covered by Treasury + Federal Register
+  # FBI            — press release RSS removed; DOJ National Security covers most activity
+  # ODNI           — no public RSS feed; revisit
   # USAID          — agency being dismantled (RIF Feb 2025); not worth adding
-  # OIG            — interesting but no RSS confirmed; revisit later
+  # OIG            — no RSS confirmed; revisit later
 
   # ════════════════════════════════════════════════════════════════════════════
   # DISABLED — Wire services, outlets, Google News (enable when ready)
