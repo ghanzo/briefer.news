@@ -1,43 +1,39 @@
 """
 main.py — Pipeline orchestrator.
 
-Runs the full pipeline:
-  1. Load sources from config/sources.yaml
-  2. Discover article URLs (RSS + Google News)
-  3. Extract full text (trafilatura → BS4 fallback)
-  4. Store articles in PostgreSQL
-  5. Summarize new articles with Claude Haiku
-  6. Select top articles by importance score
-  7. Generate category summaries + meta story with Claude Sonnet
-  8. Build static HTML site
-  9. Log the run
+Two independent stages:
+
+  STAGE 1 — scrape   (no API key needed)
+    - Load sources from config/sources.yaml
+    - Discover article URLs via RSS + Google News
+    - Extract full text with trafilatura → BS4 fallback
+    - Store everything in PostgreSQL
+
+  STAGE 2 — process  (requires ANTHROPIC_API_KEY)
+    - Summarize articles with Claude Haiku
+    - Generate category summaries + meta story with Claude Sonnet
+    - Build static HTML site
 
 Usage:
-  python main.py             # starts the scheduler (runs daily at SCHEDULE_TIME)
-  python main.py --run-now   # run the pipeline immediately, then start scheduler
+  python main.py                        # scheduler mode — full pipeline daily at SCHEDULE_TIME
+  python main.py --scrape-only          # run scrape stage now, skip AI
+  python main.py --scrape-only --limit 20  # scrape only, cap at 20 articles (for testing)
+  python main.py --run-now              # run full pipeline now (scrape + process)
 """
 
 import argparse
 import logging
 import os
 import sys
-import time
 from datetime import date, datetime
 
-import anthropic
 import yaml
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
 
-from db.models import (
-    get_engine, get_session,
-    Source, Article, ArticleSummary, DailyBriefing, CategorySummary, ScrapeRun,
-)
-from scraper.discovery import discover_articles
-from scraper.extractor import extract_article
-from processor.claude import summarize_article, generate_category_summaries, generate_meta_story
-from builder.site import build_site
-from scheduler import start_scheduler
+# ── Logging setup (logs dir must exist before basicConfig) ───────────────────
+os.makedirs("logs", exist_ok=True)
+os.makedirs("output", exist_ok=True)
 
 load_dotenv()
 
@@ -51,11 +47,21 @@ logging.basicConfig(
 )
 logger = logging.getLogger("main")
 
+# ── Imports that need logging set up first ───────────────────────────────────
+from db.models import (
+    get_engine, get_session,
+    Source, Article, ArticleSummary, DailyBriefing, CategorySummary, ScrapeRun,
+)
+from scraper.discovery import discover_articles
+from scraper.extractor import extract_article
+from builder.site import build_site
+from scheduler import start_scheduler
+
 TOP_ARTICLES_COUNT = int(os.getenv("TOP_ARTICLES_COUNT", "5"))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Config loader
+# Helpers
 # ─────────────────────────────────────────────────────────────────────────────
 
 def load_sources_config() -> list[dict]:
@@ -65,15 +71,8 @@ def load_sources_config() -> list[dict]:
     return data.get("sources", [])
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DB helpers
-# ─────────────────────────────────────────────────────────────────────────────
-
 def sync_sources(session, sources_config: list[dict]) -> dict[str, int]:
-    """
-    Ensure all sources in sources.yaml exist in the DB.
-    Returns a mapping of source name → db id.
-    """
+    """Upsert sources from YAML into DB. Returns name → db_id mapping."""
     name_to_id: dict[str, int] = {}
     for cfg in sources_config:
         source = session.query(Source).filter_by(name=cfg["name"]).first()
@@ -96,7 +95,7 @@ def sync_sources(session, sources_config: list[dict]) -> dict[str, int]:
 
 
 def save_article_stub(session, stub: dict) -> Article | None:
-    """Insert an article stub, skip if URL already exists."""
+    """Insert article stub. Returns None if URL already in DB."""
     if session.query(Article).filter_by(url_hash=stub["url_hash"]).first():
         return None
     article = Article(
@@ -119,83 +118,143 @@ def save_article_stub(session, stub: dict) -> Article | None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Main pipeline
+# Stage 1 — Scrape
 # ─────────────────────────────────────────────────────────────────────────────
 
-def run_pipeline() -> None:
+def run_scrape(limit: int = 0) -> list[Article]:
+    """
+    Discover + extract articles from all active sources.
+    Stores results in PostgreSQL. Returns list of newly extracted Article objects.
+    No API key required.
+
+    limit: if > 0, stop extracting after this many new articles (useful for testing)
+    """
     logger.info("═" * 60)
-    logger.info(f"Pipeline started — {datetime.utcnow().isoformat()}")
+    logger.info(f"STAGE 1 — SCRAPE — {datetime.utcnow().isoformat()}")
 
     engine  = get_engine()
     session = get_session(engine)
-    today   = str(date.today())
 
-    # ── Start audit run ────────────────────────────────────────────────────
     run = ScrapeRun()
     session.add(run)
     session.commit()
 
-    try:
-        # ── 1. Load + sync sources ─────────────────────────────────────────
-        sources_config = load_sources_config()
-        name_to_id = sync_sources(session, sources_config)
+    new_articles: list[Article] = []
 
-        # Enrich configs with DB ids
+    try:
+        sources_config = load_sources_config()
+        name_to_id     = sync_sources(session, sources_config)
+
         active_sources = [
             {**cfg, "db_id": name_to_id.get(cfg["name"])}
             for cfg in sources_config
             if cfg.get("active", True)
         ]
 
-        # ── 2. Discovery ───────────────────────────────────────────────────
-        logger.info(f"Discovering articles from {len(active_sources)} sources…")
+        logger.info(f"Discovering from {len(active_sources)} active sources…")
         stubs = discover_articles(active_sources)
         run.articles_discovered = len(stubs)
         session.commit()
-
-        # ── 3. Save stubs + extract full text ─────────────────────────────
-        new_articles: list[Article] = []
-        failed = 0
+        logger.info(f"Discovered {len(stubs)} article stubs")
 
         for stub in stubs:
+            if limit > 0 and len(new_articles) >= limit:
+                logger.info(f"Reached extraction limit of {limit} — stopping early")
+                break
+
             article = save_article_stub(session, stub)
             if article is None:
-                continue   # already in DB
+                continue  # already in DB
 
-            text, method = extract_article(stub["url"])
-            article.full_text         = text
-            article.extraction_method = method
-            article.extraction_failed = (text is None)
+            # If discovery already extracted content (e.g. RSS content:encoded), skip URL fetch
+            if stub.get("full_text"):
+                article.full_text         = stub["full_text"]
+                article.extraction_method = stub.get("extraction_method", "rss_content")
+                article.extraction_failed = False
+            else:
+                extractor = stub.get("extractor", "trafilatura")
+                text, method = extract_article(stub["url"], extractor=extractor)
+                article.full_text         = text
+                article.extraction_method = method
+                article.extraction_failed = (text is None)
 
-            if text:
+            if article.full_text:
                 new_articles.append(article)
                 run.articles_extracted += 1
             else:
-                failed += 1
                 run.articles_failed += 1
 
             session.commit()
 
+        run.completed_at = datetime.utcnow()
+        run.status = "completed"
+        session.commit()
+
         logger.info(
-            f"Extraction complete: {len(new_articles)} extracted, {failed} failed"
+            f"Scrape complete — {run.articles_extracted} extracted, "
+            f"{run.articles_failed} failed, {run.articles_discovered} total discovered"
         )
 
-        if not new_articles:
-            logger.warning("No new articles extracted — skipping AI processing")
-            run.status = "completed"
-            session.commit()
-            return
+    except Exception as e:
+        logger.exception(f"Scrape stage failed: {e}")
+        run.status = "failed"
+        run.error_message = str(e)
+        run.completed_at = datetime.utcnow()
+        session.commit()
+        raise
 
-        # ── 4. Claude: per-article summarization ──────────────────────────
-        claude = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    finally:
+        session.close()
+        from scraper.browser import browser_manager
+        browser_manager.close()
+
+    return new_articles
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stage 2 — Process (Claude)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def run_process() -> None:
+    """
+    Summarize unprocessed articles with Claude, generate daily briefing,
+    and build the static HTML site. Requires ANTHROPIC_API_KEY.
+    """
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key or api_key == "your_anthropic_api_key_here":
+        logger.warning("ANTHROPIC_API_KEY not set — skipping process stage")
+        return
+
+    # Import here so missing key doesn't crash on startup
+    import anthropic
+    from processor.claude import summarize_article, generate_category_summaries, generate_meta_story
+
+    logger.info("═" * 60)
+    logger.info(f"STAGE 2 — PROCESS — {datetime.utcnow().isoformat()}")
+
+    engine  = get_engine()
+    session = get_session(engine)
+    today   = str(date.today())
+    claude  = anthropic.Anthropic(api_key=api_key)
+
+    try:
+        # Find articles without summaries
+        unprocessed = (
+            session.query(Article)
+            .outerjoin(ArticleSummary, Article.id == ArticleSummary.article_id)
+            .filter(
+                ArticleSummary.id.is_(None),
+                Article.extraction_failed == False,
+                Article.full_text.isnot(None),
+            )
+            .all()
+        )
+
+        logger.info(f"Processing {len(unprocessed)} articles with Claude…")
         summaries_created = 0
 
-        for article in new_articles:
-            if not article.full_text:
-                continue
-
+        for article in unprocessed:
             result = summarize_article(claude, article.title, article.full_text)
-
             summary = ArticleSummary(
                 article_id=article.id,
                 summary=result.get("summary"),
@@ -212,9 +271,8 @@ def run_pipeline() -> None:
 
         logger.info(f"Summaries created: {summaries_created}")
 
-        # ── 5. Select top articles for today's briefing ────────────────────
-        # Pull all articles from today with summaries, sorted by importance
-        today_summaries = (
+        # Pull all scored articles, group by category
+        scored = (
             session.query(ArticleSummary, Article, Source)
             .join(Article, ArticleSummary.article_id == Article.id)
             .outerjoin(Source, Article.source_id == Source.id)
@@ -227,72 +285,50 @@ def run_pipeline() -> None:
             .all()
         )
 
-        # Group by category
         articles_by_category: dict[str, list[dict]] = {}
-        for summ, art, src in today_summaries:
+        for summ, art, src in scored:
             cat = summ.category or "general"
-            entry = {
-                "id":              art.id,
-                "title":           art.title,
-                "url":             art.url,
-                "headline":        summ.headline or art.title,
-                "summary":         summ.summary or "",
+            articles_by_category.setdefault(cat, []).append({
+                "id":               art.id,
+                "title":            art.title,
+                "url":              art.url,
+                "headline":         summ.headline or art.title,
+                "summary":          summ.summary or "",
                 "importance_score": summ.importance_score,
-                "category":        cat,
-                "source_name":     src.name if src else "Unknown",
-                "publish_date":    str(art.publish_date) if art.publish_date else None,
-            }
-            articles_by_category.setdefault(cat, []).append(entry)
+                "category":         cat,
+                "source_name":      src.name if src else "Unknown",
+                "publish_date":     str(art.publish_date) if art.publish_date else None,
+            })
 
-        # Global top N by importance
-        all_sorted = sorted(
-            [e for cat_list in articles_by_category.values() for e in cat_list],
-            key=lambda x: x["importance_score"],
-            reverse=True,
+        all_sorted  = sorted(
+            [e for lst in articles_by_category.values() for e in lst],
+            key=lambda x: x["importance_score"], reverse=True,
         )
         top_articles = all_sorted[:TOP_ARTICLES_COUNT]
 
-        # ── 6. Category summaries ──────────────────────────────────────────
         cat_summaries = generate_category_summaries(claude, articles_by_category, today)
+        meta          = generate_meta_story(claude, top_articles, cat_summaries, today)
 
-        # ── 7. Meta story ──────────────────────────────────────────────────
-        meta = generate_meta_story(claude, top_articles, cat_summaries, today)
-
-        # ── 8. Save briefing ───────────────────────────────────────────────
         briefing = DailyBriefing(
             briefing_date=date.today(),
             meta_headline=meta.get("meta_headline"),
             meta_story=meta.get("meta_story"),
             top_article_ids=[a["id"] for a in top_articles],
-            total_articles_scraped=run.articles_discovered,
+            total_articles_scraped=len(all_sorted),
             total_articles_processed=summaries_created,
         )
         session.add(briefing)
         session.flush()
 
         for cat, data in cat_summaries.items():
-            cat_art_ids = [a["id"] for a in articles_by_category.get(cat, [])]
-            cs = CategorySummary(
+            session.add(CategorySummary(
                 briefing_id=briefing.id,
                 category=cat,
                 headline=data.get("headline"),
                 summary=data.get("summary"),
-                article_ids=cat_art_ids,
-            )
-            session.add(cs)
-
+                article_ids=[a["id"] for a in articles_by_category.get(cat, [])],
+            ))
         session.commit()
-
-        # ── 9. Build static site ───────────────────────────────────────────
-        cat_summary_dicts = [
-            {
-                "category":  cat,
-                "headline":  data.get("headline"),
-                "summary":   data.get("summary"),
-                "articles":  articles_by_category.get(cat, []),
-            }
-            for cat, data in cat_summaries.items()
-        ]
 
         build_site(
             briefing={
@@ -300,23 +336,18 @@ def run_pipeline() -> None:
                 "meta_headline": briefing.meta_headline,
                 "meta_story":    briefing.meta_story,
             },
-            category_summaries=cat_summary_dicts,
+            category_summaries=[
+                {"category": cat, "headline": d.get("headline"),
+                 "summary": d.get("summary"), "articles": articles_by_category.get(cat, [])}
+                for cat, d in cat_summaries.items()
+            ],
             top_articles=top_articles,
         )
 
-        # ── 10. Finalize run ───────────────────────────────────────────────
-        run.completed_at = datetime.utcnow()
-        run.status = "completed"
-        session.commit()
-
-        logger.info(f"Pipeline complete — briefing for {today} saved and site built.")
+        logger.info(f"Process stage complete — briefing for {today} built.")
 
     except Exception as e:
-        logger.exception(f"Pipeline failed: {e}")
-        run.status = "failed"
-        run.error_message = str(e)
-        run.completed_at = datetime.utcnow()
-        session.commit()
+        logger.exception(f"Process stage failed: {e}")
         raise
 
     finally:
@@ -324,18 +355,32 @@ def run_pipeline() -> None:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+# Full pipeline (scrape + process)
+# ─────────────────────────────────────────────────────────────────────────────
+
+def run_pipeline() -> None:
+    run_scrape()
+    run_process()
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    os.makedirs("logs", exist_ok=True)
-
     parser = argparse.ArgumentParser(description="Briefer pipeline")
-    parser.add_argument("--run-now", action="store_true", help="Run pipeline immediately")
+    parser.add_argument("--run-now",     action="store_true", help="Run full pipeline now")
+    parser.add_argument("--scrape-only", action="store_true", help="Run scrape stage only (no AI)")
+    parser.add_argument("--limit",       type=int, default=0, help="Cap article extraction at N (0 = unlimited)")
     args = parser.parse_args()
 
+    if args.scrape_only:
+        logger.info(f"--scrape-only flag set (limit={args.limit})")
+        run_scrape(limit=args.limit)
+        sys.exit(0)
+
     if args.run_now:
-        logger.info("--run-now flag set: running pipeline immediately")
+        logger.info("--run-now flag set: running full pipeline")
         run_pipeline()
 
     logger.info("Starting scheduler…")

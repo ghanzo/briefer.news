@@ -105,24 +105,44 @@ def _try_beautifulsoup(html: str, url: str) -> Optional[str]:
 # Main entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
-def extract_article(url: str) -> tuple[Optional[str], str]:
+def extract_article(url: str, extractor: str = "trafilatura") -> tuple[Optional[str], str]:
     """
     Attempt to extract full article text from a URL.
 
+    Args:
+        url:       Article URL to fetch and extract.
+        extractor: 'trafilatura' (default) or 'playwright'.
+                   playwright renders JS then runs the same trafilatura→BS4 chain.
+
     Returns:
         (text, method)  where method is one of:
-            'trafilatura' | 'beautifulsoup' | 'fetch_failed' | 'extraction_failed'
+            'trafilatura' | 'beautifulsoup' |
+            'playwright_trafilatura' | 'playwright_beautifulsoup' |
+            'fetch_failed' | 'extraction_failed'
     """
+    if extractor == "playwright":
+        from scraper.browser import playwright_fetch
+        html = playwright_fetch(url)
+        if not html:
+            return None, "fetch_failed"
+        text = _try_trafilatura(html, url)
+        if text:
+            return text, "playwright_trafilatura"
+        text = _try_beautifulsoup(html, url)
+        if text:
+            return text, "playwright_beautifulsoup"
+        logger.warning(f"All extractors failed (playwright) for {url}")
+        return None, "extraction_failed"
+
+    # Default: httpx fetch → trafilatura → BS4
     html = fetch_html(url)
     if not html:
         return None, "fetch_failed"
 
-    # Try trafilatura first
     text = _try_trafilatura(html, url)
     if text:
         return text, "trafilatura"
 
-    # Fall back to BeautifulSoup
     text = _try_beautifulsoup(html, url)
     if text:
         return text, "beautifulsoup"
