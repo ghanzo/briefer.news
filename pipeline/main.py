@@ -67,12 +67,14 @@ logger = logging.getLogger("main")
 # ── Imports that need logging set up first ───────────────────────────────────
 from db.models import (
     get_engine, get_session,
-    Source, Article, ArticleSummary, DailyBriefing, CategorySummary, ScrapeRun,
+    Source, Article, ArticleSummary, DailyBriefing, CategorySummary,
+    ScrapeRun, RejectedUrlHash, BriefingOutput,
 )
 from scraper.discovery import discover_articles
 from scraper.extractor import extract_article
 from builder.site import build_site
 from scheduler import start_scheduler
+from processor.filter import create_groq_client, is_filter_enabled, filter_stub, _load_filter_criteria
 
 TOP_ARTICLES_COUNT = int(os.getenv("TOP_ARTICLES_COUNT", "5"))
 
@@ -141,9 +143,9 @@ def save_article_stub(session, stub: dict) -> Article | None:
 
 def run_scrape(limit: int = 0) -> list[Article]:
     """
-    Discover + extract articles from all active sources.
+    Discover + filter + extract articles from all active sources.
     Stores results in PostgreSQL. Returns list of newly extracted Article objects.
-    No API key required.
+    No API key required for scraping. GROQ_API_KEY needed for Stage 1 filter.
 
     limit: if > 0, stop extracting after this many new articles (useful for testing)
     """
@@ -156,6 +158,19 @@ def run_scrape(limit: int = 0) -> list[Article]:
     run = ScrapeRun()
     session.add(run)
     session.commit()
+
+    # Set up Groq filter if enabled
+    groq_client    = create_groq_client()
+    filter_enabled = is_filter_enabled()
+    filter_active  = groq_client is not None and filter_enabled
+    filter_criteria = _load_filter_criteria() if filter_active else None
+
+    if filter_active:
+        logger.info("Groq Stage 1 filter: ACTIVE")
+    elif groq_client and not filter_enabled:
+        logger.info("Groq Stage 1 filter: shadow mode (GROQ_FILTER_ENABLED=false — logging only)")
+    else:
+        logger.info("Groq Stage 1 filter: disabled (no GROQ_API_KEY)")
 
     new_articles: list[Article] = []
 
@@ -179,6 +194,35 @@ def run_scrape(limit: int = 0) -> list[Article]:
             if limit > 0 and len(new_articles) >= limit:
                 logger.info(f"Reached extraction limit of {limit} — stopping early")
                 break
+
+            url_hash = stub["url_hash"]
+
+            # Skip if already in rejected_url_hashes
+            if session.query(RejectedUrlHash).filter_by(url_hash=url_hash).first():
+                continue
+
+            # Run Groq filter (on title + meta_description, before any HTTP fetch)
+            if groq_client:
+                filter_result = filter_stub(groq_client, stub, criteria=filter_criteria)
+                if not filter_result["keep"]:
+                    reason = filter_result["reason"]
+                    logger.info(f"Filter REJECT: '{stub['title'][:60]}' — {reason}")
+                    if filter_active:
+                        # Active mode: save to DB and skip
+                        rejected = RejectedUrlHash(
+                            url_hash=url_hash,
+                            title=stub.get("title", "")[:500],
+                            reason=reason,
+                            source_name=stub.get("source_name", ""),
+                        )
+                        try:
+                            session.add(rejected)
+                            session.commit()
+                        except Exception:
+                            session.rollback()
+                        run.articles_filtered += 1
+                        continue
+                    # Shadow mode: log but don't block
 
             article = save_article_stub(session, stub)
             if article is None:
@@ -214,6 +258,7 @@ def run_scrape(limit: int = 0) -> list[Article]:
 
         logger.info(
             f"Scrape complete — {run.articles_extracted} extracted, "
+            f"{run.articles_filtered} filtered, "
             f"{run.articles_failed} failed, {run.articles_discovered} total discovered"
         )
 
@@ -234,25 +279,35 @@ def run_scrape(limit: int = 0) -> list[Article]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 2 — Process (Claude)
+# Stage 2 + 3 — Process (Gemini Flash for articles, Claude Sonnet for synthesis)
 # ─────────────────────────────────────────────────────────────────────────────
 
 def run_process() -> None:
     """
-    Summarize unprocessed articles with Claude, generate daily briefing,
-    and build the static HTML site. Requires ANTHROPIC_API_KEY.
+    Stage 2: Summarize unprocessed articles (Gemini Flash if available, else Claude Haiku).
+    Stage 3: Generate category summaries and meta story (Claude Sonnet).
+    Builds static HTML site.
+
+    Requires: ANTHROPIC_API_KEY (Stage 3)
+    Optional: GEMINI_API_KEY (Stage 2 — preferred; falls back to Claude Haiku)
     """
     api_key = os.getenv("ANTHROPIC_API_KEY", "")
     if not api_key or api_key == "your_anthropic_api_key_here":
         logger.warning("ANTHROPIC_API_KEY not set — skipping process stage")
         return
 
-    # Import here so missing key doesn't crash on startup
     import anthropic
     from processor.claude import summarize_article, generate_category_summaries, generate_meta_story
+    from processor.gemini import create_gemini_client, summarize_articles_parallel
 
     logger.info("═" * 60)
-    logger.info(f"STAGE 2 — PROCESS — {datetime.utcnow().isoformat()}")
+    logger.info(f"STAGE 2 + 3 — PROCESS — {datetime.utcnow().isoformat()}")
+
+    use_gemini = create_gemini_client()
+    if use_gemini:
+        logger.info("Stage 2: Gemini Flash (parallel)")
+    else:
+        logger.info("Stage 2: Claude Haiku (sequential — set GEMINI_API_KEY for faster/cheaper)")
 
     engine  = get_engine()
     session = get_session(engine)
@@ -272,24 +327,53 @@ def run_process() -> None:
             .all()
         )
 
-        logger.info(f"Processing {len(unprocessed)} articles with Claude…")
+        logger.info(f"Processing {len(unprocessed)} articles…")
         summaries_created = 0
 
-        for article in unprocessed:
-            result = summarize_article(claude, article.title, article.full_text)
-            summary = ArticleSummary(
-                article_id=article.id,
-                summary=result.get("summary"),
-                headline=result.get("headline"),
-                importance_score=result.get("importance_score", 0.5),
-                category=result.get("category"),
-                tags=result.get("tags", []),
-                model_used=result.get("model_used"),
-                failed=result.get("failed", False),
-            )
-            session.add(summary)
+        if use_gemini and unprocessed:
+            # Stage 2: Gemini Flash — parallel summarization
+            article_dicts = [
+                {"id": a.id, "title": a.title, "full_text": a.full_text}
+                for a in unprocessed
+            ]
+            gemini_results = summarize_articles_parallel(article_dicts)
+
+            for article in unprocessed:
+                result = gemini_results.get(article.id, {})
+                summary = ArticleSummary(
+                    article_id=article.id,
+                    summary=result.get("summary"),
+                    headline=result.get("headline"),
+                    importance_score=result.get("importance_score", 0.5),
+                    category=result.get("category"),
+                    subcategory=result.get("subcategory"),
+                    tags=result.get("tags", []),
+                    entities=result.get("entities", []),
+                    time_sensitivity=result.get("time_sensitivity"),
+                    model_used=result.get("model_used"),
+                    failed=result.get("failed", False),
+                )
+                session.add(summary)
+                summaries_created += 1
             session.commit()
-            summaries_created += 1
+
+        else:
+            # Stage 2 fallback: Claude Haiku — sequential
+            for article in unprocessed:
+                result = summarize_article(claude, article.title, article.full_text)
+                summary = ArticleSummary(
+                    article_id=article.id,
+                    summary=result.get("summary"),
+                    headline=result.get("headline"),
+                    importance_score=result.get("importance_score", 0.5),
+                    category=result.get("category"),
+                    tags=result.get("tags", []),
+                    model_used=result.get("model_used"),
+                    failed=result.get("failed", False),
+                )
+                session.add(summary)
+                session.commit()
+                summaries_created += 1
 
         logger.info(f"Summaries created: {summaries_created}")
 

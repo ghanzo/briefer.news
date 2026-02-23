@@ -48,8 +48,11 @@ Not a list of stories — a coherent narrative of the forces at work."
 META_STORY_PROMPT = """\
 You are writing the daily meta story for Briefer — a global intelligence briefing for {date}.
 
-## Your interpretive framework:
+## Your interpretive framework (how to read events):
 {lens}
+
+## Your voice and style guide (how to write):
+{site_voice}
 
 ## Today's top stories by category:
 {category_summaries}
@@ -59,13 +62,14 @@ You are writing the daily meta story for Briefer — a global intelligence brief
 
 Write the meta story — an interpretation of what today means for the world.
 This is NOT a summary of events. It is a reading of the forces at play.
+Follow the structure and voice rules in the site_voice document exactly.
 
 Respond with ONLY this JSON (no markdown, no explanation):
 {{
   "meta_headline": "A single powerful headline capturing what today means (10-15 words)",
-  "meta_story": "3-4 paragraphs. What is the world saying today? \
-What underlying forces do these events reveal? \
-Where is tension building? What does this moment tell us about the trajectory ahead? \
-Tone: calm, precise, analytically serious — like a private memo from a clear-eyed analyst."
+  "meta_story": "3-4 paragraphs (~400 words total). Open with the underlying force, not the event. \
+Name the actors, cite the numbers, connect the stories across categories. \
+Close with one or two specific things to watch. \
+Tone: calm, precise, analytically serious."
 }}
 """

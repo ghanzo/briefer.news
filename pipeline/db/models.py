@@ -64,6 +64,7 @@ class Article(Base):
     keywords           = Column(JSONB,  default=list)
     raw_metadata       = Column(JSONB,  default=dict)
     language           = Column(String(10))    # ISO 639-1: en, zh, ru, ar, ja, etc.
+    filtered_out       = Column(Boolean, default=False)   # True if Groq filter rejected (post-fetch)
     extraction_method  = Column(String(50))
     extraction_failed  = Column(Boolean, default=False)
     scraped_at         = Column(DateTime(timezone=True), server_default=func.now())
@@ -85,7 +86,10 @@ class ArticleSummary(Base):
     headline         = Column(Text)
     importance_score = Column(Float)
     category         = Column(String(100))
+    subcategory      = Column(String(100))
     tags             = Column(JSONB, default=list)
+    entities         = Column(JSONB, default=list)   # named entities: orgs, countries, people
+    time_sensitivity = Column(String(20))             # breaking | developing | background
     processed_at     = Column(DateTime(timezone=True), server_default=func.now())
     model_used       = Column(String(100))
     failed           = Column(Boolean, default=False)
@@ -109,6 +113,7 @@ class DailyBriefing(Base):
     created_at               = Column(DateTime(timezone=True), server_default=func.now())
 
     category_summaries = relationship("CategorySummary", back_populates="briefing")
+    outputs            = relationship("BriefingOutput",  back_populates="briefing")
 
     def __repr__(self):
         return f"<DailyBriefing {self.briefing_date}>"
@@ -131,6 +136,42 @@ class CategorySummary(Base):
         return f"<CategorySummary {self.category} briefing_id={self.briefing_id}>"
 
 
+class RejectedUrlHash(Base):
+    """Permanent record of articles rejected by the Groq Stage 1 filter."""
+    __tablename__ = "rejected_url_hashes"
+
+    url_hash    = Column(String(64), primary_key=True)
+    title       = Column(Text)
+    reason      = Column(Text)       # Groq's one-line reason — audit trail for filter tuning
+    source_name = Column(Text)
+    rejected_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    def __repr__(self):
+        return f"<RejectedUrlHash {self.url_hash[:12]}… '{self.title[:40]}'>"
+
+
+class BriefingOutput(Base):
+    """Multi-variant output from Stage 3 (replaces single meta_story in daily_briefings)."""
+    __tablename__ = "briefing_outputs"
+
+    id          = Column(Integer, primary_key=True)
+    briefing_id = Column(Integer, ForeignKey("daily_briefings.id", ondelete="CASCADE"))
+    output_type = Column(String(50), nullable=False)   # meta_story | category | topic_brief | deep_dive
+    category    = Column(String(100))                  # NULL for meta_story
+    topic       = Column(String(200))                  # for topic_briefs
+    headline    = Column(Text)
+    body        = Column(Text)
+    word_count  = Column(Integer)
+    article_ids = Column(JSONB, default=list)
+    model_used  = Column(String(100))
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+
+    briefing = relationship("DailyBriefing", back_populates="outputs")
+
+    def __repr__(self):
+        return f"<BriefingOutput {self.output_type} {self.category or 'global'}>"
+
+
 class ScrapeRun(Base):
     __tablename__ = "scrape_runs"
 
@@ -139,6 +180,7 @@ class ScrapeRun(Base):
     completed_at         = Column(DateTime(timezone=True))
     articles_discovered  = Column(Integer, default=0)
     articles_extracted   = Column(Integer, default=0)
+    articles_filtered    = Column(Integer, default=0)   # rejected by Groq Stage 1 filter
     articles_failed      = Column(Integer, default=0)
     status               = Column(String(50), default="running")  # running | completed | failed
     error_message        = Column(Text)

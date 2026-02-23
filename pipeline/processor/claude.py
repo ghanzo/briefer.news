@@ -41,13 +41,26 @@ def _parse_json_response(text: str) -> dict:
 def load_lens() -> str:
     """Load lens.md from the project root (mounted at /app/lens.md in Docker)."""
     candidates = [
-        Path("/app/lens.md"),                        # Docker path
-        Path(__file__).parent.parent.parent / "lens.md",  # local dev
+        Path("/app/lens.md"),
+        Path(__file__).parent.parent.parent / "lens.md",
     ]
     for p in candidates:
         if p.exists():
             return p.read_text(encoding="utf-8")
     logger.warning("lens.md not found — meta story will have no interpretive framework")
+    return ""
+
+
+def load_site_voice() -> str:
+    """Load site_voice.md from the processor directory."""
+    candidates = [
+        Path("/app/pipeline/processor/site_voice.md"),
+        Path(__file__).parent / "site_voice.md",
+    ]
+    for p in candidates:
+        if p.exists():
+            return p.read_text(encoding="utf-8")
+    logger.warning("site_voice.md not found — Stage 3 will use default voice")
     return ""
 
 
@@ -172,7 +185,8 @@ def generate_meta_story(
     top_articles: list of dicts with at least {headline, summary, category}
     category_summaries: output of generate_category_summaries()
     """
-    lens = load_lens()
+    lens       = load_lens()
+    site_voice = load_site_voice()
 
     top_articles_text = "\n\n".join(
         f"[{a.get('category', 'unknown').upper()}] {a['headline']}\n{a['summary']}"
@@ -187,6 +201,7 @@ def generate_meta_story(
     prompt = META_STORY_PROMPT.format(
         date=briefing_date,
         lens=lens,
+        site_voice=site_voice,
         top_count=len(top_articles),
         top_articles=top_articles_text,
         category_summaries=category_summaries_text,

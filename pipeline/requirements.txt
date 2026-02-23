@@ -1,5 +1,7 @@
 # AI
 anthropic>=0.34.0
+groq>=0.11.0
+google-generativeai>=0.8.0
 
 # Database
 sqlalchemy>=2.0.0
