@@ -556,6 +556,13 @@ sources:
   # TIER 1 — EUROPE & INTERNATIONAL INSTITUTIONS
   # ════════════════════════════════════════════════════════════════════════════
 
+  - name: "Bank of England — News"
+    type: rss
+    url: "https://www.bankofengland.co.uk/rss/news"
+    category: finance
+    tier: 1
+    # UK monetary policy, financial stability, rate decisions. 50 entries, 6d lag confirmed.
+
   - name: "ECB — Publications"
     type: rss
     url: "https://www.ecb.europa.eu/press/pr/date/2026/html/rss.xml"
@@ -596,12 +603,30 @@ sources:
     tier: 1
     # Primary source for Kremlin framing. Use HTTP not HTTPS (HTTPS times out).
 
+  - name: "Kremlin — Russian (native)"
+    type: rss_translate
+    url: "http://kremlin.ru/events/all/feed"
+    category: geopolitics
+    tier: 1
+    language: ru
+    # Russian-language feed — more complete than English. 20 entries, current.
+    # Stage 2 summarizes in English. Use HTTP only (HTTPS times out).
+
   - name: "TASS — World News"
     type: rss
     url: "https://tass.com/rss/v2.xml"
     category: geopolitics
     tier: 1
-    # Russian state wire. 62 entries, current. Broadest official coverage.
+    # Russian state wire (English). 62 entries, current. Broadest official coverage.
+
+  - name: "TASS — Russian wire (native)"
+    type: rss_translate
+    url: "https://tass.ru/rss/v2.xml"
+    category: geopolitics
+    tier: 1
+    language: ru
+    # Russian-language TASS feed — 100 entries, current. More complete than English edition.
+    # Stage 2 summarizes in English.
 
   # ════════════════════════════════════════════════════════════════════════════
   # TIER 1 — AFRICA
@@ -627,6 +652,55 @@ sources:
     category: geopolitics
     tier: 1
     # Broad African news aggregator. Best available RSS for continent. 33 entries confirmed.
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — MIDDLE EAST
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "Iran IRNA — Persian (native)"
+    type: rss_translate
+    url: "https://www.irna.ir/rss"
+    category: geopolitics
+    tier: 1
+    language: fa
+    # Iranian state wire in Farsi — 30 entries, current. Primary signal on Iran policy.
+    # Stage 2 summarizes in English. Key for Gulf, sanctions, nuclear deal tracking.
+
+  - name: "Iran IRNA — English"
+    type: rss
+    url: "https://en.irna.ir/rss"
+    category: geopolitics
+    tier: 1
+    # Iranian state wire English edition — 30 entries, current.
+    # Complements Farsi feed; English edition may be selectively translated.
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 2 — ASIA & SOUTH AMERICA
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "ASEAN Secretariat — News"
+    type: rss
+    url: "https://asean.org/feed"
+    category: geopolitics
+    tier: 2
+    # Southeast Asia regional body. 10 entries, 4d lag. Trade, security, summit outcomes.
+
+  - name: "Agência Brasil — Politics (Portuguese)"
+    type: rss_translate
+    url: "https://agenciabrasil.ebc.com.br/rss/politica/feed.xml"
+    category: geopolitics
+    tier: 2
+    language: pt
+    # Brazilian state news agency, politics feed. 10 entries, 2d lag.
+    # Brazil = BRICS member, Amazon policy, US-China swing actor. Stage 2 translates.
+
+  - name: "Agência Brasil — English"
+    type: rss
+    url: "https://agenciabrasil.ebc.com.br/en/rss/geral/feed.xml"
+    category: geopolitics
+    tier: 2
+    # Brazilian state news agency English edition. 10 entries, 11d lag.
+    # Lag is longer than Portuguese — use Portuguese feed as primary.
 
   # ════════════════════════════════════════════════════════════════════════════
   # CHINESE STATE MEDIA — read as narrative management, not fact
