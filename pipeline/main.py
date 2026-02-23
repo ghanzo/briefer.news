@@ -31,6 +31,23 @@ import yaml
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError
 
+try:
+    from langdetect import detect as _langdetect_detect, DetectorFactory
+    DetectorFactory.seed = 0   # make detection deterministic
+    _LANGDETECT_AVAILABLE = True
+except ImportError:
+    _LANGDETECT_AVAILABLE = False
+
+
+def detect_language(text: str) -> str | None:
+    """Return ISO 639-1 language code for text, or None if detection fails."""
+    if not _LANGDETECT_AVAILABLE or not text:
+        return None
+    try:
+        return _langdetect_detect(text[:500])
+    except Exception:
+        return None
+
 # ── Logging setup (logs dir must exist before basicConfig) ───────────────────
 os.makedirs("logs", exist_ok=True)
 os.makedirs("output", exist_ok=True)
@@ -106,6 +123,7 @@ def save_article_stub(session, stub: dict) -> Article | None:
         title_hash=stub.get("title_hash"),
         meta_description=stub.get("meta_description", ""),
         publish_date=stub.get("publish_date"),
+        language=stub.get("language"),   # known from source config; may be filled by langdetect later
         raw_metadata={},
     )
     try:
@@ -177,6 +195,10 @@ def run_scrape(limit: int = 0) -> list[Article]:
                 article.full_text         = text
                 article.extraction_method = method
                 article.extraction_failed = (text is None)
+
+            # Detect language if not already known from source config
+            if article.language is None and article.full_text:
+                article.language = detect_language(article.full_text)
 
             if article.full_text:
                 new_articles.append(article)

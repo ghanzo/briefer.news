@@ -152,6 +152,7 @@ def fetch_rss(source: dict, delay: float = 0.5) -> Generator[dict, None, None]:
             "source_id":         source.get("db_id"),   # set after DB lookup
             "category":          source.get("category"),
             "tier":              source.get("tier", 2),
+            "language":          source.get("language"),  # ISO 639-1 if known; None = detect later
             "full_text":         full_text,
             "extraction_method": extraction_method,
             "extractor":         source.get("extractor", "trafilatura"),
@@ -218,6 +219,7 @@ def discover_web_scrape(source: dict, delay: float = 0.5) -> Generator[dict, Non
             "source_id":         source.get("db_id"),
             "category":          source.get("category"),
             "tier":              source.get("tier", 2),
+            "language":          source.get("language"),  # ISO 639-1 if known; None = detect later
             "full_text":         None,
             "extraction_method": None,
             "extractor":         source.get("extractor", "playwright"),
@@ -242,12 +244,14 @@ def discover_articles(sources: list[dict], delay: float = 1.0) -> list[dict]:
 
         src_type = source.get("type", "rss")
 
-        if src_type in ("rss", "google_news"):
+        if src_type in ("rss", "google_news", "rss_translate"):
+            # rss_translate = RSS feed in a non-English language; scraped as-is, summarized in English by Stage 2
             for stub in fetch_rss(source, delay=delay):
                 if stub["url_hash"] not in seen_url_hashes:
                     seen_url_hashes.add(stub["url_hash"])
                     stubs.append(stub)
-        elif src_type == "web_scrape":
+        elif src_type in ("web_scrape", "playwright", "playwright_translate"):
+            # playwright_translate = JS-rendered page in a non-English language
             for stub in discover_web_scrape(source, delay=delay):
                 if stub["url_hash"] not in seen_url_hashes:
                     seen_url_hashes.add(stub["url_hash"])

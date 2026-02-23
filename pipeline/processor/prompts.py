@@ -6,6 +6,8 @@ Edit here to tune how the AI interprets and writes about the world.
 ARTICLE_SUMMARY_PROMPT = """\
 Analyze this news article and respond with a JSON object.
 
+The title and article text may be in any language. Always write your JSON response in English.
+
 Title: {title}
 
 Article text:
@@ -22,9 +24,10 @@ Respond with ONLY this JSON structure (no markdown, no explanation):
 
 Rules:
 - importance_score: float 0.0–1.0 where 0.0 = routine/trivial, 0.5 = notable, 1.0 = historically significant
-- category: exactly one of: geopolitics | technology | finance | science | health
+- category: exactly one of: geopolitics | technology | finance | energy | science | health | innovation
 - tags: 2–5 short keyword tags
 - Keep the summary factual and precise — no editorializing
+- If the article is in a non-English language, summarize its content accurately in English
 """
 
 CATEGORY_SUMMARY_PROMPT = """\

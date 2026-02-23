@@ -63,6 +63,7 @@ class Article(Base):
     image_urls         = Column(JSONB,  default=list)
     keywords           = Column(JSONB,  default=list)
     raw_metadata       = Column(JSONB,  default=dict)
+    language           = Column(String(10))    # ISO 639-1: en, zh, ru, ar, ja, etc.
     extraction_method  = Column(String(50))
     extraction_failed  = Column(Boolean, default=False)
     scraped_at         = Column(DateTime(timezone=True), server_default=func.now())
