@@ -500,10 +500,139 @@ sources:
     # AI Safety Institute, AI Risk Management Framework, AI evaluation updates
 
   # ════════════════════════════════════════════════════════════════════════════
-  # CHINESE STATE MEDIA — disabled (RSS feeds mostly dead/stale; revisit later)
-  # Xinhua last entry: 2018. China Daily last entry: 2017. People's Daily: 8mo stale.
-  # Only Global Times was current but low signal value vs. noise.
-  # Future: scrape Chinese-language official gov sources (gov.cn, mfa.gov.cn) + translate.
+  # TIER 1 — ENERGY INDUSTRY
+  # Primary industry sources for the physical resource substrate layer.
+  # IEA and OPEC are bot-blocked (403 Cloudflare) — add via Google News or Playwright later.
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "OilPrice.com — News"
+    type: rss
+    url: "https://oilprice.com/rss/main"
+    category: energy
+    tier: 1
+    # Practical energy news: prices, production, geopolitics. 15 entries/day confirmed.
+
+  - name: "Mining.com — Critical Minerals"
+    type: rss
+    url: "https://www.mining.com/feed/"
+    category: materials
+    tier: 1
+    # Best RSS source for lithium, cobalt, nickel, rare earths, copper. 36 entries confirmed.
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — INNOVATION SIGNALS
+  # Bottom-up signals: where builders and researchers are concentrating.
+  # These precede institutional responses by 12-36 months.
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "Hacker News — Best Stories"
+    type: rss
+    url: "https://hnrss.org/best"
+    category: technology
+    tier: 1
+    # Stories with >= 100 points — higher signal than top feed. 28 entries confirmed.
+
+  - name: "GitHub Trending — Daily"
+    type: rss
+    url: "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml"
+    category: technology
+    tier: 1
+    # What builders are working on globally. Unofficial RSS, 13 entries confirmed.
+
+  - name: "arXiv — Artificial Intelligence"
+    type: rss
+    url: "https://rss.arxiv.org/rss/cs.AI"
+    category: science
+    tier: 1
+    # Raw AI research before institutional filtering. Use rss.arxiv.org (not arxiv.org/rss).
+
+  - name: "arXiv — Machine Learning"
+    type: rss
+    url: "https://rss.arxiv.org/rss/cs.LG"
+    category: science
+    tier: 1
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — EUROPE & INTERNATIONAL INSTITUTIONS
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "ECB — Publications"
+    type: rss
+    url: "https://www.ecb.europa.eu/press/pr/date/2026/html/rss.xml"
+    category: finance
+    tier: 1
+    # Eurozone monetary policy, financial stability statements. 15 entries confirmed.
+
+  - name: "UK Government — Foreign Policy"
+    type: rss
+    url: "https://www.gov.uk/search/news-and-communications.atom?subtopic%5B%5D=foreign-policy"
+    category: geopolitics
+    tier: 1
+    # UK post-Brexit foreign policy, defense. 20 entries confirmed.
+
+  - name: "UN — News"
+    type: rss
+    url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
+    category: geopolitics
+    tier: 1
+    # UN-wide news: Security Council, humanitarian, conflict. 30 entries confirmed.
+
+  - name: "WHO — News"
+    type: rss
+    url: "https://www.who.int/rss-feeds/news-english.xml"
+    category: health
+    tier: 1
+    # Global health emergencies, disease outbreaks, policy. 25 entries confirmed.
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — RUSSIA (state sources — read as narrative management, not fact)
+  # Value: what Russia signals it is doing, rhetoric shifts, gap between claim & action.
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "Kremlin — English"
+    type: rss
+    url: "http://en.kremlin.ru/events/all/feed"
+    category: geopolitics
+    tier: 1
+    # Primary source for Kremlin framing. Use HTTP not HTTPS (HTTPS times out).
+
+  - name: "TASS — World News"
+    type: rss
+    url: "https://tass.com/rss/v2.xml"
+    category: geopolitics
+    tier: 1
+    # Russian state wire. 62 entries, current. Broadest official coverage.
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # TIER 1 — AFRICA
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "African Union — News"
+    type: rss
+    url: "https://au.int/en/rss.xml"
+    category: geopolitics
+    tier: 1
+    # Pan-continental policy, peace & security. 5 entries confirmed.
+
+  - name: "South Africa Government — News"
+    type: rss
+    url: "https://www.gov.za/rss.xml"
+    category: geopolitics
+    tier: 1
+    # Regional power, BRICS member. 10 entries confirmed.
+
+  - name: "AllAfrica — Top Stories"
+    type: rss
+    url: "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf"
+    category: geopolitics
+    tier: 1
+    # Broad African news aggregator. Best available RSS for continent. 33 entries confirmed.
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # CHINESE STATE MEDIA — read as narrative management, not fact
+  # Value: Beijing's signaling, rhetoric shifts, gap between claim and action.
+  # Xinhua RSS: 2018. People's Daily RSS: Jun 2025. Global Times: Feb 2026 (most current).
+  # MFA China, State Council, MOFCOM need web_scrape — not yet built.
   # ════════════════════════════════════════════════════════════════════════════
 
   - name: "Xinhua — World (English)"
@@ -532,7 +661,7 @@ sources:
     url: "https://www.globaltimes.cn/rss/outbrain.xml"
     category: geopolitics
     tier: 1
-    active: false
+    # Most current Chinese English-language RSS: 50 entries, latest Feb 2026 (~2-3 weeks lag)
 
   - name: "CGTN — World"
     type: rss
@@ -649,7 +778,15 @@ sources:
     url: "https://www.aljazeera.com/xml/rss/all.xml"
     category: geopolitics
     tier: 2
-    active: false
+    # Enabled: best English-language non-Western perspective. 25 entries confirmed.
+
+  - name: "Anadolu Agency — English"
+    type: rss
+    url: "https://www.aa.com.tr/en/rss/default?cat=politics"
+    category: geopolitics
+    tier: 2
+    # Turkish state wire. NATO member, regional actor (Middle East, Central Asia, Africa).
+    # 27 entries confirmed. Useful non-US, non-EU angle.
 
   - name: "Ars Technica"
     type: rss

@@ -20,7 +20,37 @@ better models of how things work and where they are heading.
 
 **What is the state of civilization today, and which direction is it moving?**
 
-This decomposes into five persistent questions, revisited every day:
+The framework is materialist: power flows from control of physical inputs (oil, minerals),
+then from control of the technology that processes them (chips, AI, factories), then from
+the human systems built on top (health, climate, governance), then from the bottom-up
+innovation momentum that precedes all of it.
+
+This decomposes into six persistent questions, revisited every day:
+
+---
+
+### Q0 — What is the state of the energy and resource substrate?
+
+This is the question beneath all others. The global economy runs on oil. Global conventional
+oil production is in long-term decline. The only major growth since 2008 was the US Permian
+Basin — and evidence of a Permian slowdown is emerging. A steep Permian decline would
+trigger a global economic contraction.
+
+We are tracking:
+- **Permian production trajectory** — the single most important leading indicator for global
+  supply. Any sign of plateau or decline is high-signal.
+- **Last major fields** — Venezuela (largest proven reserves), Russian shale, Gulf state
+  capacity, new African basins. Who is positioning to control these, and how?
+- **US vs. China energy strategy** — US: command and control of remaining fields (Venezuela
+  as constrictor on China, pressure on Russia). China: collaborate and survive, build
+  resilience through BRI, stockpiling, and domestic renewables.
+- **Critical minerals** — lithium, cobalt, nickel, rare earths, gallium, germanium, copper.
+  Who mines vs. who processes (China dominates processing). Supply chain vulnerabilities.
+- **Energy transition as geopolitical hedge** — renewables are partly a response to
+  resource constraint, not just climate. Who is building energy independence fastest?
+
+**Output type:** Resource substrate report — weekly update on production data, field
+developments, and strategic positioning moves.
 
 ---
 
@@ -115,7 +145,32 @@ they predict something in 6-24 months, not because they are important today.
 
 ---
 
-### Q5 — What are we consistently wrong about?
+### Q5 — What is the bottom-up innovation signal?
+
+Governments and institutions respond to what builders are already doing.
+The pre-institutional signal — what engineers, researchers, and founders are
+working on right now — often precedes the top-down response by 12-36 months.
+
+We are tracking:
+- **GitHub trending** — what is being built and getting attention from developers globally.
+  A new open-source project going viral is a signal about where the field is moving.
+- **Hacker News** — what the technically sophisticated global population finds significant.
+  Not mainstream news — the overlap between "important" and "technically interesting."
+- **arXiv** — raw research output before institutional filtering. What is being published
+  in AI, physics, biology, materials science before journals or press releases.
+- **Fastest-growing companies** — where capital and talent are concentrating.
+  Y Combinator batches, fastest-growing startups, emerging categories.
+
+**Convergence signal:** When a bottom-up momentum signal (GitHub project, research paper,
+startup trend) aligns with a top-down signal (government procurement, export controls,
+regulatory urgency), the convergence is high-signal. Neither alone is as meaningful.
+
+**Output type:** Innovation pulse — weekly summary of where builder momentum is
+concentrating, flagged when it converges with top-down signals.
+
+---
+
+### Q6 — What are we consistently wrong about?
 
 Most news interpretation assumes continuity — that tomorrow will look like today.
 The most consequential events are discontinuities.
@@ -134,15 +189,22 @@ narrative in each major theme area.
 
 ## Part 2 — The Interpretive Framework
 
-### The five lenses (in priority order)
+### The six lenses (in priority order)
 
 These are defined in detail in `lens.md`. Summary:
 
-1. **Systemic stability** — Is the global system holding or cracking?
-2. **US-China axis** — The defining contest of the era; shapes everything else
-3. **Technological acceleration** — Tech is changing faster than governance can adapt
-4. **Economic and financial currents** — Money flows reveal power; track the data
-5. **Scientific and environmental signals** — Long-term signals that shape the century
+1. **Physical substrate — energy and resources** — The game board itself. Oil depletion
+   trajectories, critical mineral control, and the US vs. China positioning around what remains.
+   Geopolitics is largely downstream of this.
+2. **US-China axis** — The defining contest of the era, best understood through the resource lens.
+   Command-and-control (US) vs. collaborate-and-survive (China).
+3. **Strategic technology chokepoints** — Taiwan/semiconductors, AI, manufacturing capacity.
+   Where physical resources meet designed systems.
+4. **Economic and financial currents** — Money flows reveal power; track the data.
+   The financial system is downstream of energy and technology.
+5. **Human systems** — Health/biotech, ecosystem/climate, science. Medium-arc signals.
+6. **Innovation signals** — GitHub trending, Hacker News, arXiv, fastest-growing companies.
+   Bottom-up momentum that precedes institutional response.
 
 When two stories compete for prominence in the briefing, the higher lens wins.
 A Federal Reserve emergency rate cut (Lens 1 + Lens 4) outranks an AI model release
@@ -314,13 +376,24 @@ When deciding what to add or prioritize, apply these filters in order:
 2. **Action vs. statement** — an enforcement action, a rule change, a data release
    carries more weight than a press conference statement. Events > words.
 
-3. **Data vs. narrative** — quantitative data (BLS, FRED, EIA) provides ground
-   truth that narrative can't overwrite. Prioritize sources that produce data.
+3. **Data vs. narrative** — quantitative data (BLS, FRED, EIA, Baker Hughes rig count,
+   IEA production data) provides ground truth that narrative can't overwrite.
+   Prioritize sources that produce data.
 
-4. **Non-US perspective** — given the US-centric nature of current sources,
+4. **Industry sources** — for energy and minerals, the most important signals often
+   come from industry bodies (IEA, OPEC, Baker Hughes, mining associations), not
+   governments. These are primary sources in their domain and should be treated as
+   tier-1, not tier-2.
+
+5. **Non-US perspective** — given the US-centric nature of current sources,
    any high-quality non-US primary source has outsized value until global
    coverage is balanced.
 
-5. **Cross-lens relevance** — a source that touches multiple lenses (e.g., OFAC
-   sanctions data touches geopolitics, finance, AND US-China simultaneously)
-   is worth more than a source that feeds only one lens.
+6. **Cross-lens relevance** — a source that touches multiple lenses simultaneously
+   (e.g., Venezuelan oil policy touches energy substrate + US-China positioning +
+   financial sanctions + geopolitics) is worth more than a single-lens source.
+
+7. **Bottom-up signals** — GitHub, Hacker News, arXiv are not traditional news sources
+   but they are primary signals about where builder momentum is concentrating.
+   Treat trending items as weak signals that strengthen when they appear repeatedly
+   or when they converge with top-down institutional signals.

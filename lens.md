@@ -19,44 +19,82 @@ They are not a passive consumer of news — they are a systems thinker who wants
 
 When interpreting the day's events, rank their significance through these lenses in order:
 
-### 1. Systemic stability (highest priority)
-Events that signal whether large, fragile systems are holding or cracking.
-- Financial systems: Are credit markets, currencies, or sovereign debt showing stress?
-- Geopolitical order: Are the rules-based international institutions functioning or fracturing?
-- Ecological systems: Are climate tipping points being approached or crossed?
-- Social cohesion: Are democratic institutions, civil society, and rule of law strengthening or weakening?
+### 1. The physical substrate — energy and resources (highest priority)
+Everything else rests on this. Geopolitics is largely a competition over physical inputs.
+
+Global conventional oil production is in long-term decline. The only significant growth
+since 2008 was the US Permian Basin — and there is growing evidence of a Permian slowdown.
+If the Permian peaks and declines steeply, global oil supply contracts, and with it,
+the global economy. This is the single most consequential long-run trajectory to track.
+
+The US and China are responding with different strategies:
+- **US strategy: command and control** — secure the last major hydrocarbon geographies
+  before decline locks in. Venezuela (world's largest proven reserves, sits between the
+  US and China in the hemisphere), Russia (massive shale fields), the Gulf — these are
+  chess pieces in an endgame around who controls what remains.
+- **China strategy: collaborate and survive, produce and defend** — build domestic
+  resilience through BRI infrastructure, long-term supply agreements, domestic renewable
+  buildout, and stockpiling. Does not need to own the fields — needs supply lines that
+  can't be cut.
+
+Track:
+- Permian Basin production data — the single most important leading indicator for global
+  energy supply trajectory
+- Remaining large conventional fields and who controls/is attempting to control them
+  (Venezuela, Russia, Gulf states, new African basins)
+- Critical minerals: lithium, cobalt, nickel, rare earths, gallium, germanium, copper —
+  who controls extraction vs. who controls processing (China dominates processing
+  even for minerals mined elsewhere)
+- Energy transition as a geopolitical hedge, not just a climate response
 
 ### 2. The US-China axis
-The competition and occasional cooperation between the United States and China is the central
-geopolitical story of our time. Every day moves this relationship in some direction.
+The competition between the United States and China runs through every other lens.
+Read through the energy lens: China is building resilience for a world of constrained
+resources. The US is attempting to maintain dominance by controlling those resources.
 - Economic decoupling vs. integration
-- Military posture and deterrence
-- Technology competition (semiconductors, AI, space, biotech)
+- Military posture and deterrence (Taiwan as flashpoint, South China Sea)
+- Technology competition — semiconductors, AI, space, biotech, manufacturing
 - Diplomatic signaling and alliance-building
-- Taiwan, South China Sea, and other flashpoints
+- Who is winning the resource positioning game
 
-### 3. Technological acceleration
-Technology is changing faster than governance, ethics, and social structures can adapt.
-Flag events where this gap is widening or narrowing.
-- AI development milestones and their implications
-- Semiconductor supply chain and control
-- Biotech and dual-use research
-- Energy transition and its geopolitical effects
-- Surveillance technology and its spread
+### 3. Strategic technology chokepoints
+Physical resources feed into designed systems. Whoever controls the chokepoints
+in those systems holds structural power regardless of who owns the raw inputs.
+- **Taiwan and semiconductors** — TSMC represents ~90% of advanced chip production.
+  Taiwan is simultaneously a geopolitical flashpoint and the world's most critical
+  manufacturing facility. A Taiwan Strait incident is also a global chip supply crisis.
+- **AI** — compute, model capability, deployment at scale. The rate of change matters
+  more than any single event. Who controls the training infrastructure?
+- **Manufacturing capacity** — industrial policy (CHIPS Act, Made in China 2025,
+  IRA), reshoring, and supply chain diversification reveal 10-year strategic bets.
 
 ### 4. Economic and financial currents
-Money flows reveal power. Track:
+Money flows reveal power. The financial system is downstream of energy and technology.
 - Central bank policy and its global ripple effects
-- Commodity prices (energy, food, rare earths) as geopolitical signals
-- Corporate concentration and market structure
+- Commodity prices (oil, food, rare earths) as geopolitical signals not just market data
+- Sovereign debt stress — which countries can't service debt in a contraction?
 - Trade flows and sanctions as tools of statecraft
+- Currency competition — dollar reserve status, RMB internationalization, gold accumulation
 
-### 5. Scientific and environmental signals
-Long-term signals that rarely make front pages but shape the century:
-- Climate data and extreme weather events
-- Medical and public health developments
-- Space and fundamental research breakthroughs
-- Resource depletion or discovery
+### 5. Human systems — health, ecosystem, science
+Medium-arc signals that rarely make front pages but shape the decade:
+- Health and biotech: pharmaceutical supply chains (China-dominant), longevity research,
+  pandemic preparedness and dual-use biological risk
+- Ecosystem and climate: food security, water stress, ecological tipping points —
+  these are resource constraints as much as environmental concerns
+- Science: fundamental research breakthroughs, dual-use risk, what is being funded
+
+### 6. Innovation signals — bottom-up momentum
+What builders are doing before institutions catch up. This is a pre-institutional
+leading indicator — where human ingenuity is concentrating right now.
+- GitHub trending projects — what is being built at scale, globally
+- Hacker News — what the technically sophisticated world finds significant
+- arXiv — raw research output before institutional filtering
+- Fastest-growing companies — where capital and talent are concentrating
+
+When a bottom-up signal (a new open-source project, a research paper, a startup trend)
+converges with a top-down signal (government procurement, export controls, regulatory
+attention), the convergence is high-signal.
 
 ## How to write the meta story
 
