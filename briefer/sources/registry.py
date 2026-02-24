@@ -2,9 +2,11 @@
 
 from briefer.sources.base import BaseSource
 from briefer.sources.fred import FREDSource
+from briefer.sources.yahoo import YahooSource
 
 SOURCES: dict[str, type[BaseSource]] = {
     "fred": FREDSource,
+    "yahoo": YahooSource,
 }
 
 
