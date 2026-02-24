@@ -82,66 +82,88 @@ sources:
     url: "https://www.state.gov/rss-feed/arms-control-and-international-security/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — topic-specific bureau feeds retired by Trump admin Jan 2025
 
   - name: "State Dept — Counterterrorism"
     type: rss
     url: "https://www.state.gov/rss-feed/counterterrorism/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — retired; covered by Collected Department Releases
 
   - name: "State Dept — Democracy, Human Rights & Labor"
     type: rss
     url: "https://www.state.gov/rss-feed/democracy-human-rights-and-labor/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — bureau effectively shuttered by Trump admin; feed gone
 
   - name: "State Dept — Economic, Energy & Trade"
     type: rss
     url: "https://www.state.gov/rss-feed/economic-energy-agricultural-and-trade-issues/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — retired; covered by Collected Department Releases
 
   - name: "State Dept — International Organizations"
     type: rss
     url: "https://www.state.gov/rss-feed/international-organizations/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — retired Jan 2025
 
   - name: "State Dept — Law Enforcement & Narcotics"
     type: rss
     url: "https://www.state.gov/rss-feed/law-enforcement-narcotics-anti-corruption/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — retired Jan 2025
 
   - name: "State Dept — Diplomatic Security"
     type: rss
     url: "https://www.state.gov/rss-feed/diplomatic-security/feed/"
     category: geopolitics
     tier: 1
+    active: false
+    # 404 — retired Jan 2025
 
   - name: "State Dept — International Health Issues"
     type: rss
     url: "https://www.state.gov/rss-feed/international-health-issues/feed/"
     category: health
     tier: 1
+    active: false
+    # 404 — bureau defunded; feed gone
 
   - name: "State Dept — Climate, Environment & Conservation"
     type: rss
     url: "https://www.state.gov/rss-feed/climate-environment-and-conservation/feed/"
     category: climate
     tier: 1
+    active: false
+    # 404 — Special Envoy for Climate office shuttered; feed gone
 
   - name: "State Dept — Population, Refugees & Migration"
     type: rss
     url: "https://www.state.gov/rss-feed/population-refugees-and-migration/feed/"
     category: social
     tier: 1
+    active: false
+    # 404 — retired Jan 2025
 
   - name: "State Dept — Women's Issues"
     type: rss
     url: "https://www.state.gov/rss-feed/womens-issues/feed/"
     category: social
     tier: 1
+    active: false
+    # 404 — office closed; feed gone
 
   - name: "State Dept — Collected Department Releases"
     type: rss
@@ -217,21 +239,26 @@ sources:
 
   - name: "U.S. Treasury — Press Releases"
     type: rss
-    url: "https://home.treasury.gov/news/press-releases.xml"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=treasury-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: finance
     tier: 1
+    # Direct RSS dead (404 Feb 2026). Federal Register fallback: rulemakings + notices.
+    # OFAC sanctions actions appear here as "Notice of OFAC Sanctions Action".
 
   - name: "OFAC — Sanctions Actions"
     type: rss
-    url: "https://home.treasury.gov/policy-issues/office-of-foreign-assets-control-sanctions-programs-and-information/rss"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=foreign-assets-control-office&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: geopolitics
     tier: 1
+    # OFAC direct RSS retired Jan 31 2025. Federal Register fallback confirmed working:
+    # "Notice of OFAC Sanctions Action" entries appear here. 11 entries confirmed.
 
   - name: "USTR — Press Releases"
     type: rss
-    url: "https://ustr.gov/about-us/policy-offices/press-office/press-releases/rss.xml"
+    url: "https://ustr.gov/rss.xml"
     category: geopolitics
     tier: 1
+    # Fixed URL (old path /about-us/.../rss.xml was 404). ustr.gov/rss.xml confirmed: 10 entries.
 
   - name: "FTC — Press Releases"
     type: rss
@@ -271,28 +298,34 @@ sources:
 
   - name: "CFTC — Press Releases"
     type: rss
-    url: "https://www.cftc.gov/rss/pressreleases"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=commodity-futures-trading-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: finance
     tier: 1
+    # Direct RSS dead (404 Feb 2026). Federal Register fallback: 5 entries confirmed.
 
   - name: "FDIC — Press Releases"
     type: rss
-    url: "https://www.fdic.gov/news/press-releases/rss.xml"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-deposit-insurance-corporation&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: finance
     tier: 1
+    # Direct RSS dead (404 Feb 2026). Federal Register fallback: 8 entries confirmed.
 
   - name: "OCC — News Releases"
     type: rss
-    url: "https://www.occ.gov/news-issuances/news-releases/rss.xml"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=comptroller-of-the-currency&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: finance
     tier: 1
+    # Direct URL returned HTML (no feed). Federal Register fallback: 9 entries confirmed.
 
   - name: "BLS — Economic News Releases"
     type: rss
     url: "https://www.bls.gov/feed/news_release.rss"
     category: finance
     tier: 1
-    # Jobs reports, CPI, PPI, employment cost index — market-moving data releases
+    active: false
+    # Direct RSS dead (404 Feb 2026). bls_latest.rss returns 1 summary entry (not useful).
+    # BLS data (CPI, jobs, PPI) not in Federal Register — no good RSS alternative.
+    # Replace with FRED data API when Phase C data sources are built.
 
   # ════════════════════════════════════════════════════════════════════════════
   # TIER 1 — NATIONAL SECURITY & CYBER
@@ -300,9 +333,12 @@ sources:
 
   - name: "DOJ — National Security Division"
     type: rss
-    url: "https://www.justice.gov/rss/national-security.xml"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=justice-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: geopolitics
     tier: 1
+    # Direct RSS dead (404 Feb 2026). Federal Register fallback: 63 entries today.
+    # Note: covers DOJ rulemakings broadly, not enforcement press releases.
+    # Enable Google News — FBI & DOJ Enforcement (below) for indictments/arrests.
 
   - name: "CISA — Alerts & Advisories"
     type: rss
@@ -339,6 +375,8 @@ sources:
     url: "https://www.eia.gov/rss/ngs.xml"
     category: energy
     tier: 1
+    active: false
+    # 404 Feb 2026. No working alternative found. EIA Today in Energy covers main EIA output.
 
   - name: "Department of Energy — News"
     type: rss
@@ -366,9 +404,10 @@ sources:
 
   - name: "NRC — Press Releases"
     type: rss
-    url: "https://www.nrc.gov/reading-rm/doc-collections/news/rss/nrc-news.xml"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=nuclear-regulatory-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: energy
     tier: 1
+    # Direct RSS dead (Azure blob deleted Feb 2026). Federal Register fallback: 43 entries today.
 
   - name: "FERC — Federal Register (Rules & Orders)"
     type: rss
@@ -407,9 +446,10 @@ sources:
 
   - name: "EPA — News Releases"
     type: rss
-    url: "https://www.epa.gov/newsreleases/search/rss"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=environmental-protection-agency&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: ecosystem
     tier: 1
+    # Direct RSS returns 202 (rate-limited/broken Feb 2026). Federal Register fallback: 57 entries.
 
   - name: "NIH — News Releases"
     type: rss
@@ -426,21 +466,27 @@ sources:
 
   - name: "FDA — Press Announcements"
     type: rss
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-announcements/rss.xml"
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=food-and-drug-administration&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: health
     tier: 1
+    # All fda.gov RSS feeds dead (404 Feb 2026). Federal Register fallback covers drug approvals,
+    # device clearances, and rulemakings in one feed. 64 entries confirmed, fresh today.
 
   - name: "FDA — Drug Approvals"
     type: rss
     url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/fda-drug-approvals/rss.xml"
     category: health
     tier: 1
+    active: false
+    # 404 — consolidated into FDA — Press Announcements (Federal Register) above
 
   - name: "FDA — Medical Devices"
     type: rss
     url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml"
     category: health
     tier: 1
+    active: false
+    # 404 — consolidated into FDA — Press Announcements (Federal Register) above
 
   - name: "HHS — Federal Register (Rules & Notices)"
     type: rss
@@ -497,7 +543,8 @@ sources:
     url: "https://www.nist.gov/artificial-intelligence/rss.xml"
     category: technology
     tier: 1
-    # AI Safety Institute, AI Risk Management Framework, AI evaluation updates
+    active: false
+    # 404 Feb 2026. No sub-topic RSS available. Main NIST — News feed covers AI content.
 
   # ════════════════════════════════════════════════════════════════════════════
   # TIER 1 — ENERGY INDUSTRY
@@ -568,7 +615,9 @@ sources:
     url: "https://www.ecb.europa.eu/press/pr/date/2026/html/rss.xml"
     category: finance
     tier: 1
-    # Eurozone monetary policy, financial stability statements. 15 entries confirmed.
+    active: false
+    # 404 Feb 2026. URL has year hardcoded (/date/2026/) — will always break on year rollover.
+    # No working ECB RSS URL found. Revisit: check ecb.europa.eu/rss/ or use Google News.
 
   - name: "UK Government — Foreign Policy"
     type: rss
@@ -930,8 +979,8 @@ sources:
     url: "https://news.google.com/rss/search?q=FBI+DOJ+indictment+arrest+enforcement+press+release&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
     tier: 2
-    active: false
-    # FBI removed direct RSS; Google News is the best proxy for enforcement actions
+    # Enabled: best proxy for DOJ/FBI enforcement actions (indictments, arrests, national security cases).
+    # Direct DOJ RSS dead (404 Feb 2026); Fed Register covers rulemakings but not press releases.
 
   - name: "Google News — World"
     type: google_news
