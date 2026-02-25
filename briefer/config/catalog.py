@@ -49,10 +49,14 @@ CATALOG: dict[str, dict[str, dict]] = {
         "PPIACO":         {"category": "inflation",  "name": "PPI — All Commodities"},
         "CUUR0000SAF11":  {"category": "inflation",  "name": "CPI — Food at Home"},
 
-        # ── RATES & YIELDS ───────────────────────────────────────────────
+        # ── RATES & YIELDS (full curve) ─────────────────────────────────
         "FEDFUNDS":       {"category": "rates",      "name": "Federal Funds Effective Rate"},
-        "DGS10":          {"category": "rates",      "name": "10-Year Treasury Yield"},
+        "SOFR":           {"category": "rates",      "name": "Secured Overnight Financing Rate"},
+        "DGS3MO":         {"category": "rates",      "name": "3-Month Treasury Yield"},
+        "DGS1":           {"category": "rates",      "name": "1-Year Treasury Yield"},
         "DGS2":           {"category": "rates",      "name": "2-Year Treasury Yield"},
+        "DGS5":           {"category": "rates",      "name": "5-Year Treasury Yield"},
+        "DGS10":          {"category": "rates",      "name": "10-Year Treasury Yield"},
         "DGS30":          {"category": "rates",      "name": "30-Year Treasury Yield"},
         "T10Y2Y":         {"category": "rates",      "name": "10Y-2Y Treasury Spread"},
         "DFII10":         {"category": "rates",      "name": "10-Year Real Yield (TIPS)"},
@@ -61,8 +65,8 @@ CATALOG: dict[str, dict[str, dict]] = {
         # ── CREDIT & FINANCIAL STRESS ────────────────────────────────────
         "BAMLH0A0HYM2":  {"category": "credit",     "name": "High Yield Bond Spread (ICE BofA)"},
         "BAMLC0A4CBBB":  {"category": "credit",     "name": "BBB Corporate Bond Spread"},
-        "STLFSI2":       {"category": "credit",     "name": "St. Louis Fed Financial Stress Index"},
-        "TEDRATE":       {"category": "credit",     "name": "TED Spread (LIBOR-Tbill)"},
+        "STLFSI4":       {"category": "credit",     "name": "St. Louis Fed Financial Stress Index"},
+        "NFCI":          {"category": "credit",     "name": "Chicago Fed National Financial Conditions"},
         "DRCCLACBS":     {"category": "credit",     "name": "Credit Card Delinquency Rate"},
         "DRSFRMACBS":    {"category": "credit",     "name": "Mortgage Delinquency Rate"},
         "BUSLOANS":      {"category": "credit",     "name": "Commercial & Industrial Loans"},
@@ -86,7 +90,6 @@ CATALOG: dict[str, dict[str, dict]] = {
         # ── MARKETS ──────────────────────────────────────────────────────
         "SP500":         {"category": "markets",    "name": "S&P 500"},
         "VIXCLS":        {"category": "markets",    "name": "VIX Volatility Index"},
-        "WILL5000PR":    {"category": "markets",    "name": "Wilshire 5000 (Total Market)"},
         "NASDAQCOM":     {"category": "markets",    "name": "Nasdaq Composite"},
 
         # ── ENERGY ───────────────────────────────────────────────────────
@@ -96,11 +99,9 @@ CATALOG: dict[str, dict[str, dict]] = {
         "GASREGW":       {"category": "energy",     "name": "Regular Gasoline Price (Weekly)"},
 
         # ── COMMODITIES ──────────────────────────────────────────────────
-        "GOLDPMGBD228NLBM":{"category": "commodities","name": "Gold Price (London PM Fix)"},
         "PCOPPUSDM":     {"category": "commodities", "name": "Global Copper Price"},
-        "PSILVERUSDM":   {"category": "commodities", "name": "Global Silver Price"},
         "PWHEAMTUSDM":   {"category": "commodities", "name": "Global Wheat Price"},
-        "PMAABORTSM":    {"category": "commodities", "name": "Global Coffee Price"},
+        "PCOFFOTMUSDM":  {"category": "commodities", "name": "Global Coffee Price (Arabica)"},
         "WPU10170502":   {"category": "commodities", "name": "PPI — Lumber"},
 
         # ── HOUSING ──────────────────────────────────────────────────────
@@ -114,6 +115,17 @@ CATALOG: dict[str, dict[str, dict]] = {
         "PSAVERT":       {"category": "consumer",   "name": "Personal Saving Rate"},
         "REVOLSL":       {"category": "consumer",   "name": "Revolving Consumer Credit (Credit Cards)"},
         "PCE":           {"category": "consumer",   "name": "Personal Consumption Expenditures"},
+
+        # ── MANUFACTURING ───────────────────────────────────────────────
+        "IPMAN":         {"category": "manufacturing", "name": "Industrial Production: Manufacturing"},
+        "AMTMNO":        {"category": "manufacturing", "name": "Manufacturers New Orders (Total)"},
+        "DGORDER":       {"category": "manufacturing", "name": "Durable Goods Orders"},
+        "NEWORDER":      {"category": "manufacturing", "name": "Manufacturers New Orders (Nondefense)"},
+
+        # ── FISCAL & GOVERNMENT ─────────────────────────────────────────
+        "GFDEBTN":       {"category": "fiscal",     "name": "Federal Debt: Total Public Debt"},
+        "FYFSD":         {"category": "fiscal",     "name": "Federal Surplus or Deficit"},
+        "FDHBFIN":       {"category": "fiscal",     "name": "Federal Debt Held by Foreign Investors"},
 
         # ── GLOBAL / TRADE ───────────────────────────────────────────────
         "BOPGSTB":       {"category": "trade",      "name": "US Trade Balance (Goods & Services)"},
@@ -152,13 +164,38 @@ CATALOG: dict[str, dict[str, dict]] = {
         "XLP":      {"category": "sectors",     "name": "Consumer Staples SPDR"},
         "XLU":      {"category": "sectors",     "name": "Utilities SPDR"},
 
-        # ── KEY INSTRUMENTS FROM THE BETS ────────────────────────────────
+        # ── GLOBAL INDICES ──────────────────────────────────────────────
+        "^FTSE":    {"category": "global",      "name": "FTSE 100 (UK)"},
+        "^N225":    {"category": "global",      "name": "Nikkei 225 (Japan)"},
+        "^HSI":     {"category": "global",      "name": "Hang Seng Index (HK/China)"},
+        "^GDAXI":   {"category": "global",      "name": "DAX (Germany)"},
+
+        # ── KEY INSTRUMENTS & ETFS ──────────────────────────────────────
         "TLT":      {"category": "bonds",       "name": "20+ Year Treasury Bond ETF"},
         "TIP":      {"category": "bonds",       "name": "TIPS Bond ETF"},
         "HYG":      {"category": "credit",      "name": "iShares High Yield Corporate Bond ETF"},
+        "LQD":      {"category": "credit",      "name": "iShares Investment Grade Corp Bond ETF"},
         "GLD":      {"category": "commodities", "name": "SPDR Gold Trust"},
         "USO":      {"category": "energy",      "name": "United States Oil Fund"},
         "UNG":      {"category": "energy",      "name": "United States Natural Gas Fund"},
+
+        # ── THEMATIC / RISK INDICATORS ──────────────────────────────────
+        "BTC-USD":  {"category": "crypto",      "name": "Bitcoin (liquidity/risk proxy)"},
+        "ETH-USD":  {"category": "crypto",      "name": "Ethereum"},
+        "SMH":      {"category": "sectors",     "name": "VanEck Semiconductor ETF"},
+        "XLK":      {"category": "sectors",     "name": "Technology Select Sector SPDR"},
+        "XLI":      {"category": "sectors",     "name": "Industrial Select Sector SPDR"},
+        "XLB":      {"category": "sectors",     "name": "Materials Select Sector SPDR"},
+        "XLV":      {"category": "sectors",     "name": "Health Care Select Sector SPDR"},
+        "XLRE":     {"category": "sectors",     "name": "Real Estate Select Sector SPDR"},
+
+        # ── COUNTRY / EM PROXIES ────────────────────────────────────────
+        "EEM":      {"category": "global",      "name": "iShares MSCI Emerging Markets ETF"},
+        "FXI":      {"category": "global",      "name": "iShares China Large-Cap ETF"},
+        "EWJ":      {"category": "global",      "name": "iShares MSCI Japan ETF"},
+        "EWZ":      {"category": "global",      "name": "iShares MSCI Brazil ETF"},
+        "INDA":     {"category": "global",      "name": "iShares MSCI India ETF"},
+        "VNQ":      {"category": "sectors",     "name": "Vanguard Real Estate ETF"},
     },
 }
 
