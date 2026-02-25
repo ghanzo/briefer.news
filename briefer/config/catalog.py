@@ -144,7 +144,14 @@ CATALOG: dict[str, dict[str, dict]] = {
         # ── GLOBAL / TRADE ───────────────────────────────────────────────
         "BOPGSTB":       {"category": "trade",      "name": "US Trade Balance (Goods & Services)"},
         "IEABC":         {"category": "trade",      "name": "US Current Account Balance"},
-        "IR3TIB01CNM156N":{"category": "trade",     "name": "China 3-Month Interbank Rate"},
+
+        # ── CHINA MACRO (COVERAGE dim 1 — US-China axis) ───────────────
+        "IR3TIB01CNM156N":{"category": "china",     "name": "China 3-Month Interbank Rate"},
+        "CHNCPIALLMINMEI":{"category": "china",     "name": "China CPI (All Items)"},
+        "XTEXVA01CNM667S":{"category": "china",     "name": "China Exports (Monthly, SA)"},
+        "XTIMVA01CNM667S":{"category": "china",     "name": "China Imports (Monthly, SA)"},
+        "TRESEGCNM052N": {"category": "china",      "name": "China Foreign Reserves (ex Gold)"},
+        "CRDQCNAPABIS":  {"category": "china",      "name": "China Total Credit to Private Sector"},
     },
 
     "yahoo": {
@@ -241,9 +248,17 @@ CATALOG: dict[str, dict[str, dict]] = {
         "BTC-USD":  {"category": "crypto",      "name": "Bitcoin (liquidity/risk proxy)"},
         "ETH-USD":  {"category": "crypto",      "name": "Ethereum"},
 
+        # ── CHINA MARKETS & TECH (COVERAGE dim 1 — US-China axis) ──────
+        "000001.SS":{"category": "china",       "name": "Shanghai Composite Index"},
+        "FXI":      {"category": "china",       "name": "iShares China Large-Cap ETF"},
+        "KWEB":     {"category": "china",       "name": "KraneShares China Internet ETF"},
+        "MCHI":     {"category": "china",       "name": "iShares MSCI China ETF"},
+        "BABA":     {"category": "china",       "name": "Alibaba (China consumer/tech)"},
+        "NIO":      {"category": "china",       "name": "NIO Inc (China EV transition)"},
+        "CQQQ":     {"category": "china",       "name": "Invesco China Technology ETF"},
+
         # ── COUNTRY / EM PROXIES ────────────────────────────────────────
         "EEM":      {"category": "global",      "name": "iShares MSCI Emerging Markets ETF"},
-        "FXI":      {"category": "global",      "name": "iShares China Large-Cap ETF"},
         "EWJ":      {"category": "global",      "name": "iShares MSCI Japan ETF"},
         "EWZ":      {"category": "global",      "name": "iShares MSCI Brazil ETF"},
         "INDA":     {"category": "global",      "name": "iShares MSCI India ETF"},
