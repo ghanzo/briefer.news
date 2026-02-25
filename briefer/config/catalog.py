@@ -1,6 +1,6 @@
 """Pre-configured series catalog — the default "interesting" series per source.
 
-Organized by predictive function:
+Organized by predictive function (see COVERAGE.md for full rationale):
   - What signals recession timing?
   - What signals inflation persistence?
   - What signals energy supply stress?
@@ -8,6 +8,10 @@ Organized by predictive function:
   - What signals dollar trajectory?
   - What signals consumer health?
   - What prices hard assets for the portfolio?
+  - What signals AI/tech acceleration?          [COVERAGE dim 2]
+  - What signals materials/mining stress?       [COVERAGE dim 4]
+  - What signals food/climate disruption?       [COVERAGE dim 6]
+  - What signals geopolitical power shifts?     [COVERAGE dim 1]
 """
 
 CATALOG: dict[str, dict[str, dict]] = {
@@ -97,12 +101,22 @@ CATALOG: dict[str, dict[str, dict]] = {
         "DCOILBRENTEU":  {"category": "energy",     "name": "Brent Crude Oil Price"},
         "DHHNGSP":       {"category": "energy",     "name": "Henry Hub Natural Gas Spot Price"},
         "GASREGW":       {"category": "energy",     "name": "Regular Gasoline Price (Weekly)"},
+        "IPG2211A2N":    {"category": "energy",     "name": "Electric Power Generation Index"},
+        "MCOILWTICO":    {"category": "energy",     "name": "WTI Crude Oil (Monthly Avg)"},
 
         # ── COMMODITIES ──────────────────────────────────────────────────
         "PCOPPUSDM":     {"category": "commodities", "name": "Global Copper Price"},
         "PWHEAMTUSDM":   {"category": "commodities", "name": "Global Wheat Price"},
         "PCOFFOTMUSDM":  {"category": "commodities", "name": "Global Coffee Price (Arabica)"},
         "WPU10170502":   {"category": "commodities", "name": "PPI — Lumber"},
+        "PNICKUSDM":     {"category": "commodities", "name": "Global Nickel Price"},
+        "PIORECRUSDM":   {"category": "commodities", "name": "Global Iron Ore Price"},
+
+        # ── FOOD & AGRICULTURE (climate/food security) ──────────────────
+        "PFOODINDEXM":   {"category": "food",        "name": "IMF Global Food Price Index"},
+        "PNRGINDEXM":    {"category": "food",        "name": "IMF Energy Price Index"},
+        "PSOYBUSDM":     {"category": "food",        "name": "Global Soybean Price"},
+        "PRICENPQUSDM":  {"category": "food",        "name": "Global Rice Price"},
 
         # ── HOUSING ──────────────────────────────────────────────────────
         "CSUSHPISA":     {"category": "housing",    "name": "Case-Shiller Home Price Index"},
@@ -150,6 +164,7 @@ CATALOG: dict[str, dict[str, dict]] = {
         "NG=F":     {"category": "commodities", "name": "Natural Gas Futures"},
         "ZW=F":     {"category": "commodities", "name": "Wheat Futures"},
         "ZC=F":     {"category": "commodities", "name": "Corn Futures"},
+        "ZS=F":     {"category": "commodities", "name": "Soybean Futures"},
 
         # ── FOREX ────────────────────────────────────────────────────────
         "EURUSD=X": {"category": "forex",       "name": "EUR/USD"},
@@ -179,15 +194,52 @@ CATALOG: dict[str, dict[str, dict]] = {
         "USO":      {"category": "energy",      "name": "United States Oil Fund"},
         "UNG":      {"category": "energy",      "name": "United States Natural Gas Fund"},
 
-        # ── THEMATIC / RISK INDICATORS ──────────────────────────────────
-        "BTC-USD":  {"category": "crypto",      "name": "Bitcoin (liquidity/risk proxy)"},
-        "ETH-USD":  {"category": "crypto",      "name": "Ethereum"},
-        "SMH":      {"category": "sectors",     "name": "VanEck Semiconductor ETF"},
+        # ── AI & TECH CHOKEPOINTS (COVERAGE dim 2) ──────────────────────
+        "NVDA":     {"category": "technology",  "name": "Nvidia (AI compute demand)"},
+        "TSM":      {"category": "technology",  "name": "TSMC (foundry chokepoint)"},
+        "ASML":     {"category": "technology",  "name": "ASML (lithography monopoly)"},
+        "MSFT":     {"category": "technology",  "name": "Microsoft (AI infrastructure)"},
+        "GOOGL":    {"category": "technology",  "name": "Alphabet (AI infrastructure)"},
+        "SMH":      {"category": "technology",  "name": "VanEck Semiconductor ETF"},
         "XLK":      {"category": "sectors",     "name": "Technology Select Sector SPDR"},
+
+        # ── ENERGY TRANSITION (COVERAGE dim 3) ─────────────────────────
+        "URA":      {"category": "energy",      "name": "Global X Uranium ETF"},
+        "CCJ":      {"category": "energy",      "name": "Cameco (uranium producer)"},
+        "TAN":      {"category": "energy",      "name": "Invesco Solar ETF"},
+        "ICLN":     {"category": "energy",      "name": "iShares Global Clean Energy ETF"},
+
+        # ── MATERIALS & MINING (COVERAGE dim 4) ────────────────────────
+        "LIT":      {"category": "materials",   "name": "Global X Lithium & Battery ETF"},
+        "REMX":     {"category": "materials",   "name": "VanEck Rare Earth/Strategic Metals ETF"},
+        "MP":       {"category": "materials",   "name": "MP Materials (US rare earth mine)"},
+        "ALB":      {"category": "materials",   "name": "Albemarle (lithium producer)"},
+        "FCX":      {"category": "materials",   "name": "Freeport-McMoRan (copper/gold mining)"},
+        "BHP":      {"category": "materials",   "name": "BHP Group (diversified mining)"},
+        "VALE":     {"category": "materials",   "name": "Vale SA (nickel/iron ore mining)"},
+
+        # ── FOOD & AGRICULTURE (COVERAGE dim 6) ────────────────────────
+        "DBA":      {"category": "food",        "name": "Invesco DB Agriculture Fund"},
+        "MOO":      {"category": "food",        "name": "VanEck Agribusiness ETF"},
+
+        # ── BIOTECH & HEALTH (COVERAGE dim 7) ──────────────────────────
+        "XBI":      {"category": "health",      "name": "SPDR S&P Biotech ETF"},
+        "LLY":      {"category": "health",      "name": "Eli Lilly (GLP-1 leader)"},
+        "NVO":      {"category": "health",      "name": "Novo Nordisk (GLP-1/obesity)"},
+
+        # ── DEFENSE & GEOPOLITICS (COVERAGE dim 1) ─────────────────────
+        "ITA":      {"category": "defense",     "name": "iShares US Aerospace & Defense ETF"},
+        "LMT":      {"category": "defense",     "name": "Lockheed Martin"},
+
+        # ── SECTOR ROTATION (remaining) ────────────────────────────────
         "XLI":      {"category": "sectors",     "name": "Industrial Select Sector SPDR"},
         "XLB":      {"category": "sectors",     "name": "Materials Select Sector SPDR"},
         "XLV":      {"category": "sectors",     "name": "Health Care Select Sector SPDR"},
         "XLRE":     {"category": "sectors",     "name": "Real Estate Select Sector SPDR"},
+
+        # ── CRYPTO / ALTERNATIVE RAILS ─────────────────────────────────
+        "BTC-USD":  {"category": "crypto",      "name": "Bitcoin (liquidity/risk proxy)"},
+        "ETH-USD":  {"category": "crypto",      "name": "Ethereum"},
 
         # ── COUNTRY / EM PROXIES ────────────────────────────────────────
         "EEM":      {"category": "global",      "name": "iShares MSCI Emerging Markets ETF"},
