@@ -284,35 +284,37 @@ def run_scrape(limit: int = 0) -> list[Article]:
 
 def run_process() -> None:
     """
-    Stage 2: Summarize unprocessed articles (Gemini Flash if available, else Claude Haiku).
-    Stage 3: Generate category summaries and meta story (Claude Sonnet).
+    Stage 2: Summarize unprocessed articles.
+    Stage 3: Generate world brief (PDB-style).
     Builds static HTML site.
 
-    Requires: ANTHROPIC_API_KEY (Stage 3)
-    Optional: GEMINI_API_KEY (Stage 2 — preferred; falls back to Claude Haiku)
+    Provider priority: Grok (XAI_API_KEY) > Gemini (GEMINI_API_KEY) > Claude (ANTHROPIC_API_KEY)
     """
-    api_key = os.getenv("ANTHROPIC_API_KEY", "")
-    if not api_key or api_key == "your_anthropic_api_key_here":
-        logger.warning("ANTHROPIC_API_KEY not set — skipping process stage")
+    from processor.grok import create_grok_client
+    from processor.gemini import create_gemini_client, summarize_articles_parallel as gemini_summarize
+
+    grok_client = create_grok_client()
+    use_gemini = create_gemini_client() if not grok_client else False
+    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
+    has_anthropic = anthropic_key and anthropic_key != "your_anthropic_api_key_here"
+
+    if not grok_client and not use_gemini and not has_anthropic:
+        logger.warning("No AI API key set (XAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY) -- skipping process stage")
         return
 
-    import anthropic
-    from processor.claude import summarize_article, generate_category_summaries, generate_meta_story
-    from processor.gemini import create_gemini_client, summarize_articles_parallel
+    logger.info("=" * 60)
+    logger.info(f"STAGE 2 + 3 -- PROCESS -- {datetime.utcnow().isoformat()}")
 
-    logger.info("═" * 60)
-    logger.info(f"STAGE 2 + 3 — PROCESS — {datetime.utcnow().isoformat()}")
-
-    use_gemini = create_gemini_client()
-    if use_gemini:
-        logger.info("Stage 2: Gemini Flash (parallel)")
+    if grok_client:
+        logger.info("Provider: Grok (xAI) -- all stages")
+    elif use_gemini:
+        logger.info("Stage 2: Gemini Flash | Stage 3: Claude Sonnet")
     else:
-        logger.info("Stage 2: Claude Haiku (sequential — set GEMINI_API_KEY for faster/cheaper)")
+        logger.info("Provider: Claude -- all stages")
 
     engine  = get_engine()
     session = get_session(engine)
     today   = str(date.today())
-    claude  = anthropic.Anthropic(api_key=api_key)
 
     try:
         # Find articles without summaries
@@ -327,19 +329,19 @@ def run_process() -> None:
             .all()
         )
 
-        logger.info(f"Processing {len(unprocessed)} articles…")
+        logger.info(f"Processing {len(unprocessed)} articles...")
         summaries_created = 0
 
-        if use_gemini and unprocessed:
-            # Stage 2: Gemini Flash — parallel summarization
+        if grok_client and unprocessed:
+            from processor.grok import summarize_articles_parallel as grok_summarize
             article_dicts = [
                 {"id": a.id, "title": a.title, "full_text": a.full_text}
                 for a in unprocessed
             ]
-            gemini_results = summarize_articles_parallel(article_dicts)
+            batch_results = grok_summarize(grok_client, article_dicts)
 
             for article in unprocessed:
-                result = gemini_results.get(article.id, {})
+                result = batch_results.get(article.id, {})
                 summary = ArticleSummary(
                     article_id=article.id,
                     summary=result.get("summary"),
@@ -357,8 +359,36 @@ def run_process() -> None:
                 summaries_created += 1
             session.commit()
 
-        else:
-            # Stage 2 fallback: Claude Haiku — sequential
+        elif use_gemini and unprocessed:
+            article_dicts = [
+                {"id": a.id, "title": a.title, "full_text": a.full_text}
+                for a in unprocessed
+            ]
+            batch_results = gemini_summarize(article_dicts)
+
+            for article in unprocessed:
+                result = batch_results.get(article.id, {})
+                summary = ArticleSummary(
+                    article_id=article.id,
+                    summary=result.get("summary"),
+                    headline=result.get("headline"),
+                    importance_score=result.get("importance_score", 0.5),
+                    category=result.get("category"),
+                    subcategory=result.get("subcategory"),
+                    tags=result.get("tags", []),
+                    entities=result.get("entities", []),
+                    time_sensitivity=result.get("time_sensitivity"),
+                    model_used=result.get("model_used"),
+                    failed=result.get("failed", False),
+                )
+                session.add(summary)
+                summaries_created += 1
+            session.commit()
+
+        elif has_anthropic and unprocessed:
+            import anthropic
+            from processor.claude import summarize_article
+            claude = anthropic.Anthropic(api_key=anthropic_key)
             for article in unprocessed:
                 result = summarize_article(claude, article.title, article.full_text)
                 summary = ArticleSummary(
@@ -377,7 +407,7 @@ def run_process() -> None:
 
         logger.info(f"Summaries created: {summaries_created}")
 
-        # Pull all scored articles, group by category
+        # Pull all scored articles, sorted by importance
         scored = (
             session.query(ArticleSummary, Article, Source)
             .join(Article, ArticleSummary.article_id == Article.id)
@@ -391,66 +421,59 @@ def run_process() -> None:
             .all()
         )
 
-        articles_by_category: dict[str, list[dict]] = {}
+        all_articles = []
         for summ, art, src in scored:
-            cat = summ.category or "general"
-            articles_by_category.setdefault(cat, []).append({
+            all_articles.append({
                 "id":               art.id,
                 "title":            art.title,
                 "url":              art.url,
                 "headline":         summ.headline or art.title,
                 "summary":          summ.summary or "",
                 "importance_score": summ.importance_score,
-                "category":         cat,
+                "category":         summ.category or "general",
+                "region":           getattr(summ, "subcategory", None) or "global",
                 "source_name":      src.name if src else "Unknown",
                 "publish_date":     str(art.publish_date) if art.publish_date else None,
             })
 
-        all_sorted  = sorted(
-            [e for lst in articles_by_category.values() for e in lst],
-            key=lambda x: x["importance_score"], reverse=True,
-        )
-        top_articles = all_sorted[:TOP_ARTICLES_COUNT]
+        # Count unique sources
+        source_count = session.query(Source).filter(Source.active == True).count()
 
-        cat_summaries = generate_category_summaries(claude, articles_by_category, today)
-        meta          = generate_meta_story(claude, top_articles, cat_summaries, today)
+        # Stage 3: Generate world brief
+        if grok_client:
+            from processor.grok import generate_world_brief
+            brief = generate_world_brief(grok_client, all_articles, today, source_count)
+        else:
+            # Fallback: build a simple brief from the scored articles
+            brief = {
+                "date": today,
+                "headline": f"World Brief -- {today}",
+                "items": [
+                    {"bullet": a["headline"] + ": " + a["summary"], "region": a.get("region", "global"), "severity": "high" if a["importance_score"] >= 0.7 else "medium"}
+                    for a in all_articles[:10]
+                ],
+                "watch": "AI synthesis unavailable -- showing top articles by importance score.",
+            }
 
+        # Save to DB
+        import json as _json
         briefing = DailyBriefing(
             briefing_date=date.today(),
-            meta_headline=meta.get("meta_headline"),
-            meta_story=meta.get("meta_story"),
-            top_article_ids=[a["id"] for a in top_articles],
-            total_articles_scraped=len(all_sorted),
+            meta_headline=brief.get("headline"),
+            meta_story=_json.dumps(brief),
+            top_article_ids=[a["id"] for a in all_articles[:TOP_ARTICLES_COUNT]],
+            total_articles_scraped=len(all_articles),
             total_articles_processed=summaries_created,
         )
         session.add(briefing)
-        session.flush()
-
-        for cat, data in cat_summaries.items():
-            session.add(CategorySummary(
-                briefing_id=briefing.id,
-                category=cat,
-                headline=data.get("headline"),
-                summary=data.get("summary"),
-                article_ids=[a["id"] for a in articles_by_category.get(cat, [])],
-            ))
         session.commit()
 
         build_site(
-            briefing={
-                "briefing_date": str(briefing.briefing_date),
-                "meta_headline": briefing.meta_headline,
-                "meta_story":    briefing.meta_story,
-            },
-            category_summaries=[
-                {"category": cat, "headline": d.get("headline"),
-                 "summary": d.get("summary"), "articles": articles_by_category.get(cat, [])}
-                for cat, d in cat_summaries.items()
-            ],
-            top_articles=top_articles,
+            brief=brief,
+            top_articles=all_articles[:50],
         )
 
-        logger.info(f"Process stage complete — briefing for {today} built.")
+        logger.info(f"Process stage complete -- world brief for {today} built.")
 
     except Exception as e:
         logger.exception(f"Process stage failed: {e}")

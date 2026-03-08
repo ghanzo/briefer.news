@@ -845,56 +845,48 @@ sources:
     url: "https://feeds.reuters.com/reuters/worldNews"
     category: geopolitics
     tier: 2
-    active: false
 
   - name: "Reuters — Business"
     type: rss
     url: "https://feeds.reuters.com/reuters/businessNews"
     category: finance
     tier: 2
-    active: false
 
   - name: "Reuters — Technology"
     type: rss
     url: "https://feeds.reuters.com/reuters/technologyNews"
     category: technology
     tier: 2
-    active: false
 
   - name: "Reuters — Science"
     type: rss
     url: "https://feeds.reuters.com/reuters/scienceNews"
     category: science
     tier: 2
-    active: false
 
   - name: "BBC — World"
     type: rss
     url: "https://feeds.bbci.co.uk/news/world/rss.xml"
     category: geopolitics
     tier: 2
-    active: false
 
   - name: "BBC — Technology"
     type: rss
     url: "https://feeds.bbci.co.uk/news/technology/rss.xml"
     category: technology
     tier: 2
-    active: false
 
   - name: "BBC — Science & Environment"
     type: rss
     url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
     category: science
     tier: 2
-    active: false
 
   - name: "Associated Press — Top News"
     type: rss
     url: "https://apnews.com/apf-topnews.rss"
     category: geopolitics
     tier: 2
-    active: false
 
   - name: "Al Jazeera — World"
     type: rss
@@ -987,35 +979,30 @@ sources:
     url: "https://news.google.com/rss/search?q=world+news+geopolitics&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
     tier: 2
-    active: false
 
   - name: "Google News — US-China Relations"
     type: google_news
     url: "https://news.google.com/rss/search?q=US+China+relations+geopolitics+Taiwan&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
     tier: 2
-    active: false
 
   - name: "Google News — Sanctions & Export Controls"
     type: google_news
     url: "https://news.google.com/rss/search?q=OFAC+sanctions+export+controls+BIS+chip+war&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
     tier: 2
-    active: false
 
   - name: "Google News — Artificial Intelligence"
     type: google_news
     url: "https://news.google.com/rss/search?q=artificial+intelligence+AGI+LLM+foundation+model&hl=en-US&gl=US&ceid=US:en"
     category: technology
     tier: 2
-    active: false
 
   - name: "Google News — Semiconductors"
     type: google_news
     url: "https://news.google.com/rss/search?q=semiconductors+TSMC+Nvidia+ASML+chip+supply+chain&hl=en-US&gl=US&ceid=US:en"
     category: technology
     tier: 2
-    active: false
 
   - name: "Google News — Robotics"
     type: google_news
@@ -1135,6 +1122,63 @@ sources:
     category: geopolitics
     tier: 3
     active: false
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # MISSING REGIONS — Added for world brief coverage
+  # ════════════════════════════════════════════════════════════════════════════
+
+  # ── India ──
+  - name: "Google News — India"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=India+Modi+government+policy&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
+
+  - name: "Times of India — Top Stories"
+    type: rss
+    url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
+    category: geopolitics
+    tier: 2
+
+  # ── Japan & South Korea ──
+  - name: "NHK World — Top Stories"
+    type: rss
+    url: "https://www3.nhk.or.jp/nhkworld/en/news/feeds/"
+    category: geopolitics
+    tier: 2
+
+  - name: "Yonhap — English"
+    type: rss
+    url: "https://en.yna.co.kr/RSS/news.xml"
+    category: geopolitics
+    tier: 2
+
+  # ── EU / Europe ──
+  - name: "Google News — European Union"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=European+Union+EU+policy+Brussels&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
+
+  - name: "Deutsche Welle — World"
+    type: rss
+    url: "https://rss.dw.com/rdf/rss-en-world"
+    category: geopolitics
+    tier: 2
+
+  # ── Middle East ──
+  - name: "Google News — Middle East"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=Middle+East+Israel+Gaza+Saudi+Gulf&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
+
+  # ── Ukraine / NATO ──
+  - name: "Google News — Ukraine War"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=Ukraine+war+Russia+NATO+frontline&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
 
   - name: "Brookings Institution"
     type: rss

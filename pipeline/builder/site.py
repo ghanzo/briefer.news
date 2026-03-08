@@ -1,10 +1,9 @@
 """
-site.py — Generates the static HTML site from a DailyBriefing + its related data.
+site.py — Generates the static HTML site from a world brief.
 Output goes to /app/output/ which is served by nginx.
 """
 
 import logging
-import shutil
 from datetime import date, datetime
 from pathlib import Path
 
@@ -23,24 +22,24 @@ def _get_jinja_env() -> Environment:
     )
 
 
-def build_site(briefing: dict, category_summaries: list[dict], top_articles: list[dict]) -> None:
+def build_site(brief: dict, top_articles: list[dict]) -> None:
     """
-    Render the full static site for one daily briefing.
+    Render the static site for one daily brief.
 
-    briefing: dict with keys from DailyBriefing model
-    category_summaries: list of dicts with {category, headline, summary, articles: [...]}
-    top_articles: list of dicts with {title, url, headline, summary, category, importance_score, source_name}
+    brief: dict with {date, headline, items: [{bullet, region, severity}], watch}
+    top_articles: list of source articles for the expandable section
     """
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     env = _get_jinja_env()
 
+    today = brief.get("date", str(date.today()))
+
     ctx = {
-        "briefing":            briefing,
-        "category_summaries":  category_summaries,
-        "top_articles":        top_articles,
-        "build_time":          datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
-        "today":               briefing.get("briefing_date", str(date.today())),
+        "brief":          brief,
+        "top_articles":   top_articles,
+        "build_time":     datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC"),
+        "today":          today,
     }
 
     # ── index.html ────────────────────────────────────────────────────────────
@@ -48,11 +47,11 @@ def build_site(briefing: dict, category_summaries: list[dict], top_articles: lis
     html = template.render(**ctx)
     output_path = OUTPUT_DIR / "index.html"
     output_path.write_text(html, encoding="utf-8")
-    logger.info(f"Site built → {output_path}")
+    logger.info(f"Site built -> {output_path}")
 
     # ── archive entry ─────────────────────────────────────────────────────────
     archive_dir = OUTPUT_DIR / "archive"
     archive_dir.mkdir(exist_ok=True)
-    archive_path = archive_dir / f"{ctx['today']}.html"
+    archive_path = archive_dir / f"{today}.html"
     archive_path.write_text(html, encoding="utf-8")
-    logger.info(f"Archive saved → {archive_path}")
+    logger.info(f"Archive saved -> {archive_path}")

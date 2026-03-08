@@ -4,213 +4,162 @@
 
 {% block extra_styles %}
 
-/* ── Meta story (the front page lead) ──────────────────────────────────── */
-.meta-story {
-  border-bottom: 2px solid var(--ink);
-  padding: 2rem 0 1.5rem;
-}
-.meta-story h2 {
-  font-size: 2rem;
-  line-height: 1.2;
+/* ── World brief ──────────────────────────────────────────────────────── */
+.brief-headline {
+  font-size: 1.4rem;
   font-weight: 900;
-  margin-bottom: 1rem;
-  max-width: 800px;
-}
-.meta-story .body {
-  columns: 2;
-  column-gap: 2.5rem;
-  max-width: 900px;
-}
-.meta-story .body p {
-  margin-bottom: 0.8rem;
-  text-align: justify;
-  hyphens: auto;
-}
-@media (max-width: 640px) {
-  .meta-story .body { columns: 1; }
-  .meta-story h2 { font-size: 1.5rem; }
+  line-height: 1.25;
+  padding: 1.5rem 0 1rem;
+  border-bottom: 1px solid var(--rule);
+  max-width: 700px;
 }
 
-/* ── Section divider ────────────────────────────────────────────────────── */
-.section-rule {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin: 2rem 0 1.5rem;
+.brief-items {
+  list-style: none;
+  padding: 1rem 0;
+  max-width: 700px;
 }
-.section-rule h3 {
+.brief-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--rule);
+  align-items: baseline;
+}
+.brief-item:last-child { border-bottom: none; }
+
+.severity {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.4rem;
+  border-radius: 2px;
+  white-space: nowrap;
+  min-width: 3.5rem;
+  text-align: center;
+}
+.severity-critical { background: #8b0000; color: white; }
+.severity-high     { background: #1a1a1a; color: white; }
+.severity-medium   { background: #ddd; color: #333; }
+.severity-low      { background: #eee; color: #666; }
+
+.brief-text {
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+.brief-region {
+  font-size: 0.65rem;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-left: 0.3rem;
+}
+
+/* ── Watch section ────────────────────────────────────────────────────── */
+.watch {
+  max-width: 700px;
+  border-top: 2px solid var(--ink);
+  margin-top: 0.5rem;
+  padding: 1rem 0;
+}
+.watch h3 {
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  white-space: nowrap;
   color: var(--ink-light);
-}
-.section-rule hr {
-  flex: 1;
-  border: none;
-  border-top: 1px solid var(--rule);
-}
-
-/* ── Category grid ──────────────────────────────────────────────────────── */
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  border-bottom: 1px solid var(--rule);
-  padding-bottom: 2rem;
-}
-.category-card {
-  border-left: 3px solid var(--rule);
-  padding-left: 1rem;
-}
-.category-card h4 {
-  font-size: 1rem;
-  font-weight: 700;
   margin-bottom: 0.5rem;
-  line-height: 1.25;
 }
-.category-card .cat-summary {
-  font-size: 0.85rem;
-  color: var(--ink-light);
-  line-height: 1.5;
-  text-align: justify;
-}
-.category-card .cat-articles {
-  margin-top: 0.75rem;
-  list-style: none;
-}
-.category-card .cat-articles li {
-  font-size: 0.8rem;
-  padding: 0.3rem 0;
-  border-top: 1px solid var(--rule);
-  line-height: 1.4;
-}
-.category-card .cat-articles li a {
+.watch p {
+  font-size: 0.9rem;
+  line-height: 1.6;
   color: var(--ink);
 }
-.category-card .cat-articles li a:hover {
-  color: var(--cat-geo);
-}
-.importance-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ink-faint);
-  margin-right: 5px;
-  vertical-align: middle;
-  position: relative;
-  top: -1px;
-}
-.importance-dot.high { background: #cc0000; }
-.importance-dot.med  { background: #886600; }
 
-/* ── Top stories list ───────────────────────────────────────────────────── */
-.top-stories { padding-bottom: 2rem; }
-.story-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.5rem 1.2rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid var(--rule);
-  align-items: start;
+/* ── Source articles (collapsed) ───────────────────────────────────────── */
+.sources-toggle {
+  max-width: 700px;
+  margin-top: 2rem;
+  border-top: 1px solid var(--rule);
+  padding-top: 1rem;
 }
-.story-number {
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: var(--rule);
-  line-height: 1;
-  padding-top: 2px;
-  min-width: 2rem;
-  text-align: right;
-}
-.story-content h4 {
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 0.3rem;
-}
-.story-content h4 a:hover { text-decoration: underline; }
-.story-content .summary {
-  font-size: 0.85rem;
-  color: var(--ink-light);
-  line-height: 1.5;
-}
-.story-content .meta {
+.sources-toggle summary {
   font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
   color: var(--ink-faint);
-  margin-top: 0.4rem;
-  letter-spacing: 0.03em;
+  cursor: pointer;
+  list-style: none;
+}
+.sources-toggle summary::-webkit-details-marker { display: none; }
+.sources-toggle summary::before { content: "+ "; }
+.sources-toggle[open] summary::before { content: "- "; }
+
+.source-list {
+  list-style: none;
+  margin-top: 0.75rem;
+}
+.source-list li {
+  font-size: 0.8rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.4;
+}
+.source-list li a { color: var(--ink); }
+.source-list li a:hover { color: var(--cat-geo); }
+.source-list .src-meta {
+  font-size: 0.65rem;
+  color: var(--ink-faint);
+  margin-left: 0.5rem;
+}
+
+@media (max-width: 640px) {
+  .brief-headline { font-size: 1.15rem; }
+  .brief-item { grid-template-columns: 1fr; gap: 0.2rem; }
+  .severity { width: fit-content; }
 }
 {% endblock %}
 
 {% block content %}
 
-{# ── Meta story ─────────────────────────────────────────────────────────── #}
-<section class="meta-story">
-  <h2>{{ briefing.meta_headline or "World Briefing" }}</h2>
-  <div class="body">
-    {% for para in (briefing.meta_story or "").split("\n\n") %}
-      {% if para.strip() %}
-        <p>{{ para.strip() }}</p>
-      {% endif %}
+{# ── World Brief ──────────────────────────────────────────────────────── #}
+<h2 class="brief-headline">{{ brief.headline or "World Briefing" }}</h2>
+
+<ul class="brief-items">
+  {% for item in brief.items %}
+  <li class="brief-item">
+    <span class="severity severity-{{ item.severity or 'medium' }}">{{ item.severity or "medium" }}</span>
+    <span class="brief-text">
+      {{ item.bullet }}
+      <span class="brief-region">{{ item.region or "" }}</span>
+    </span>
+  </li>
+  {% endfor %}
+</ul>
+
+{% if brief.watch %}
+<div class="watch">
+  <h3>Watch</h3>
+  <p>{{ brief.watch }}</p>
+</div>
+{% endif %}
+
+{# ── Source articles (expandable) ─────────────────────────────────────── #}
+{% if top_articles %}
+<details class="sources-toggle">
+  <summary>{{ top_articles | length }} source articles</summary>
+  <ul class="source-list">
+    {% for art in top_articles %}
+    <li>
+      <a href="{{ art.url }}" target="_blank" rel="noopener">{{ art.headline or art.title }}</a>
+      <span class="src-meta">{{ art.source_name or "" }}{% if art.importance_score %} · {{ "%.1f"|format(art.importance_score) }}{% endif %}</span>
+    </li>
     {% endfor %}
-  </div>
-</section>
-
-{# ── Category summaries ─────────────────────────────────────────────────── #}
-<div class="section-rule">
-  <hr>
-  <h3>By Category</h3>
-  <hr>
-</div>
-
-<div class="category-grid">
-  {% for cat in category_summaries %}
-  <div class="category-card">
-    <span class="cat-label cat-{{ cat.category }}">{{ cat.category | title }}</span>
-    <h4>{{ cat.headline or cat.category | title }}</h4>
-    <p class="cat-summary">{{ (cat.summary or "")[:300] }}{% if (cat.summary or "") | length > 300 %}…{% endif %}</p>
-
-    {% if cat.articles %}
-    <ul class="cat-articles">
-      {% for art in cat.articles[:5] %}
-      <li>
-        {% set score = art.importance_score or 0 %}
-        <span class="importance-dot {% if score >= 0.75 %}high{% elif score >= 0.5 %}med{% endif %}"></span>
-        <a href="{{ art.url }}" target="_blank" rel="noopener">{{ art.headline or art.title }}</a>
-      </li>
-      {% endfor %}
-    </ul>
-    {% endif %}
-  </div>
-  {% endfor %}
-</div>
-
-{# ── Top 5 stories ──────────────────────────────────────────────────────── #}
-<div class="section-rule">
-  <hr>
-  <h3>Top Stories</h3>
-  <hr>
-</div>
-
-<div class="top-stories">
-  {% for art in top_articles %}
-  <div class="story-item">
-    <div class="story-number">{{ loop.index }}</div>
-    <div class="story-content">
-      <span class="cat-label cat-{{ art.category }}">{{ art.category | title }}</span>
-      <h4><a href="{{ art.url }}" target="_blank" rel="noopener">{{ art.headline or art.title }}</a></h4>
-      <p class="summary">{{ art.summary }}</p>
-      <p class="meta">
-        {{ art.source_name or "Unknown source" }}
-        {% if art.publish_date %} · {{ art.publish_date[:10] }}{% endif %}
-        · Importance: {{ "%.2f"|format(art.importance_score or 0) }}
-      </p>
-    </div>
-  </div>
-  {% endfor %}
-</div>
+  </ul>
+</details>
+{% endif %}
 
 {% endblock %}
