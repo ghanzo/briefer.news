@@ -202,7 +202,7 @@ def generate_world_brief(
     """
     Generate the world brief from scored/summarized articles.
 
-    Returns: {date, headline, items: [{bullet, region, severity}], watch}
+    Returns: {date, headline, bullets: [{bullet, region, severity}], watch}
     """
     lens = load_lens()
 
@@ -239,6 +239,6 @@ def generate_world_brief(
         return {
             "date": briefing_date,
             "headline": f"World Brief -- {briefing_date}",
-            "items": [],
+            "bullets": [],
             "watch": "Brief generation failed.",
         }

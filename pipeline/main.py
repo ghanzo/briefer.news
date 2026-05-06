@@ -317,7 +317,9 @@ def run_process() -> None:
     today   = str(date.today())
 
     try:
-        # Find articles without summaries
+        # Find articles without summaries — only from today's scrape
+        from sqlalchemy import func
+        today_start = datetime.combine(date.today(), datetime.min.time())
         unprocessed = (
             session.query(Article)
             .outerjoin(ArticleSummary, Article.id == ArticleSummary.article_id)
@@ -325,11 +327,19 @@ def run_process() -> None:
                 ArticleSummary.id.is_(None),
                 Article.extraction_failed == False,
                 Article.full_text.isnot(None),
+                Article.scraped_at >= today_start,
             )
             .all()
         )
 
-        logger.info(f"Processing {len(unprocessed)} articles...")
+        # Cap articles to summarize — only the most recent, to control API costs
+        MAX_SUMMARIZE = 30
+        if len(unprocessed) > MAX_SUMMARIZE:
+            # Sort by publish_date desc (newest first), fallback to id desc
+            unprocessed.sort(key=lambda a: (a.publish_date or a.created_at or datetime.min), reverse=True)
+            unprocessed = unprocessed[:MAX_SUMMARIZE]
+
+        logger.info(f"Processing {len(unprocessed)} articles (capped at {MAX_SUMMARIZE})...")
         summaries_created = 0
 
         if grok_client and unprocessed:
@@ -448,30 +458,39 @@ def run_process() -> None:
             brief = {
                 "date": today,
                 "headline": f"World Brief -- {today}",
-                "items": [
+                "bullets": [
                     {"bullet": a["headline"] + ": " + a["summary"], "region": a.get("region", "global"), "severity": "high" if a["importance_score"] >= 0.7 else "medium"}
                     for a in all_articles[:10]
                 ],
                 "watch": "AI synthesis unavailable -- showing top articles by importance score.",
             }
 
-        # Save to DB
-        import json as _json
-        briefing = DailyBriefing(
-            briefing_date=date.today(),
-            meta_headline=brief.get("headline"),
-            meta_story=_json.dumps(brief),
-            top_article_ids=[a["id"] for a in all_articles[:TOP_ARTICLES_COUNT]],
-            total_articles_scraped=len(all_articles),
-            total_articles_processed=summaries_created,
-        )
-        session.add(briefing)
-        session.commit()
-
+        # Build site first (before DB save, so it works even if save fails)
         build_site(
             brief=brief,
             top_articles=all_articles[:50],
         )
+
+        # Save to DB (upsert — replace if today's briefing already exists)
+        import json as _json
+        existing = session.query(DailyBriefing).filter_by(briefing_date=date.today()).first()
+        if existing:
+            existing.meta_headline = brief.get("headline")
+            existing.meta_story = _json.dumps(brief)
+            existing.top_article_ids = [a["id"] for a in all_articles[:TOP_ARTICLES_COUNT]]
+            existing.total_articles_scraped = len(all_articles)
+            existing.total_articles_processed = summaries_created
+        else:
+            briefing = DailyBriefing(
+                briefing_date=date.today(),
+                meta_headline=brief.get("headline"),
+                meta_story=_json.dumps(brief),
+                top_article_ids=[a["id"] for a in all_articles[:TOP_ARTICLES_COUNT]],
+                total_articles_scraped=len(all_articles),
+                total_articles_processed=summaries_created,
+            )
+            session.add(briefing)
+        session.commit()
 
         logger.info(f"Process stage complete -- world brief for {today} built.")
 
@@ -511,6 +530,7 @@ if __name__ == "__main__":
     if args.run_now:
         logger.info("--run-now flag set: running full pipeline")
         run_pipeline()
+        sys.exit(0)
 
     logger.info("Starting scheduler…")
     start_scheduler(run_pipeline)

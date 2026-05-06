@@ -5,67 +5,82 @@
 {% block extra_styles %}
 
 /* ── World brief ──────────────────────────────────────────────────────── */
+.brief-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
 .brief-headline {
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-weight: 900;
-  line-height: 1.25;
-  padding: 1.5rem 0 1rem;
-  border-bottom: 1px solid var(--rule);
-  max-width: 700px;
+  line-height: 1.35;
+  padding: 1.5rem 0 1.25rem;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 0;
 }
 
 .brief-items {
   list-style: none;
-  padding: 1rem 0;
-  max-width: 700px;
+  padding: 0;
+  counter-reset: brief;
 }
 .brief-item {
   display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0 0.75rem;
-  padding: 0.6rem 0;
+  grid-template-columns: 1.8rem auto 1fr;
+  gap: 0 0.6rem;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--rule);
-  align-items: baseline;
+  align-items: first baseline;
 }
 .brief-item:last-child { border-bottom: none; }
 
-.severity {
-  font-size: 0.6rem;
+.brief-num {
+  font-size: 0.7rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  color: var(--ink-faint);
+  text-align: right;
+  padding-top: 0.05rem;
+}
+
+.severity {
+  font-size: 0.55rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.1rem 0.4rem;
+  padding: 0.15rem 0.4rem;
   border-radius: 2px;
   white-space: nowrap;
-  min-width: 3.5rem;
+  min-width: 3.2rem;
   text-align: center;
+  line-height: 1.4;
 }
-.severity-critical { background: #8b0000; color: white; }
-.severity-high     { background: #1a1a1a; color: white; }
-.severity-medium   { background: #ddd; color: #333; }
-.severity-low      { background: #eee; color: #666; }
+.severity-critical { background: #8b0000; color: #fff; }
+.severity-high     { background: #1a1a1a; color: #fff; }
+.severity-medium   { background: #e0ddd5; color: #333; }
+.severity-low      { background: #eae8e1; color: #777; }
 
 .brief-text {
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  line-height: 1.55;
 }
 .brief-region {
-  font-size: 0.65rem;
+  display: inline-block;
+  font-size: 0.6rem;
   color: var(--ink-faint);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-left: 0.3rem;
+  letter-spacing: 0.08em;
+  margin-left: 0.25rem;
+  vertical-align: baseline;
 }
 
 /* ── Watch section ────────────────────────────────────────────────────── */
 .watch {
-  max-width: 700px;
   border-top: 2px solid var(--ink);
-  margin-top: 0.5rem;
-  padding: 1rem 0;
+  margin-top: 0.25rem;
+  padding: 1.25rem 0 1rem;
 }
-.watch h3 {
-  font-size: 0.7rem;
+.watch-label {
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -73,64 +88,84 @@
   margin-bottom: 0.5rem;
 }
 .watch p {
-  font-size: 0.9rem;
-  line-height: 1.6;
+  font-size: 0.88rem;
+  line-height: 1.65;
   color: var(--ink);
 }
 
 /* ── Source articles (collapsed) ───────────────────────────────────────── */
 .sources-toggle {
-  max-width: 700px;
-  margin-top: 2rem;
+  margin-top: 1.5rem;
   border-top: 1px solid var(--rule);
-  padding-top: 1rem;
+  padding-top: 0.75rem;
 }
 .sources-toggle summary {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--ink-faint);
   cursor: pointer;
   list-style: none;
+  padding: 0.25rem 0;
 }
 .sources-toggle summary::-webkit-details-marker { display: none; }
-.sources-toggle summary::before { content: "+ "; }
-.sources-toggle[open] summary::before { content: "- "; }
+.sources-toggle summary::before { content: "+ "; font-weight: 400; }
+.sources-toggle[open] summary::before { content: "— "; font-weight: 400; }
 
 .source-list {
   list-style: none;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 .source-list li {
-  font-size: 0.8rem;
-  padding: 0.3rem 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  padding: 0.35rem 0;
   border-bottom: 1px solid var(--rule);
   line-height: 1.4;
 }
-.source-list li a { color: var(--ink); }
+.source-list li:last-child { border-bottom: none; }
+.source-list li a {
+  color: var(--ink);
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .source-list li a:hover { color: var(--cat-geo); }
 .source-list .src-meta {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   color: var(--ink-faint);
-  margin-left: 0.5rem;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
+/* ── Responsive ───────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
-  .brief-headline { font-size: 1.15rem; }
-  .brief-item { grid-template-columns: 1fr; gap: 0.2rem; }
-  .severity { width: fit-content; }
+  .brief-headline { font-size: 1.05rem; }
+  .brief-item { grid-template-columns: auto 1fr; gap: 0 0.5rem; }
+  .brief-num { display: none; }
+  .severity { font-size: 0.5rem; min-width: 2.8rem; }
+  .source-list li { flex-direction: column; gap: 0; }
+  .source-list li a { white-space: normal; }
 }
 {% endblock %}
 
 {% block content %}
 
+<div class="brief-content">
+
 {# ── World Brief ──────────────────────────────────────────────────────── #}
 <h2 class="brief-headline">{{ brief.headline or "World Briefing" }}</h2>
 
 <ul class="brief-items">
-  {% for item in brief.items %}
+  {% for item in brief.bullets %}
   <li class="brief-item">
+    <span class="brief-num">{{ loop.index }}</span>
     <span class="severity severity-{{ item.severity or 'medium' }}">{{ item.severity or "medium" }}</span>
     <span class="brief-text">
       {{ item.bullet }}
@@ -142,7 +177,7 @@
 
 {% if brief.watch %}
 <div class="watch">
-  <h3>Watch</h3>
+  <h3 class="watch-label">Watch</h3>
   <p>{{ brief.watch }}</p>
 </div>
 {% endif %}
@@ -155,11 +190,13 @@
     {% for art in top_articles %}
     <li>
       <a href="{{ art.url }}" target="_blank" rel="noopener">{{ art.headline or art.title }}</a>
-      <span class="src-meta">{{ art.source_name or "" }}{% if art.importance_score %} · {{ "%.1f"|format(art.importance_score) }}{% endif %}</span>
+      <span class="src-meta">{{ art.source_name or "" }}{% if art.importance_score %} &middot; {{ "%.1f"|format(art.importance_score) }}{% endif %}</span>
     </li>
     {% endfor %}
   </ul>
 </details>
 {% endif %}
+
+</div>
 
 {% endblock %}

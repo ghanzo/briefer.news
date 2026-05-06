@@ -1,27 +1,73 @@
 # ─────────────────────────────────────────────────────────────────────────────
-# Briefer — News Sources
+# Briefer — News Sources (lean world-brief edition)
+#
+# 39 active US-gov sources (focus narrowed 2026-05-06 to US fed only).
+# 14 international/non-US sources moved to held: BBC, AJ, DW, Yonhap, AllAfrica,
+# UK Gov, Kremlin RU, TASS RU, UN, WHO, IAEA, OilPrice, Mining.com, Hacker News.
+# Will reactivate after Stage 2/3 validation. See CLAUDE.md for build progression.
+# Probe history: 2026-05-02 (25 baseline), 2026-05-05 (+14 US-gov + 5 HTML-scrape),
+# 2026-05-06 (+9 State Dept: 6 regional desks reactivated + 3 new feeds).
+# Per-source operational notes: SOURCE_NOTES.md
+# Probe scripts: research/probe_sources.py, probe_candidates.py, test_html_scrape.py
 #
 # Fields:
 #   name     : display name (must be unique)
-#   type     : rss | google_news
-#   url      : RSS feed URL
-#   category : geopolitics | technology | energy | materials | ecosystem |
-#              climate | social | health | science | finance
-#   tier     : 1=official gov/primary, 2=major outlets/google news, 3=analysis
-#   active   : true/false — set false to disable without deleting
-#
-# Scraping note — state.gov and most US gov sites are JS-rendered:
-#   Pull content from RSS content:encoded field directly.
-#   Do NOT fetch article URLs — they return boilerplate JavaScript fallback text.
-#
-# See COVERAGE.md for full thematic scope and scraping strategy.
+#   type     : rss | rss_translate | google_news | web_scrape | playwright
+#   url      : feed or page URL
+#   category : geopolitics | technology | energy | economy | security | health | science
+#   tier     : 1=official gov/primary, 2=major outlets, 3=analysis
+#   extractor: trafilatura (default) | playwright
+#   active   : omit (defaults true) | active: false
 # ─────────────────────────────────────────────────────────────────────────────
 
 sources:
 
   # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — U.S. STATE DEPARTMENT
+  # ACTIVE — 39 US-gov sources (30 baseline + 9 State Dept additions on 2026-05-06)
   # ════════════════════════════════════════════════════════════════════════════
+
+  # ── Mainstream news (5) ─────────────────────────────────────────────────────
+
+  - name: "BBC — World"
+    type: rss
+    url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  - name: "Al Jazeera — World"
+    type: rss
+    url: "https://www.aljazeera.com/xml/rss/all.xml"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  - name: "Deutsche Welle — World"
+    type: rss
+    url: "https://rss.dw.com/rdf/rss-en-world"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  - name: "Yonhap — English"
+    type: rss
+    url: "https://en.yna.co.kr/RSS/news.xml"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  - name: "AllAfrica — Top Stories"
+    type: rss
+    url: "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  # ── US Federal — gov & regulators (18) ──────────────────────────────────────
+  # Includes State Dept (5): Press Releases, Collected, Treaties (TIAS),
+  # International Organizations, Diplomatic Security. The 6 regional desks
+  # (East Asia, Near East, Europe, S&C Asia, Western Hemisphere, Africa) are
+  # also active but live in the DISABLED block region of the file structurally.
 
   - name: "State Dept — Press Releases"
     type: rss
@@ -29,17 +75,320 @@ sources:
     category: geopolitics
     tier: 1
 
+  - name: "State Dept — Collected Department Releases"
+    type: rss
+    url: "https://www.state.gov/rss-feed/collected-department-releases/feed/"
+    category: geopolitics
+    tier: 1
+
+  # Treaties (TIAS) — full text of Treaties and International Agreements Series.
+  # Low volume (~1-3/month) but every entry is a major geopolitical action.
+  - name: "State Dept — Treaties (TIAS)"
+    type: rss
+    url: "https://www.state.gov/rss-feed/treaties-new/feed/"
+    category: geopolitics
+    tier: 1
+
+  # International Organizations — UN, multilaterals, IO bureau press.
+  - name: "State Dept — International Organizations"
+    type: rss
+    url: "https://www.state.gov/rss-feed/international-organizations/feed/"
+    category: geopolitics
+    tier: 1
+
+  # Diplomatic Security — DSS embassy/personnel security advisories.
+  - name: "State Dept — Diplomatic Security"
+    type: rss
+    url: "https://www.state.gov/rss-feed/diplomatic-security/feed/"
+    category: security
+    tier: 1
+
+  # DoD News: war.gov article URLs are Akamai-blocked to plain httpx (HTTP 403).
+  # extractor: playwright + stealth (in browser.py) bypasses. Verified 2026-05-06.
+  - name: "Department of Defense — News"
+    type: rss
+    url: "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=20"
+    category: security
+    tier: 1
+    extractor: playwright
+
+  - name: "Federal Reserve — Press Releases"
+    type: rss
+    url: "https://www.federalreserve.gov/feeds/press_all.xml"
+    category: economy
+    tier: 1
+
+  - name: "U.S. Treasury — Press Releases"
+    type: rss
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=treasury-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
+    category: economy
+    tier: 1
+
+  - name: "USTR — Press Releases"
+    type: rss
+    url: "https://ustr.gov/rss.xml"
+    category: economy
+    tier: 1
+
+  # GAO: article URLs are Akamai-blocked to plain httpx (HTTP 403).
+  # extractor: playwright + stealth (in browser.py) bypasses. Verified 2026-05-06.
+  - name: "GAO — Reports & Testimonies"
+    type: rss
+    url: "https://www.gao.gov/rss/reports.xml"
+    category: economy
+    tier: 1
+    extractor: playwright
+
+  - name: "DOJ — National Security Division"
+    type: rss
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=justice-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
+    category: security
+    tier: 1
+
+  - name: "CISA — Alerts & Advisories"
+    type: rss
+    url: "https://www.cisa.gov/uscert/ncas/all.xml"
+    category: security
+    tier: 1
+
+  - name: "Federal Register — Executive Orders & Rules"
+    type: rss
+    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Btype%5D%5B%5D=PRESDOCU&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE"
+    category: geopolitics
+    tier: 1
+
+  - name: "Federal Register — Public Inspection"
+    type: rss
+    url: "https://www.federalregister.gov/api/v1/public-inspection-documents.rss"
+    category: geopolitics
+    tier: 1
+
+  - name: "CBP — News"
+    type: rss
+    url: "https://www.cbp.gov/rss.xml"
+    category: security
+    tier: 1
+
+  - name: "DOJ — Justice News (OPA)"
+    type: rss
+    url: "https://www.justice.gov/news/rss?m=1"
+    category: security
+    tier: 1
+
+  - name: "FBI — National Press"
+    type: rss
+    url: "https://www.fbi.gov/feeds/national-press-releases/RSS"
+    category: security
+    tier: 1
+
+  - name: "CFPB — Newsroom"
+    type: rss
+    url: "https://www.consumerfinance.gov/about-us/newsroom/feed/"
+    category: economy
+    tier: 1
+
+  # ── US Federal — Macroeconomic data (4) ─────────────────────────────────────
+
+  - name: "BLS — Major Economic Indicators"
+    type: rss
+    url: "https://www.bls.gov/feed/bls_latest.rss"
+    category: economy
+    tier: 1
+
+  - name: "BEA — Releases"
+    type: rss
+    url: "https://apps.bea.gov/rss/rss.xml"
+    category: economy
+    tier: 1
+
+  - name: "CBO — Publications"
+    type: rss
+    url: "https://www.cbo.gov/publications/all/rss.xml"
+    category: economy
+    tier: 1
+
+  - name: "NY Fed — Liberty Street Economics"
+    type: rss
+    url: "https://libertystreeteconomics.newyorkfed.org/feed/"
+    category: economy
+    tier: 1
+
+  # ── US Federal — Legislative & GovInfo (3) ──────────────────────────────────
+
+  - name: "GovInfo — Bills"
+    type: rss
+    url: "https://www.govinfo.gov/rss/bills.xml"
+    category: geopolitics
+    tier: 1
+
+  - name: "GovInfo — Hearings"
+    type: rss
+    url: "https://www.govinfo.gov/rss/chrg.xml"
+    category: geopolitics
+    tier: 1
+
+  - name: "GovInfo — Presidential Documents"
+    type: rss
+    url: "https://www.govinfo.gov/rss/dcpd.xml"
+    category: geopolitics
+    tier: 1
+
+  # ── US Federal — Judicial (2) ───────────────────────────────────────────────
+
+  - name: "Court of Appeals — 9th Circuit"
+    type: rss
+    url: "https://www.govinfo.gov/rss/uscourts-ca9.xml"
+    category: geopolitics
+    tier: 1
+
+  - name: "Court of International Trade"
+    type: rss
+    url: "https://www.govinfo.gov/rss/uscourts-cit.xml"
+    category: geopolitics
+    tier: 1
+
+  # ── US Federal — HTML-scrape (Playwright) (5) ──────────────────────────────
+  # No public RSS for these — Playwright renders the listing page, BeautifulSoup
+  # discovers same-domain links, link_pattern (substring match) filters to real
+  # article URLs. Each entry's link_pattern reasoning is documented in
+  # SOURCE_NOTES.md. If a site restructures, run research/test_html_scrape.py.
+
+  - name: "White House — News"
+    type: web_scrape
+    url: "https://www.whitehouse.gov/news/"
+    category: geopolitics
+    tier: 1
+    extractor: playwright
+    link_pattern: "/202"
+
+  - name: "DOJ — Antitrust Press Room"
+    type: web_scrape
+    url: "https://www.justice.gov/atr/press-room-0"
+    category: security
+    tier: 1
+    extractor: playwright
+    link_pattern: "/opa/"
+
+  - name: "DOE — Newsroom"
+    type: web_scrape
+    url: "https://www.energy.gov/newsroom"
+    category: energy
+    tier: 1
+    extractor: playwright
+    link_pattern: "/articles/"
+
+  - name: "ARPA-E — News & Insights"
+    type: web_scrape
+    url: "https://arpa-e.energy.gov/news-and-events/news-and-insights"
+    category: energy
+    tier: 1
+    extractor: playwright
+    link_pattern: "/news-and-insights/"
+
+  - name: "ORNL — Oak Ridge News"
+    type: web_scrape
+    url: "https://www.ornl.gov/news"
+    category: energy
+    tier: 1
+    extractor: playwright
+    link_pattern: "/news/"
+
+  # ── International gov (3) — native-language feeds preferred ─────────────────
+
+  - name: "UK Government — Foreign Policy"
+    type: rss
+    url: "https://www.gov.uk/search/news-and-communications.atom?subtopic%5B%5D=foreign-policy"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "Kremlin — Russian (native)"
+    type: rss_translate
+    url: "http://kremlin.ru/events/all/feed"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "TASS — Russian wire (native)"
+    type: rss_translate
+    url: "https://tass.ru/rss/v2.xml"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  # ── International institutions (3) ──────────────────────────────────────────
+
+  - name: "UN — News"
+    type: rss
+    url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  - name: "WHO — News"
+    type: rss
+    url: "https://www.who.int/rss-feeds/news-english.xml"
+    category: health
+    tier: 2
+    active: false
+
+  - name: "IAEA — News"
+    type: rss
+    url: "https://www.iaea.org/feeds/topnews"
+    category: energy
+    tier: 2
+    active: false
+
+  # ── Energy & resources (3) ──────────────────────────────────────────────────
+
+  - name: "EIA — Today in Energy"
+    type: rss
+    url: "https://www.eia.gov/rss/todayinenergy.xml"
+    category: energy
+    tier: 2
+
+  - name: "OilPrice.com — News"
+    type: rss
+    url: "https://oilprice.com/rss/main"
+    category: energy
+    tier: 2
+    active: false
+
+  - name: "Mining.com — Critical Minerals"
+    type: rss
+    url: "https://www.mining.com/feed/"
+    category: energy
+    tier: 2
+    active: false
+
+  # ── Innovation signals (1) ──────────────────────────────────────────────────
+
+  - name: "Hacker News — Best Stories"
+    type: rss
+    url: "https://hnrss.org/best"
+    category: technology
+    tier: 3
+    active: false
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # DISABLED — known-working but held back from this round
+  # ════════════════════════════════════════════════════════════════════════════
+
+  # ── Additional State Dept regional desks ────────────────────────────────────
+
   - name: "State Dept — Secretary's Remarks"
     type: rss
     url: "https://www.state.gov/rss-feed/secretarys-remarks/feed/"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "State Dept — Department Press Briefings"
     type: rss
     url: "https://www.state.gov/rss-feed/department-press-briefings/feed/"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "State Dept — East Asia & the Pacific"
     type: rss
@@ -77,1154 +426,584 @@ sources:
     category: geopolitics
     tier: 1
 
-  - name: "State Dept — Arms Control & International Security"
-    type: rss
-    url: "https://www.state.gov/rss-feed/arms-control-and-international-security/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — topic-specific bureau feeds retired by Trump admin Jan 2025
-
-  - name: "State Dept — Counterterrorism"
-    type: rss
-    url: "https://www.state.gov/rss-feed/counterterrorism/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — retired; covered by Collected Department Releases
-
-  - name: "State Dept — Democracy, Human Rights & Labor"
-    type: rss
-    url: "https://www.state.gov/rss-feed/democracy-human-rights-and-labor/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — bureau effectively shuttered by Trump admin; feed gone
-
-  - name: "State Dept — Economic, Energy & Trade"
-    type: rss
-    url: "https://www.state.gov/rss-feed/economic-energy-agricultural-and-trade-issues/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — retired; covered by Collected Department Releases
-
-  - name: "State Dept — International Organizations"
-    type: rss
-    url: "https://www.state.gov/rss-feed/international-organizations/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — retired Jan 2025
-
-  - name: "State Dept — Law Enforcement & Narcotics"
-    type: rss
-    url: "https://www.state.gov/rss-feed/law-enforcement-narcotics-anti-corruption/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — retired Jan 2025
-
-  - name: "State Dept — Diplomatic Security"
-    type: rss
-    url: "https://www.state.gov/rss-feed/diplomatic-security/feed/"
-    category: geopolitics
-    tier: 1
-    active: false
-    # 404 — retired Jan 2025
-
-  - name: "State Dept — International Health Issues"
-    type: rss
-    url: "https://www.state.gov/rss-feed/international-health-issues/feed/"
-    category: health
-    tier: 1
-    active: false
-    # 404 — bureau defunded; feed gone
-
-  - name: "State Dept — Climate, Environment & Conservation"
-    type: rss
-    url: "https://www.state.gov/rss-feed/climate-environment-and-conservation/feed/"
-    category: climate
-    tier: 1
-    active: false
-    # 404 — Special Envoy for Climate office shuttered; feed gone
-
-  - name: "State Dept — Population, Refugees & Migration"
-    type: rss
-    url: "https://www.state.gov/rss-feed/population-refugees-and-migration/feed/"
-    category: social
-    tier: 1
-    active: false
-    # 404 — retired Jan 2025
-
-  - name: "State Dept — Women's Issues"
-    type: rss
-    url: "https://www.state.gov/rss-feed/womens-issues/feed/"
-    category: social
-    tier: 1
-    active: false
-    # 404 — office closed; feed gone
-
-  - name: "State Dept — Collected Department Releases"
-    type: rss
-    url: "https://www.state.gov/rss-feed/collected-department-releases/feed/"
-    category: geopolitics
-    tier: 1
-
   - name: "State Dept — Travel Advisories"
     type: rss
     url: "https://travel.state.gov/_res/rss/TAsTWs.xml"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "State Dept — Public Schedule"
     type: rss
     url: "https://www.state.gov/rss-feed/public-schedule/feed/"
     category: geopolitics
     tier: 1
-    # Secretary's daily schedule — shows diplomatic activity before announcements drop
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — WHITE HOUSE & DEFENSE
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "White House — Presidential Actions"
-    type: web_scrape
-    url: "https://www.whitehouse.gov/briefing-room/"
-    link_pattern: "/presidential-actions/"
-    category: geopolitics
-    tier: 1
-    extractor: playwright
-    # Executive orders, proclamations, memoranda — highest signal
-
-  - name: "White House — Articles"
-    type: web_scrape
-    url: "https://www.whitehouse.gov/briefing-room/"
-    link_pattern: "/articles/"
-    category: geopolitics
-    tier: 1
-    extractor: playwright
-
-  - name: "White House — Fact Sheets"
-    type: web_scrape
-    url: "https://www.whitehouse.gov/briefing-room/"
-    link_pattern: "/fact-sheets/"
-    category: geopolitics
-    tier: 1
-    extractor: playwright
-
-  - name: "White House"
-    type: rss
-    url: "https://www.whitehouse.gov/feed/"
-    category: geopolitics
-    tier: 1
     active: false
-    # Trump admin dropped RSS; replaced by web_scrape entries above
 
-  - name: "Department of Defense — News"
-    type: rss
-    url: "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=20"
-    category: geopolitics
-    tier: 1
+  # ── Additional US gov / regulators (lower posting cadence) ──────────────────
 
   - name: "DARPA — News"
     type: rss
     url: "https://www.darpa.mil/rss.xml"
     category: technology
     tier: 1
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — TRADE, SANCTIONS & EXPORT CONTROLS
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "U.S. Treasury — Press Releases"
-    type: rss
-    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=treasury-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: finance
-    tier: 1
-    # Direct RSS dead (404 Feb 2026). Federal Register fallback: rulemakings + notices.
-    # OFAC sanctions actions appear here as "Notice of OFAC Sanctions Action".
+    active: false
 
   - name: "OFAC — Sanctions Actions"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=foreign-assets-control-office&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: geopolitics
     tier: 1
-    # OFAC direct RSS retired Jan 31 2025. Federal Register fallback confirmed working:
-    # "Notice of OFAC Sanctions Action" entries appear here. 11 entries confirmed.
-
-  - name: "USTR — Press Releases"
-    type: rss
-    url: "https://ustr.gov/rss.xml"
-    category: geopolitics
-    tier: 1
-    # Fixed URL (old path /about-us/.../rss.xml was 404). ustr.gov/rss.xml confirmed: 10 entries.
+    active: false
 
   - name: "FTC — Press Releases"
     type: rss
     url: "https://www.ftc.gov/feeds/press-release.xml"
-    category: geopolitics
+    category: economy
     tier: 1
-    # Direct FTC RSS — works despite website bot-blocking Playwright
+    active: false
 
   - name: "FTC — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-trade-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: geopolitics
+    category: economy
     tier: 1
-    # Merger reviews, rulemakings, enforcement notices
+    active: false
 
   - name: "BIS — Export Controls (Federal Register)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=industry-and-security-bureau&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: geopolitics
     tier: 1
-
-  - name: "Federal Register — Executive Orders & Rules"
-    type: rss
-    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Btype%5D%5B%5D=PRESDOCU&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE"
-    category: geopolitics
-    tier: 1
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — FINANCE & BANKING REGULATORS
-  # ════════════════════════════════════════════════════════════════════════════
+    active: false
 
   - name: "SEC — Press Releases"
     type: rss
     url: "https://www.sec.gov/rss/news/pressreleases.rss"
-    category: finance
+    category: economy
     tier: 1
+    active: false
 
   - name: "CFTC — Press Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=commodity-futures-trading-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: finance
+    category: economy
     tier: 1
-    # Direct RSS dead (404 Feb 2026). Federal Register fallback: 5 entries confirmed.
+    active: false
 
   - name: "FDIC — Press Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-deposit-insurance-corporation&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: finance
+    category: economy
     tier: 1
-    # Direct RSS dead (404 Feb 2026). Federal Register fallback: 8 entries confirmed.
+    active: false
 
   - name: "OCC — News Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=comptroller-of-the-currency&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: finance
-    tier: 1
-    # Direct URL returned HTML (no feed). Federal Register fallback: 9 entries confirmed.
-
-  - name: "BLS — Economic News Releases"
-    type: rss
-    url: "https://www.bls.gov/feed/news_release.rss"
-    category: finance
+    category: economy
     tier: 1
     active: false
-    # Direct RSS dead (404 Feb 2026). bls_latest.rss returns 1 summary entry (not useful).
-    # BLS data (CPI, jobs, PPI) not in Federal Register — no good RSS alternative.
-    # Replace with FRED data API when Phase C data sources are built.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — NATIONAL SECURITY & CYBER
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "DOJ — National Security Division"
-    type: rss
-    url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=justice-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: geopolitics
-    tier: 1
-    # Direct RSS dead (404 Feb 2026). Federal Register fallback: 63 entries today.
-    # Note: covers DOJ rulemakings broadly, not enforcement press releases.
-    # Enable Google News — FBI & DOJ Enforcement (below) for indictments/arrests.
-
-  - name: "CISA — Alerts & Advisories"
-    type: rss
-    url: "https://www.cisa.gov/uscert/ncas/all.xml"
-    category: technology
-    tier: 1
-    # Fixed URL: all.xml (30 entries) vs alerts.xml (broken)
-
-  - name: "GAO — Reports & Testimonies"
-    type: rss
-    url: "https://www.gao.gov/rss/reports.xml"
-    category: geopolitics
-    tier: 1
 
   - name: "FCC — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-communications-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: technology
     tier: 1
-    # FCC website blocks all scrapers; Fed Register covers spectrum/broadband rulemakings
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — ENERGY & NUCLEAR
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "EIA — Today in Energy"
-    type: rss
-    url: "https://www.eia.gov/rss/todayinenergy.xml"
-    category: energy
-    tier: 1
-
-  - name: "EIA — Natural Gas"
-    type: rss
-    url: "https://www.eia.gov/rss/ngs.xml"
-    category: energy
-    tier: 1
     active: false
-    # 404 Feb 2026. No working alternative found. EIA Today in Energy covers main EIA output.
 
-  - name: "Department of Energy — News"
-    type: rss
-    url: "https://www.energy.gov/rss.xml"
-    category: energy
-    tier: 1
-    active: false
-    # Feed returns 2020 content — DOE has no working RSS; revisit
+  # DOE Newsroom — moved to ACTIVE 2026-05-05. Real article URLs are at /articles/<slug>.
+  # See SOURCE_NOTES.md "Department of Energy — Newsroom" for operational notes.
+  # NOTE: The active entry now lives in the ACTIVE block (search for "DOE — Newsroom").
 
-  - name: "Department of Energy — Newsroom"
-    type: web_scrape
-    url: "https://www.energy.gov/newsroom"
-    link_pattern: "/articles/"
-    category: energy
-    tier: 1
-    extractor: playwright
-
-  - name: "ARPA-E — News & Insights"
-    type: web_scrape
-    url: "https://arpa-e.energy.gov/news-and-media/press-releases"
-    link_pattern: "/news-and-events/news-and-insights/"
-    category: energy
-    tier: 1
-    extractor: playwright
+  # ARPA-E — promoted to ACTIVE 2026-05-05 (correct URL is /news-and-events/
+  # news-and-insights, not /news-and-media/press-releases). See ACTIVE block.
 
   - name: "NRC — Press Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=nuclear-regulatory-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: energy
     tier: 1
-    # Direct RSS dead (Azure blob deleted Feb 2026). Federal Register fallback: 43 entries today.
+    active: false
 
   - name: "FERC — Federal Register (Rules & Orders)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-energy-regulatory-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: energy
     tier: 1
-    # Grid interconnection, transmission rules, pipeline certificates (162 entries confirmed)
+    active: false
 
   - name: "Federal Reserve — Speeches"
     type: rss
     url: "https://www.federalreserve.gov/feeds/speeches.xml"
-    category: finance
+    category: economy
     tier: 1
-
-  - name: "Federal Reserve — Press Releases"
-    type: rss
-    url: "https://www.federalreserve.gov/feeds/press_all.xml"
-    category: finance
-    tier: 1
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — SCIENCE, HEALTH & ECOSYSTEM
-  # ════════════════════════════════════════════════════════════════════════════
+    active: false
 
   - name: "NASA — Breaking News"
     type: rss
     url: "https://www.nasa.gov/rss/dyn/breaking_news.rss"
     category: science
     tier: 1
+    active: false
 
   - name: "NOAA — News"
     type: rss
     url: "https://www.noaa.gov/rss.xml"
-    category: climate
+    category: science
     tier: 1
+    active: false
 
   - name: "EPA — News Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=environmental-protection-agency&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: ecosystem
+    category: science
     tier: 1
-    # Direct RSS returns 202 (rate-limited/broken Feb 2026). Federal Register fallback: 57 entries.
+    active: false
 
   - name: "NIH — News Releases"
     type: rss
     url: "https://www.nih.gov/news-releases/feed.xml"
     category: health
     tier: 1
+    active: false
 
   - name: "CDC — Newsroom"
     type: rss
     url: "https://tools.cdc.gov/api/v2/resources/media/132608.rss"
     category: health
     tier: 1
-    # Note: returns ~1800 entries on first fetch — pipeline deduplicates by url_hash
+    active: false
 
   - name: "FDA — Press Announcements"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=food-and-drug-administration&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: health
     tier: 1
-    # All fda.gov RSS feeds dead (404 Feb 2026). Federal Register fallback covers drug approvals,
-    # device clearances, and rulemakings in one feed. 64 entries confirmed, fresh today.
-
-  - name: "FDA — Drug Approvals"
-    type: rss
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/fda-drug-approvals/rss.xml"
-    category: health
-    tier: 1
     active: false
-    # 404 — consolidated into FDA — Press Announcements (Federal Register) above
-
-  - name: "FDA — Medical Devices"
-    type: rss
-    url: "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/medical-devices/rss.xml"
-    category: health
-    tier: 1
-    active: false
-    # 404 — consolidated into FDA — Press Announcements (Federal Register) above
 
   - name: "HHS — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: health
     tier: 1
-    # CMS rules, ACA changes, public health declarations (200 entries confirmed)
+    active: false
 
   - name: "USGS — News"
     type: rss
     url: "https://www.usgs.gov/news/all/feed"
-    category: materials
+    category: science
     tier: 1
-
-  - name: "IAEA — News"
-    type: rss
-    url: "https://www.iaea.org/feeds/topnews"
-    category: energy
-    tier: 1
+    active: false
 
   - name: "NSF — News"
     type: rss
     url: "https://www.nsf.gov/rss/rss_www_news.xml"
     category: science
     tier: 1
+    active: false
 
   - name: "NIST — News"
     type: rss
     url: "https://www.nist.gov/news-events/news/rss.xml"
     category: technology
     tier: 1
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — TECHNOLOGY & COMMUNICATIONS AGENCIES
-  # ════════════════════════════════════════════════════════════════════════════
+    active: false
 
   - name: "Commerce Dept — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=commerce-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
-    category: technology
+    category: economy
     tier: 1
-    # Trade policy coordination, export controls, tech standards (200 entries confirmed)
+    active: false
 
+  # NTIA — disabled: SSL CERTIFICATE_VERIFY_FAILED on 2026-05-02 probe.
+  # Cert chain issue at ntia.gov — needs `verify=False` or updated CA bundle to use.
   - name: "NTIA — News"
     type: rss
     url: "https://www.ntia.gov/rss.xml"
     category: technology
     tier: 1
-    # Broadband, spectrum policy, internet governance
-    # Note: ntia.gov has SSL chain gap — may fail in Docker; add verify:false support if needed
-
-  - name: "NIST — Artificial Intelligence"
-    type: rss
-    url: "https://www.nist.gov/artificial-intelligence/rss.xml"
-    category: technology
-    tier: 1
     active: false
-    # 404 Feb 2026. No sub-topic RSS available. Main NIST — News feed covers AI content.
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — ENERGY INDUSTRY
-  # Primary industry sources for the physical resource substrate layer.
-  # IEA and OPEC are bot-blocked (403 Cloudflare) — add via Google News or Playwright later.
-  # ════════════════════════════════════════════════════════════════════════════
+  # ── Innovation tier-3 ───────────────────────────────────────────────────────
 
-  - name: "OilPrice.com — News"
-    type: rss
-    url: "https://oilprice.com/rss/main"
-    category: energy
-    tier: 1
-    # Practical energy news: prices, production, geopolitics. 15 entries/day confirmed.
-
-  - name: "Mining.com — Critical Minerals"
-    type: rss
-    url: "https://www.mining.com/feed/"
-    category: materials
-    tier: 1
-    # Best RSS source for lithium, cobalt, nickel, rare earths, copper. 36 entries confirmed.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — INNOVATION SIGNALS
-  # Bottom-up signals: where builders and researchers are concentrating.
-  # These precede institutional responses by 12-36 months.
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "Hacker News — Best Stories"
-    type: rss
-    url: "https://hnrss.org/best"
-    category: technology
-    tier: 1
-    # Stories with >= 100 points — higher signal than top feed. 28 entries confirmed.
-
+  # GitHub Trending — disabled: feed returns entries with no published/updated dates
+  # (probe 2026-05-02). Either accept as "always fresh" or wrap to use fetch time.
   - name: "GitHub Trending — Daily"
     type: rss
     url: "https://mshibanami.github.io/GitHubTrendingRSS/daily/all.xml"
     category: technology
-    tier: 1
-    # What builders are working on globally. Unofficial RSS, 13 entries confirmed.
+    tier: 3
+    active: false
 
   - name: "arXiv — Artificial Intelligence"
     type: rss
     url: "https://rss.arxiv.org/rss/cs.AI"
-    category: science
-    tier: 1
-    # Raw AI research before institutional filtering. Use rss.arxiv.org (not arxiv.org/rss).
+    category: technology
+    tier: 3
+    active: false
 
+  # arXiv ML — disabled: URL returns valid response with 0 entries on 2026-05-02.
+  # Same path pattern works for cs.AI (322 entries) — investigate URL variant.
   - name: "arXiv — Machine Learning"
     type: rss
     url: "https://rss.arxiv.org/rss/cs.LG"
-    category: science
-    tier: 1
+    category: technology
+    tier: 3
+    active: false
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — EUROPE & INTERNATIONAL INSTITUTIONS
-  # ════════════════════════════════════════════════════════════════════════════
+  # ── Other international (lower priority or held for later) ──────────────────
 
   - name: "Bank of England — News"
     type: rss
     url: "https://www.bankofengland.co.uk/rss/news"
-    category: finance
-    tier: 1
-    # UK monetary policy, financial stability, rate decisions. 50 entries, 6d lag confirmed.
-
-  - name: "ECB — Publications"
-    type: rss
-    url: "https://www.ecb.europa.eu/press/pr/date/2026/html/rss.xml"
-    category: finance
-    tier: 1
+    category: economy
+    tier: 2
     active: false
-    # 404 Feb 2026. URL has year hardcoded (/date/2026/) — will always break on year rollover.
-    # No working ECB RSS URL found. Revisit: check ecb.europa.eu/rss/ or use Google News.
 
-  - name: "UK Government — Foreign Policy"
-    type: rss
-    url: "https://www.gov.uk/search/news-and-communications.atom?subtopic%5B%5D=foreign-policy"
-    category: geopolitics
-    tier: 1
-    # UK post-Brexit foreign policy, defense. 20 entries confirmed.
-
-  - name: "UN — News"
-    type: rss
-    url: "https://news.un.org/feed/subscribe/en/news/all/rss.xml"
-    category: geopolitics
-    tier: 1
-    # UN-wide news: Security Council, humanitarian, conflict. 30 entries confirmed.
-
-  - name: "WHO — News"
-    type: rss
-    url: "https://www.who.int/rss-feeds/news-english.xml"
-    category: health
-    tier: 1
-    # Global health emergencies, disease outbreaks, policy. 25 entries confirmed.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — RUSSIA (state sources — read as narrative management, not fact)
-  # Value: what Russia signals it is doing, rhetoric shifts, gap between claim & action.
-  # ════════════════════════════════════════════════════════════════════════════
-
+  # Kremlin English — held back; the Russian native feed is the primary now.
   - name: "Kremlin — English"
     type: rss
     url: "http://en.kremlin.ru/events/all/feed"
     category: geopolitics
     tier: 1
-    # Primary source for Kremlin framing. Use HTTP not HTTPS (HTTPS times out).
+    active: false
 
-  - name: "Kremlin — Russian (native)"
-    type: rss_translate
-    url: "http://kremlin.ru/events/all/feed"
-    category: geopolitics
-    tier: 1
-    language: ru
-    # Russian-language feed — more complete than English. 20 entries, current.
-    # Stage 2 summarizes in English. Use HTTP only (HTTPS times out).
-
+  # TASS English — held back; the Russian native feed is the primary now.
+  # (English wire was 100 entries all stale on 2026-05-02; Russian was 100% fresh.)
   - name: "TASS — World News"
     type: rss
     url: "https://tass.com/rss/v2.xml"
     category: geopolitics
-    tier: 1
-    # Russian state wire (English). 62 entries, current. Broadest official coverage.
-
-  - name: "TASS — Russian wire (native)"
-    type: rss_translate
-    url: "https://tass.ru/rss/v2.xml"
-    category: geopolitics
-    tier: 1
-    language: ru
-    # Russian-language TASS feed — 100 entries, current. More complete than English edition.
-    # Stage 2 summarizes in English.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — AFRICA
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "African Union — News"
-    type: rss
-    url: "https://au.int/en/rss.xml"
-    category: geopolitics
-    tier: 1
-    # Pan-continental policy, peace & security. 5 entries confirmed.
-
-  - name: "South Africa Government — News"
-    type: rss
-    url: "https://www.gov.za/rss.xml"
-    category: geopolitics
-    tier: 1
-    # Regional power, BRICS member. 10 entries confirmed.
-
-  - name: "AllAfrica — Top Stories"
-    type: rss
-    url: "https://allafrica.com/tools/headlines/rdf/latest/headlines.rdf"
-    category: geopolitics
-    tier: 1
-    # Broad African news aggregator. Best available RSS for continent. 33 entries confirmed.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 1 — MIDDLE EAST
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "Iran IRNA — Persian (native)"
-    type: rss_translate
-    url: "https://www.irna.ir/rss"
-    category: geopolitics
-    tier: 1
-    language: fa
-    # Iranian state wire in Farsi — 30 entries, current. Primary signal on Iran policy.
-    # Stage 2 summarizes in English. Key for Gulf, sanctions, nuclear deal tracking.
-
-  - name: "Iran IRNA — English"
-    type: rss
-    url: "https://en.irna.ir/rss"
-    category: geopolitics
-    tier: 1
-    # Iranian state wire English edition — 30 entries, current.
-    # Complements Farsi feed; English edition may be selectively translated.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # TIER 2 — ASIA & SOUTH AMERICA
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "ASEAN Secretariat — News"
-    type: rss
-    url: "https://asean.org/feed"
-    category: geopolitics
     tier: 2
-    # Southeast Asia regional body. 10 entries, 4d lag. Trade, security, summit outcomes.
-
-  - name: "Agência Brasil — Politics (Portuguese)"
-    type: rss_translate
-    url: "https://agenciabrasil.ebc.com.br/rss/politica/feed.xml"
-    category: geopolitics
-    tier: 2
-    language: pt
-    # Brazilian state news agency, politics feed. 10 entries, 2d lag.
-    # Brazil = BRICS member, Amazon policy, US-China swing actor. Stage 2 translates.
-
-  - name: "Agência Brasil — English"
-    type: rss
-    url: "https://agenciabrasil.ebc.com.br/en/rss/geral/feed.xml"
-    category: geopolitics
-    tier: 2
-    # Brazilian state news agency English edition. 10 entries, 11d lag.
-    # Lag is longer than Portuguese — use Portuguese feed as primary.
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # CHINESE STATE MEDIA — read as narrative management, not fact
-  # Value: Beijing's signaling, rhetoric shifts, gap between claim and action.
-  # Xinhua RSS: 2018. People's Daily RSS: Jun 2025. Global Times: Feb 2026 (most current).
-  # MFA China, State Council, MOFCOM need web_scrape — not yet built.
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "Xinhua — World (English)"
-    type: rss
-    url: "http://www.xinhuanet.com/english/rss/worldrss.xml"
-    category: geopolitics
-    tier: 1
-    active: false
-
-  - name: "Xinhua — Finance (English)"
-    type: rss
-    url: "http://www.xinhuanet.com/english/rss/financerss.xml"
-    category: finance
-    tier: 1
-    active: false
-
-  - name: "People's Daily — World (English)"
-    type: rss
-    url: "http://en.people.cn/rss/90777.xml"
-    category: geopolitics
-    tier: 1
     active: false
 
   - name: "Global Times — World"
     type: rss
     url: "https://www.globaltimes.cn/rss/outbrain.xml"
     category: geopolitics
-    tier: 1
-    # Most current Chinese English-language RSS: 50 entries, latest Feb 2026 (~2-3 weeks lag)
-
-  - name: "CGTN — World"
-    type: rss
-    url: "https://www.cgtn.com/subscribe/rss/section/world.do"
-    category: geopolitics
-    tier: 1
+    tier: 2
     active: false
 
-  - name: "China Daily — World"
+  - name: "African Union — News"
     type: rss
-    url: "http://www.chinadaily.com.cn/rss/world_rss.xml"
+    url: "https://au.int/en/rss.xml"
     category: geopolitics
-    tier: 1
+    tier: 2
     active: false
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # DORMANT — Feeds that exist but update rarely; kept for occasional new entries
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "State Dept — Direct Line to American Business"
+  - name: "South Africa Government — News"
     type: rss
-    url: "https://www.state.gov/rss-feed/direct-line-to-american-business/feed/"
+    url: "https://www.gov.za/rss.xml"
     category: geopolitics
-    tier: 1
+    tier: 2
     active: false
-    # Last entry: Jun 2025. Infrequent but relevant for trade/commercial diplomacy.
 
-  - name: "State Dept — Treaties (TIAS)"
+  - name: "Iran IRNA — English"
     type: rss
-    url: "https://www.state.gov/rss-feed/treaties-text-of-treaties-and-agreements-published-in-tias/feed/"
+    url: "https://en.irna.ir/rss"
     category: geopolitics
-    tier: 1
+    tier: 2
     active: false
-    # Last entry: Jun 2025. Primary source treaty text — worth checking occasionally.
-    # Note: URL pattern unverified (404 in test) — find correct URL from state.gov/rss-feeds
 
-  # ════════════════════════════════════════════════════════════════════════════
-  # NO RSS AVAILABLE — covered by web_scrape or Federal Register fallback
-  # ════════════════════════════════════════════════════════════════════════════
-  # White House    — covered by web_scrape (presidential-actions, articles, fact-sheets)
-  # DOE            — direct RSS broken (2020 content); covered by web_scrape newsroom
-  # ARPA-E         — covered by web_scrape press-releases
-  # FTC            — direct RSS working (ftc.gov/feeds/press-release.xml) — see above
-  # FCC            — website blocks scrapers; covered by Federal Register RSS
-  # Treasury       — direct RSS working (home.treasury.gov) — see TRADE section
-  # OFAC           — RSS retired Jan 31 2025; covered by Treasury + Federal Register
-  # FBI            — press release RSS removed; DOJ National Security covers most activity
-  # ODNI           — no public RSS feed; revisit
-  # USAID          — agency being dismantled (RIF Feb 2025); not worth adding
-  # OIG            — no RSS confirmed; revisit later
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # DISABLED — Wire services, outlets, Google News (enable when ready)
-  # ════════════════════════════════════════════════════════════════════════════
-
-  - name: "Reuters — World News"
+  - name: "ASEAN Secretariat — News"
     type: rss
-    url: "https://feeds.reuters.com/reuters/worldNews"
+    url: "https://asean.org/feed"
     category: geopolitics
     tier: 2
+    active: false
 
-  - name: "Reuters — Business"
+  - name: "Agência Brasil — English"
     type: rss
-    url: "https://feeds.reuters.com/reuters/businessNews"
-    category: finance
-    tier: 2
-
-  - name: "Reuters — Technology"
-    type: rss
-    url: "https://feeds.reuters.com/reuters/technologyNews"
-    category: technology
-    tier: 2
-
-  - name: "Reuters — Science"
-    type: rss
-    url: "https://feeds.reuters.com/reuters/scienceNews"
-    category: science
-    tier: 2
-
-  - name: "BBC — World"
-    type: rss
-    url: "https://feeds.bbci.co.uk/news/world/rss.xml"
+    url: "https://agenciabrasil.ebc.com.br/en/rss/geral/feed.xml"
     category: geopolitics
     tier: 2
+    active: false
 
   - name: "BBC — Technology"
     type: rss
     url: "https://feeds.bbci.co.uk/news/technology/rss.xml"
     category: technology
     tier: 2
+    active: false
 
   - name: "BBC — Science & Environment"
     type: rss
     url: "https://feeds.bbci.co.uk/news/science_and_environment/rss.xml"
     category: science
     tier: 2
-
-  - name: "Associated Press — Top News"
-    type: rss
-    url: "https://apnews.com/apf-topnews.rss"
-    category: geopolitics
-    tier: 2
-
-  - name: "Al Jazeera — World"
-    type: rss
-    url: "https://www.aljazeera.com/xml/rss/all.xml"
-    category: geopolitics
-    tier: 2
-    # Enabled: best English-language non-Western perspective. 25 entries confirmed.
+    active: false
 
   - name: "Anadolu Agency — English"
     type: rss
     url: "https://www.aa.com.tr/en/rss/default?cat=politics"
     category: geopolitics
     tier: 2
-    # Turkish state wire. NATO member, regional actor (Middle East, Central Asia, Africa).
-    # 27 entries confirmed. Useful non-US, non-EU angle.
-
-  - name: "Ars Technica"
-    type: rss
-    url: "https://feeds.arstechnica.com/arstechnica/index"
-    category: technology
-    tier: 2
     active: false
-
-  - name: "The Verge"
-    type: rss
-    url: "https://www.theverge.com/rss/index.xml"
-    category: technology
-    tier: 2
-    active: false
-
-  - name: "MIT Technology Review"
-    type: rss
-    url: "https://www.technologyreview.com/feed/"
-    category: technology
-    tier: 2
-    active: false
-
-  - name: "Wired"
-    type: rss
-    url: "https://www.wired.com/feed/rss"
-    category: technology
-    tier: 2
-    active: false
-
-  - name: "IEEE Spectrum"
-    type: rss
-    url: "https://spectrum.ieee.org/feeds/feed.rss"
-    category: technology
-    tier: 2
-    active: false
-
-  - name: "arXiv — AI (cs.AI)"
-    type: rss
-    url: "http://arxiv.org/rss/cs.AI"
-    category: technology
-    tier: 2
-    active: false
-
-  - name: "Nature — News"
-    type: rss
-    url: "https://www.nature.com/nature.rss"
-    category: science
-    tier: 2
-    active: false
-
-  - name: "Science — News"
-    type: rss
-    url: "https://www.science.org/rss/news_current.xml"
-    category: science
-    tier: 2
-    active: false
-
-  - name: "New Scientist"
-    type: rss
-    url: "https://www.newscientist.com/feed/home/"
-    category: science
-    tier: 2
-    active: false
-
-  - name: "Google News — FBI & DOJ Enforcement"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=FBI+DOJ+indictment+arrest+enforcement+press+release&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
-    # Enabled: best proxy for DOJ/FBI enforcement actions (indictments, arrests, national security cases).
-    # Direct DOJ RSS dead (404 Feb 2026); Fed Register covers rulemakings but not press releases.
-
-  - name: "Google News — World"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=world+news+geopolitics&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
-
-  - name: "Google News — US-China Relations"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=US+China+relations+geopolitics+Taiwan&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
-
-  - name: "Google News — Sanctions & Export Controls"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=OFAC+sanctions+export+controls+BIS+chip+war&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
-
-  - name: "Google News — Artificial Intelligence"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=artificial+intelligence+AGI+LLM+foundation+model&hl=en-US&gl=US&ceid=US:en"
-    category: technology
-    tier: 2
-
-  - name: "Google News — Semiconductors"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=semiconductors+TSMC+Nvidia+ASML+chip+supply+chain&hl=en-US&gl=US&ceid=US:en"
-    category: technology
-    tier: 2
-
-  - name: "Google News — Robotics"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=robotics+humanoid+robot+Boston+Dynamics+physical+AI&hl=en-US&gl=US&ceid=US:en"
-    category: technology
-    tier: 2
-    active: false
-
-  - name: "Google News — Nuclear Energy"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=nuclear+energy+SMR+small+modular+reactor+fission&hl=en-US&gl=US&ceid=US:en"
-    category: energy
-    tier: 2
-    active: false
-
-  - name: "Google News — Fusion Energy"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=fusion+energy+ITER+Commonwealth+Fusion+NIF+plasma&hl=en-US&gl=US&ceid=US:en"
-    category: energy
-    tier: 2
-    active: false
-
-  - name: "Google News — Solar & Renewables"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=solar+energy+renewable+battery+storage+grid&hl=en-US&gl=US&ceid=US:en"
-    category: energy
-    tier: 2
-    active: false
-
-  - name: "Google News — Oil & Gas Geopolitics"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=OPEC+oil+gas+LNG+energy+geopolitics+pipeline&hl=en-US&gl=US&ceid=US:en"
-    category: energy
-    tier: 2
-    active: false
-
-  - name: "Google News — Critical Minerals"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=critical+minerals+rare+earth+lithium+cobalt+supply+chain&hl=en-US&gl=US&ceid=US:en"
-    category: materials
-    tier: 2
-    active: false
-
-  - name: "Google News — Mining & Refining"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=mining+copper+nickel+gallium+germanium+refining+resource+nationalism&hl=en-US&gl=US&ceid=US:en"
-    category: materials
-    tier: 2
-    active: false
-
-  - name: "Google News — Ocean Health & Fisheries"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=ocean+health+fish+stocks+fisheries+coral+reef+acidification&hl=en-US&gl=US&ceid=US:en"
-    category: ecosystem
-    tier: 2
-    active: false
-
-  - name: "Google News — Biodiversity & Wildlife"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=biodiversity+wildlife+species+extinction+habitat+deforestation&hl=en-US&gl=US&ceid=US:en"
-    category: ecosystem
-    tier: 2
-    active: false
-
-  - name: "Google News — Pollution & Cleanup"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=microplastics+PFAS+pollution+cleanup+contamination&hl=en-US&gl=US&ceid=US:en"
-    category: ecosystem
-    tier: 2
-    active: false
-
-  - name: "Google News — Extreme Weather & Migration"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=extreme+weather+drought+flood+climate+migration+food+security&hl=en-US&gl=US&ceid=US:en"
-    category: climate
-    tier: 2
-    active: false
-
-  - name: "Google News — Water & Food Security"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=water+scarcity+aquifer+food+security+crop+failure&hl=en-US&gl=US&ceid=US:en"
-    category: climate
-    tier: 2
-    active: false
-
-  - name: "Google News — Finance & Markets"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=federal+reserve+dollar+inflation+debt+macro+economy&hl=en-US&gl=US&ceid=US:en"
-    category: finance
-    tier: 2
-    active: false
-
-  - name: "Google News — Network States & Governance"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=network+states+charter+cities+digital+governance+decentralization&hl=en-US&gl=US&ceid=US:en"
-    category: social
-    tier: 2
-    active: false
-
-  - name: "Google News — Longevity & Health Innovation"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=longevity+GLP-1+senolytics+aging+healthspan+biomarkers&hl=en-US&gl=US&ceid=US:en"
-    category: health
-    tier: 2
-    active: false
-
-  - name: "Google News — Demographic Shifts"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=population+decline+fertility+demographics+immigration+aging&hl=en-US&gl=US&ceid=US:en"
-    category: social
-    tier: 2
-    active: false
-
-  - name: "Council on Foreign Relations"
-    type: rss
-    url: "https://www.cfr.org/rss.xml"
-    category: geopolitics
-    tier: 3
-    active: false
-
-  # ════════════════════════════════════════════════════════════════════════════
-  # MISSING REGIONS — Added for world brief coverage
-  # ════════════════════════════════════════════════════════════════════════════
-
-  # ── India ──
-  - name: "Google News — India"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=India+Modi+government+policy&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
 
   - name: "Times of India — Top Stories"
     type: rss
     url: "https://timesofindia.indiatimes.com/rssfeedstopstories.cms"
     category: geopolitics
     tier: 2
+    active: false
 
-  # ── Japan & South Korea ──
-  - name: "NHK World — Top Stories"
+  # ── Google News topic search feeds ──────────────────────────────────────────
+  # All return entries successfully but per SOURCES.md, trafilatura fails on
+  # 100% of resolved article URLs (paywalls, JS, anti-bot). HOLD until a
+  # Playwright + per-site extraction fallback exists.
+
+  - name: "Google News — US-China Relations"
     type: rss
-    url: "https://www3.nhk.or.jp/nhkworld/en/news/feeds/"
+    url: "https://news.google.com/rss/search?q=US+China+trade+diplomacy+military&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
     tier: 2
+    active: false
 
-  - name: "Yonhap — English"
-    type: rss
-    url: "https://en.yna.co.kr/RSS/news.xml"
-    category: geopolitics
-    tier: 2
-
-  # ── EU / Europe ──
-  - name: "Google News — European Union"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=European+Union+EU+policy+Brussels&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
-
-  - name: "Deutsche Welle — World"
-    type: rss
-    url: "https://rss.dw.com/rdf/rss-en-world"
-    category: geopolitics
-    tier: 2
-
-  # ── Middle East ──
-  - name: "Google News — Middle East"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=Middle+East+Israel+Gaza+Saudi+Gulf&hl=en-US&gl=US&ceid=US:en"
-    category: geopolitics
-    tier: 2
-
-  # ── Ukraine / NATO ──
   - name: "Google News — Ukraine War"
-    type: google_news
-    url: "https://news.google.com/rss/search?q=Ukraine+war+Russia+NATO+frontline&hl=en-US&gl=US&ceid=US:en"
+    type: rss
+    url: "https://news.google.com/rss/search?q=Ukraine+war+Russia+frontline&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
     tier: 2
-
-  - name: "Brookings Institution"
-    type: rss
-    url: "https://www.brookings.edu/feed/"
-    category: geopolitics
-    tier: 3
     active: false
 
-  - name: "RAND Corporation"
+  - name: "Google News — Middle East"
     type: rss
-    url: "https://www.rand.org/pubs.xml"
+    url: "https://news.google.com/rss/search?q=Middle+East+Israel+Iran+Gaza&hl=en-US&gl=US&ceid=US:en"
     category: geopolitics
-    tier: 3
+    tier: 2
     active: false
 
-  - name: "Hacker News — Front Page"
+  - name: "Google News — Artificial Intelligence"
     type: rss
-    url: "https://hnrss.org/frontpage"
+    url: "https://news.google.com/rss/search?q=artificial+intelligence+AI+regulation+breakthrough&hl=en-US&gl=US&ceid=US:en"
     category: technology
-    tier: 3
+    tier: 2
     active: false
 
-  - name: "The Atlantic"
+  - name: "Google News — India"
     type: rss
-    url: "https://www.theatlantic.com/feed/all/"
-    category: social
-    tier: 3
+    url: "https://news.google.com/rss/search?q=India+government+economy+military&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
     active: false
 
-  - name: "IMF — News"
+  - name: "Google News — FBI & DOJ Enforcement"
     type: rss
-    url: "https://www.imf.org/en/News/rss"
-    category: finance
-    tier: 3
+    url: "https://news.google.com/rss/search?q=FBI+DOJ+indictment+arrest+enforcement+press+release&hl=en-US&gl=US&ceid=US:en"
+    category: security
+    tier: 2
     active: false
 
-  - name: "World Bank — News"
+  - name: "Google News — Sanctions & Export Controls"
     type: rss
-    url: "https://www.worldbank.org/en/news/all.rss"
-    category: finance
-    tier: 3
+    url: "https://news.google.com/rss/search?q=sanctions+export+controls+trade+restrictions&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
     active: false
 
-  - name: "WWF — News"
+  - name: "Google News — Semiconductors"
     type: rss
-    url: "https://www.worldwildlife.org/news.rss"
-    category: ecosystem
-    tier: 3
+    url: "https://news.google.com/rss/search?q=semiconductors+chips+TSMC+ASML+fab&hl=en-US&gl=US&ceid=US:en"
+    category: technology
+    tier: 2
     active: false
+
+  - name: "Google News — European Union"
+    type: rss
+    url: "https://news.google.com/rss/search?q=European+Union+EU+policy+regulation&hl=en-US&gl=US&ceid=US:en"
+    category: geopolitics
+    tier: 2
+    active: false
+
+  # ── Probed 2026-05-05 — confirmed working, held for editorial reasons ──────
+  # All parsed successfully and are valid candidates. Held off the active set
+  # to keep daily volume manageable. See research/candidates_probe_2026-05-05.md.
+
+  # — BLS data series (post monthly; high-signal when fresh) —
+  - name: "BLS — Employment Situation"
+    type: rss
+    url: "https://www.bls.gov/feed/empsit.rss"
+    category: economy
+    tier: 1
+    active: false
+
+  - name: "BLS — CPI"
+    type: rss
+    url: "https://www.bls.gov/feed/cpi.rss"
+    category: economy
+    tier: 1
+    active: false
+
+  - name: "BLS — PPI"
+    type: rss
+    url: "https://www.bls.gov/feed/ppi.rss"
+    category: economy
+    tier: 1
+    active: false
+
+  # — FBI Top Stories (sibling of National Press; partial overlap) —
+  - name: "FBI — Top Stories"
+    type: rss
+    url: "https://www.fbi.gov/feeds/fbi-top-stories/RSS"
+    category: security
+    tier: 1
+    active: false
+
+  # — DOE labs (working RSS but mid-cadence) —
+  - name: "LBNL — Lawrence Berkeley"
+    type: rss
+    url: "https://newscenter.lbl.gov/feed/"
+    category: science
+    tier: 1
+    active: false
+
+  - name: "FNAL — Fermilab"
+    type: rss
+    url: "https://news.fnal.gov/feed/"
+    category: science
+    tier: 1
+    active: false
+
+  - name: "SNL — Sandia"
+    type: rss
+    url: "https://newsreleases.sandia.gov/feed/"
+    category: science
+    tier: 1
+    active: false
+
+  # — Other US Federal sources (working) —
+  - name: "DOL — News Releases"
+    type: rss
+    url: "https://www.dol.gov/rss/releases.xml"
+    category: economy
+    tier: 1
+    active: false
+
+  - name: "VA — Press Room"
+    type: rss
+    url: "https://news.va.gov/feed/"
+    category: health
+    tier: 1
+    active: false
+
+  - name: "FEMA — Disaster Declarations"
+    type: rss
+    url: "https://www.fema.gov/news/disasters_rss.fema"
+    category: security
+    tier: 1
+    active: false
+
+  - name: "CMS — Internet-Only Manuals"
+    type: rss
+    url: "https://www.cms.gov/rss/31836"
+    category: health
+    tier: 1
+    active: false
+
+  # — GovInfo additional feeds —
+  - name: "GovInfo — Public Laws"
+    type: rss
+    url: "https://www.govinfo.gov/rss/plaw.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "GovInfo — Reports"
+    type: rss
+    url: "https://www.govinfo.gov/rss/crpt.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "GovInfo — Federal Register (firehose)"
+    type: rss
+    url: "https://www.govinfo.gov/rss/fr.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "GovInfo — Congressional Record"
+    type: rss
+    url: "https://www.govinfo.gov/rss/crec.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "GovInfo — Bills Enrolled"
+    type: rss
+    url: "https://www.govinfo.gov/rss/bills-enr.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "GovInfo — Economic Indicators"
+    type: rss
+    url: "https://www.govinfo.gov/rss/econi.xml"
+    category: economy
+    tier: 1
+    active: false
+
+  # — Additional Court of Appeals circuits —
+  - name: "Court of Appeals — DC Circuit"
+    type: rss
+    url: "https://www.govinfo.gov/rss/uscourts-cadc.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "Court of Appeals — 5th Circuit"
+    type: rss
+    url: "https://www.govinfo.gov/rss/uscourts-ca5.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "Court of Appeals — 2nd Circuit"
+    type: rss
+    url: "https://www.govinfo.gov/rss/uscourts-ca2.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  - name: "Court of Federal Claims"
+    type: rss
+    url: "https://www.govinfo.gov/rss/uscourts-cofc.xml"
+    category: geopolitics
+    tier: 1
+    active: false
+
+  # — NLRB (labor decisions) —
+  - name: "NLRB — Press Releases"
+    type: rss
+    url: "https://www.nlrb.gov/rss/rssPressReleases.xml"
+    category: economy
+    tier: 1
+    active: false
+
+  - name: "NLRB — Weekly Summaries"
+    type: rss
+    url: "https://www.nlrb.gov/rss/rssWeeklySummaries.xml"
+    category: economy
+    tier: 1
+    active: false
+
+  # — NY Fed Economic Policy Review (quarterly) —
+  - name: "NY Fed — Economic Policy Review"
+    type: rss
+    url: "https://www.newyorkfed.org/medialibrary/media/research/rss/feeds/epr.xml"
+    category: economy
+    tier: 1
+    active: false
+
+  # ════════════════════════════════════════════════════════════════════════════
+  # REMOVED 2026-05-02 — confirmed dead or duplicate
+  # See research/probe_2026-05-02.md for evidence.
+  # ════════════════════════════════════════════════════════════════════════════
+  # - Reuters — World News           (DNS getaddrinfo failed; public RSS killed)
+  # - Associated Press — Top News    (HTTP 404; public RSS killed)
+  # - NHK World — Top Stories        (20s+ timeout, hangs connection)
+  # - Google News — World            (HTTP 400 on topic-ID URL; sibling search?q= variants kept)
+  # - White House — Articles         (duplicate URL of Presidential Actions)
+  # - White House — Fact Sheets      (duplicate URL of Presidential Actions)

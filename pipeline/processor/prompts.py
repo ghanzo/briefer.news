@@ -54,7 +54,7 @@ Produce a world brief. Respond with ONLY this JSON (no markdown, no explanation)
 {{
   "date": "{date}",
   "headline": "One sentence: the single most important thing happening on Earth today",
-  "items": [
+  "bullets": [
     {{
       "bullet": "One sentence stating a concrete fact. Names, numbers, places. No filler.",
       "region": "east-asia",
