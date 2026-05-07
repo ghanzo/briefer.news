@@ -1,0 +1,13 @@
+URL: https://www.energy.gov/hgeo/opr/articles/energy-department-issues-rfp-continue-swift-execution-president-trumps-172
+METHOD: playwright_trafilatura
+LEN: 2255
+
+DOE Delivers Historic Request for Proposal Execution to Secure Global Oil Supply Stability
+April 30, 2026WASHINGTON—The U.S. Department of Energy (DOE) today issued a Request for Proposal (RFP) for an emergency exchange of up to 92.5-million-barrels of crude oil from the Strategic Petroleum Reserve (SPR). Today’s solicitation opens competitive bidding, continuing DOE’s execution of President Trump’s swift 172-million-barrel release as part of a coordinated 400-million-barrel action by International Energy Agency (IEA) member nations’ strategic reserves.
+Under President Trump’s leadership, the Department has executed a historic, record-speed series of SPR exchange solicitations—the largest in the Reserve’s 50-year history, moving critical crude oil supplies quickly to market to address short-term oil flow disruptions and strengthen energy security for the United States and its allies.
+The crude oil will originate from the SPR's Bayou Choctaw, Bryan Mound, Big Hill, and West Hackberry sites. This action builds on the Department’s three previous emergency exchange RFPs, which together quickly awarded approximately 80 million barrels across two completed exchanges. DOE’s earlier exchanges demonstrated the SPR’s ability to rapidly deliver crude oil under emergency authorities while securing a 24 percent premium in returned crude oil barrels—growing the reserve at no cost to American taxpayers.
+“With today’s announcement, we are issuing an additional exchange to continue the President’s commitment to the coordinated release,” said DOE Assistant Secretary for the Hydrocarbons and Geothermal Energy Office Kyle Haustveit. “These actions help move oil quickly into the market, address short-term supply pressures, and ensure that the Strategic Petroleum Reserve remains strong through the return of premium barrels.”
+Under DOE’s exchange authority, participating companies will return the borrowed 92.5-million-barrels of crude with additional premium barrels, ensuring the SPR grows beyond current levels while delivering immediate supply to refiners and global oil markets.
+Bids for this solicitation are due no later than 11:00 A.M. Central Time on Monday, May 4, 2026.
+For more information on the SPR, please visit DOE’s website.
+###

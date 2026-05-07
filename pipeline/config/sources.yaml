@@ -103,14 +103,19 @@ sources:
     category: security
     tier: 1
 
-  # DoD News: war.gov article URLs are Akamai-blocked to plain httpx (HTTP 403).
-  # extractor: playwright + stealth (in browser.py) bypasses. Verified 2026-05-06.
+  # DoD News: RSS feed gives us titles + URLs, but war.gov ARTICLE pages are
+  # Akamai-protected. Stealth+Playwright worked on first contact but our IP
+  # is now flagged after ~50 failed attempts on 2026-05-06 (testing the bypass).
+  # Even 30-60s pacing returns "Access Denied" pages. Reverting to default
+  # extractor: trafilatura (which 403s fast) so each scrape doesn't waste 15
+  # min on Playwright retries. We still get title + meta_description from
+  # the RSS feed — useful as title-level signal even without article body.
+  # Future fix: residential proxy or scraping API ($30/mo). See SOURCE_NOTES.md.
   - name: "Department of Defense — News"
     type: rss
     url: "https://www.defense.gov/DesktopModules/ArticleCS/RSS.ashx?ContentType=1&Site=945&max=20"
     category: security
     tier: 1
-    extractor: playwright
 
   - name: "Federal Reserve — Press Releases"
     type: rss

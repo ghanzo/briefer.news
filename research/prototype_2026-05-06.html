@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>The American Brief — May 6, 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root, body.theme-kraft {
+      --paper: #F5EFE2;
+      --ink: #1A1614;
+      --ink-soft: #3D332C;
+      --ink-light: #6B5D52;
+      --sepia: #7A4F2E;
+      --black: #14110F;
+      --cream: #F2EBD9;
+      --tagline: #C9BFA7;
+    }
+
+    body.theme-newsprint {
+      --paper: #FAFAF8;
+      --ink: #0E0E0E;
+      --ink-soft: #2C2C2C;
+      --ink-light: #8A8A8A;
+      --sepia: #B0181F;
+      --black: #0E0E0E;
+      --cream: #FAFAF8;
+      --tagline: #B0B0B0;
+    }
+
+    body.theme-oxblood {
+      --paper: #F4EEDF;
+      --ink: #1F1A18;
+      --ink-soft: #3D2F2A;
+      --ink-light: #7A6B62;
+      --sepia: #6B1717;
+      --black: #2A1212;
+      --cream: #F0E5D0;
+      --tagline: #C2A8A0;
+    }
+
+    body.theme-navy {
+      --paper: #F2EEE6;
+      --ink: #14181F;
+      --ink-soft: #2A3140;
+      --ink-light: #6B7280;
+      --sepia: #1F3A5F;
+      --black: #0E1A2E;
+      --cream: #EBEEF4;
+      --tagline: #A0AEC0;
+    }
+
+    body.theme-olive {
+      --paper: #F0EBDB;
+      --ink: #1A1A14;
+      --ink-soft: #2D2E1F;
+      --ink-light: #6B6856;
+      --sepia: #3D5232;
+      --black: #1F2A1E;
+      --cream: #ECECDC;
+      --tagline: #B5BAA1;
+    }
+
+    body.theme-mono {
+      --paper: #F5F5F3;
+      --ink: #111111;
+      --ink-soft: #303030;
+      --ink-light: #909090;
+      --sepia: #303030;
+      --black: #0A0A0A;
+      --cream: #F5F5F3;
+      --tagline: #999999;
+    }
+
+    /* Dark themes */
+
+    body.theme-carbon {
+      --paper: #0F0D0B;
+      --ink: #E5DAC2;
+      --ink-soft: #B5A88E;
+      --ink-light: #6E6557;
+      --sepia: #C9925E;
+      --black: #050403;
+      --cream: #E5DAC2;
+      --tagline: #8A7F6B;
+    }
+
+    body.theme-slate {
+      --paper: #14181E;
+      --ink: #DDE0E5;
+      --ink-soft: #A0A8B5;
+      --ink-light: #5C6470;
+      --sepia: #7AAFE0;
+      --black: #0A0C10;
+      --cream: #DDE0E5;
+      --tagline: #6E7682;
+    }
+
+    body.theme-terminal {
+      --paper: #0B0D0A;
+      --ink: #C8D2B0;
+      --ink-soft: #8A9275;
+      --ink-light: #4F5544;
+      --sepia: #C7A75C;
+      --black: #050605;
+      --cream: #C8D2B0;
+      --tagline: #6F7559;
+    }
+
+    body.theme-ink {
+      --paper: #16151A;
+      --ink: #EFE9DD;
+      --ink-soft: #B0AA9E;
+      --ink-light: #6A6660;
+      --sepia: #C45842;
+      --black: #0A090E;
+      --cream: #EFE9DD;
+      --tagline: #807A70;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 22px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Masthead */
+    header.masthead {
+      background: var(--black);
+      color: var(--cream);
+      padding: 36px 24px 28px;
+      text-align: center;
+      border-bottom: 1px solid var(--ink);
+    }
+    header.masthead h1 {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(42px, 6.4vw, 64px);
+      letter-spacing: 0.01em;
+      margin: 0 0 10px;
+      line-height: 1;
+    }
+    header.masthead p.tagline {
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(15px, 1.7vw, 18px);
+      color: var(--tagline);
+      letter-spacing: 0.02em;
+      margin: 0;
+    }
+
+    /* Date stamp */
+    .stamp {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 18px 24px 0;
+      text-align: right;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+    }
+
+    /* Body container */
+    main.brief {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 18px 24px 36px;
+    }
+
+    /* Headline */
+    .headline {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: clamp(28px, 3.2vw, 34px);
+      font-weight: 500;
+      line-height: 1.2;
+      margin: 0 0 14px;
+      letter-spacing: 0;
+    }
+
+    .dek {
+      font-size: 20px;
+      line-height: 1.45;
+      color: var(--ink-soft);
+      margin: 0 0 28px;
+      font-weight: 400;
+      max-width: 64ch;
+    }
+
+    /* Pull quotes */
+    blockquote.pull {
+      margin: 28px 0;
+      padding: 4px 0 4px 26px;
+      border-left: 3px solid var(--sepia);
+      font-style: italic;
+      font-size: 25px;
+      line-height: 1.32;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    blockquote.pull p {
+      margin: 0 0 10px;
+    }
+    blockquote.pull cite {
+      display: block;
+      font-style: normal;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    blockquote.pull cite sup {
+      font-family: 'Newsreader', serif;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--sepia);
+      margin-left: 4px;
+      font-size: 13px;
+    }
+
+    /* Bullet list */
+    ul.items {
+      list-style: none;
+      padding: 0;
+      margin: 22px 0;
+    }
+    ul.items li {
+      position: relative;
+      padding: 0 0 16px 52px;
+      line-height: 1.45;
+      min-height: 38px;
+    }
+    ul.items li sup {
+      color: var(--sepia);
+      font-weight: 500;
+      margin-left: 2px;
+      font-size: 0.78em;
+    }
+
+    /* Source crest — agency seal in a small circular badge */
+    .crest {
+      position: absolute;
+      left: 0;
+      top: 1px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--ink-light);
+      border-radius: 50%;
+      background: var(--cream);
+      padding: 3px;
+      flex-shrink: 0;
+      overflow: hidden;
+      cursor: help;
+    }
+
+    /* Inline citation anchors — click jumps to source URL, hover shows title */
+    a.cite {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted transparent;
+      transition: border-color 0.15s ease;
+    }
+    a.cite:hover {
+      border-bottom-color: var(--sepia);
+    }
+    a.cite:focus-visible {
+      outline: 2px solid var(--sepia);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+    .crest img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    /* Fallback: text monogram if no image */
+    .crest.text-only {
+      border-color: var(--sepia);
+      background: transparent;
+      padding: 0;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 8.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--sepia);
+      text-transform: uppercase;
+    }
+    .crest.text-only.short {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    /* Sources */
+    .sources {
+      margin: 36px 0 0;
+      padding: 22px 0 0;
+      border-top: 1px solid var(--ink-light);
+    }
+    .sources h2 {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 0 0 18px;
+    }
+    .sources ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      counter-reset: src;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .sources ol li {
+      counter-increment: src;
+      padding: 0 0 10px 32px;
+      position: relative;
+      color: var(--ink-soft);
+    }
+    .sources ol li::before {
+      content: counter(src);
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--sepia);
+      font-weight: 500;
+    }
+    .sources a {
+      color: var(--sepia);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--sepia);
+      word-break: break-all;
+    }
+    .sources a:hover {
+      border-bottom-style: solid;
+    }
+    .sources .pub {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Section labels (Voices, Significant items, Sources) */
+    h3.section-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 36px 0 18px;
+      padding-top: 22px;
+      border-top: 1px solid var(--ink-light);
+    }
+
+    /* Voices stack */
+    .voices blockquote.pull {
+      margin: 18px 0;
+    }
+    .voices blockquote.pull:first-child {
+      margin-top: 0;
+    }
+    .voices blockquote.pull:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Bullets — bold lead-in for scannability */
+    ul.items li b,
+    ul.items li strong {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* Footer nav */
+    footer.site {
+      max-width: 740px;
+      margin: 32px auto 0;
+      padding: 24px 24px 36px;
+      border-top: 1px solid var(--ink-light);
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      text-align: center;
+      color: var(--ink-light);
+    }
+    footer.site a {
+      color: var(--ink);
+      text-decoration: none;
+      margin: 0 12px;
+      border-bottom: 1px dotted var(--ink-light);
+    }
+    footer.site a:hover {
+      border-bottom-style: solid;
+    }
+
+    @media (max-width: 540px) {
+      html, body { font-size: 19px; }
+      header.masthead { padding: 40px 18px 32px; }
+      .stamp { padding: 18px 18px 0; }
+      main.brief { padding: 24px 18px 40px; }
+      blockquote.pull { font-size: 20px; padding-left: 18px; }
+      footer.site a { display: inline-block; margin: 6px 8px; }
+    }
+
+    /* Bullet hover popup (image preview) */
+    #bullet-popup {
+      position: fixed;
+      display: none;
+      z-index: 990;
+      background: var(--cream);
+      border: 1px solid var(--ink-light);
+      padding: 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      max-width: 360px;
+    }
+    #bullet-popup img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 360px;
+      object-fit: contain;
+    }
+    #bullet-popup .caption {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-top: 8px;
+      text-align: center;
+    }
+    ul.items li[data-image] {
+      cursor: zoom-in;
+    }
+
+    /* Theme picker (dev only — remove for production) */
+    #picker {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(6px);
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      flex-wrap: wrap;
+      max-width: 560px;
+    }
+    #picker .picker-label {
+      color: #888;
+      padding: 0 4px 0 2px;
+      font-weight: 500;
+    }
+    #picker .picker-sep {
+      width: 1px;
+      height: 18px;
+      background: #ddd;
+      margin: 0 4px;
+    }
+    #picker button {
+      border: 1px solid #ddd;
+      background: white;
+      padding: 5px 9px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: #333;
+      border-radius: 2px;
+    }
+    #picker button:hover { background: #f0f0f0; }
+    #picker button.active {
+      background: #111;
+      color: white;
+      border-color: #111;
+    }
+    @media (max-width: 540px) {
+      #picker { font-size: 9px; max-width: 280px; }
+      #picker button { padding: 4px 6px; }
+      #picker .picker-sep { display: none; }
+    }
+  </style>
+</head>
+<body class="theme-kraft">
+
+<div id="picker">
+  <span class="picker-label">Light</span>
+  <button data-theme="kraft" class="active">Kraft</button>
+  <button data-theme="newsprint">Newsprint</button>
+  <button data-theme="oxblood">Oxblood</button>
+  <button data-theme="navy">Navy</button>
+  <button data-theme="olive">Olive</button>
+  <button data-theme="mono">Mono</button>
+  <span class="picker-sep"></span>
+  <span class="picker-label">Dark</span>
+  <button data-theme="carbon">Carbon</button>
+  <button data-theme="slate">Slate</button>
+  <button data-theme="terminal">Terminal</button>
+  <button data-theme="ink">Ink</button>
+</div>
+
+<header class="masthead">
+  <h1>The American Brief</h1>
+  <p class="tagline">From the public record</p>
+</header>
+
+<div class="stamp">May 6, 2026 &middot; No. 247</div>
+
+<main class="brief">
+
+  <h2 class="headline">
+    On Iran: U.S. drafts UN resolution; oil release reaches 172 million barrels.
+  </h2>
+
+  <p class="dek">
+    A historic Strategic Petroleum Reserve drawdown reaches 172 million barrels;
+    23,000 civilian sailors remain stranded in the Gulf as a UN resolution is
+    drafted in New York. President Trump is scheduled to meet President Xi
+    Jinping the week of May 11.
+  </p>
+
+  <h3 class="section-label">Voices</h3>
+  <div class="voices">
+    <blockquote class="pull">
+      <p>&ldquo;What is an act of war? Putting mines in the water.&rdquo;</p>
+      <cite>Sec. of State Marco Rubio, May 5<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-of-state-marco-rubio-remarks-to-press-9/" title="State Dept. — Rubio Press Remarks, May 5, 2026" target="_blank" rel="noopener">1</a></sup></cite>
+    </blockquote>
+
+    <blockquote class="pull">
+      <p>&ldquo;These actions help move oil quickly into the market, address short-term supply pressures, and ensure that the Strategic Petroleum Reserve remains strong through the return of premium barrels.&rdquo;</p>
+      <cite>Kyle Haustveit, DOE Asst. Sec.<sup><a class="cite" href="https://www.energy.gov/hgeo/opr/articles/energy-department-issues-rfp-continue-swift-execution-president-trumps-172" title="DOE — RFP for SPR Exchange, April 30, 2026" target="_blank" rel="noopener">3</a></sup></cite>
+    </blockquote>
+
+    <blockquote class="pull">
+      <p>&ldquo;President Trump promised to unleash American energy dominance, and Minnesota officials cannot undermine his directive by mandating that their woke climate preferences become the uniform policy of our Nation.&rdquo;</p>
+      <cite>AAG Stanley Woodward, DOJ<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-files-complaint-against-minnesota-over-its-attempt-override-federal-law" title="DOJ — Complaint Against Minnesota, May 4, 2026" target="_blank" rel="noopener">7</a></sup></cite>
+    </blockquote>
+  </div>
+
+  <h3 class="section-label">Significant items</h3>
+  <ul class="items">
+    <li data-image="images/hormuz_test_01.png.png" data-image-caption="Strait of Hormuz — reference diagram"><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>Project Freedom.</b> U.S. escorts U.S.-flag merchants through the Strait of Hormuz; two have transited and seven Iranian fast boats have been destroyed in defensive engagements.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-of-state-marco-rubio-remarks-to-press-9/" title="State Dept. — Rubio Press Remarks, May 5, 2026" target="_blank" rel="noopener">1</a></sup></li>
+    <li><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>Operation Epic Fury.</b> Concluded after destroying Iran's navy, air force, and missile-launch capability; Iranian inflation reported at 70%.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-of-state-marco-rubio-remarks-to-press-9/" title="State Dept. — Rubio Press Remarks, May 5, 2026" target="_blank" rel="noopener">1</a></sup></li>
+    <li><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>Persian Gulf.</b> Approximately 23,000 civilian sailors from 87 countries remain stranded; ten have died.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-of-state-marco-rubio-remarks-to-press-9/" title="State Dept. — Rubio Press Remarks, May 5, 2026" target="_blank" rel="noopener">1</a></sup></li>
+    <li><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>UN Security Council.</b> May 4, the U.S., Bahrain, Saudi Arabia, the UAE, Kuwait, and Qatar drafted a resolution requiring Iran to cease attacks, mining, and tolling.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/the-united-states-proposes-a-un-security-council-resolution-to-defend-freedom-of-navigation-and-secure-the-strait-of-hormuz/" title="State Dept. — UN Resolution on Hormuz, May 5, 2026" target="_blank" rel="noopener">2</a></sup></li>
+    <li><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>Trump&ndash;Xi summit.</b> Scheduled for the week of May 11.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-of-state-marco-rubio-remarks-to-press-9/" title="State Dept. — Rubio Press Remarks, May 5, 2026" target="_blank" rel="noopener">1</a></sup></li>
+    <li><span class="crest" title="U.S. Department of Energy"><img src="seals/doe.png" alt="U.S. Department of Energy"></span><b>SPR exchange.</b> DOE issued an April 30 RFP for an emergency exchange of up to 92.5 million barrels &mdash; part of a coordinated 400-million-barrel IEA release, the largest in the Reserve's 50-year history.<sup><a class="cite" href="https://www.energy.gov/hgeo/opr/articles/energy-department-issues-rfp-continue-swift-execution-president-trumps-172" title="DOE — RFP for SPR Exchange, April 30, 2026" target="_blank" rel="noopener">3</a></sup></li>
+    <li><span class="crest" title="Office of the U.S. Trade Representative"><img src="seals/ustr.png" alt="Office of the U.S. Trade Representative"></span><b>Section 301.</b> USTR holding May 5&ndash;8 hearings on investigations into 16 economies' &ldquo;structural excess capacity&rdquo; in manufacturing.<sup><a class="cite" href="https://ustr.gov/about/policy-offices/press-office/press-releases/2026/may/public-hearings-regarding-section-301-investigations-relating-structural-excess-capacity" title="USTR — Section 301 Hearings, May 4, 2026" target="_blank" rel="noopener">4</a></sup></li>
+    <li><span class="crest" title="U.S. Department of Commerce — Bureau of Economic Analysis"><img src="seals/commerce.png" alt="U.S. Department of Commerce (BEA)"></span><b>Trade deficit.</b> March 2026 goods-and-services deficit was $60.3 billion; year-to-date down 55% from 2025. Largest country deficits: Taiwan $20.6B, Vietnam $19.2B, Mexico $16.4B, China $14.0B.<sup><a class="cite" href="https://www.bea.gov/news/2026/us-international-trade-goods-and-services-march-2026" title="BEA — March 2026 Trade in Goods and Services, May 5, 2026" target="_blank" rel="noopener">5</a></sup></li>
+    <li><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>Rubio&ndash;Lavrov call.</b> Sec. Rubio spoke with Russian FM Sergey Lavrov on May 5 at Lavrov's request; reported topics: U.S.&ndash;Russia, Russia&ndash;Ukraine, and Iran.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-rubios-call-with-russian-foreign-minister-lavrov-5/" title="State Dept. — Rubio's Call with FM Lavrov, May 5, 2026" target="_blank" rel="noopener">6</a></sup></li>
+    <li><span class="crest" title="U.S. Department of Justice"><img src="seals/doj.png" alt="U.S. Department of Justice"></span><b>DOJ v. Minnesota.</b> Federal-preemption complaint filed against Minnesota's state-court suits against energy companies &mdash; the fifth such filing.<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-files-complaint-against-minnesota-over-its-attempt-override-federal-law" title="DOJ — Complaint Against Minnesota, May 4, 2026" target="_blank" rel="noopener">7</a></sup></li>
+    <li><span class="crest" title="National Archives — Office of the Federal Register"><img src="seals/nara.png" alt="National Archives (Federal Register)"></span><b>Bridger Pipeline.</b> Presidential permit issued for a cross-border crude pipeline at the Montana&ndash;Canada international boundary.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/05/2026-08909/authorizing-bridger-pipeline-expansion-llc-to-construct-connect-operate-and-maintain-pipeline" title="Federal Register — Bridger Pipeline Authorization, May 5, 2026" target="_blank" rel="noopener">8</a></sup></li>
+    <li><span class="crest" title="U.S. Department of State"><img src="seals/state.svg" alt="U.S. Department of State"></span><b>Hemisphere policy.</b> State Dept. reweighted U.S. foreign assistance to allocate 20% to the Western Hemisphere through a new Bureau for Disaster and Humanitarian Response embedded with U.S. Southern Command.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/reaffirming-the-united-states-commitment-to-humanitarian-assistance-in-our-hemisphere/" title="State Dept. — Humanitarian Assistance in Hemisphere, May 6, 2026" target="_blank" rel="noopener">9</a></sup></li>
+    <li><span class="crest" title="U.S. Department of the Treasury — Office of Foreign Assets Control"><img src="seals/treasury.svg" alt="U.S. Department of the Treasury (OFAC)"></span><b>OFAC sanctions.</b> Former DRC President Joseph Kabila sanctioned for material support to M23 and the Congo River Alliance.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/05/2026-08672/notice-of-ofac-sanctions-action" title="Federal Register — OFAC Sanctions Action, May 5, 2026" target="_blank" rel="noopener">10</a></sup></li>
+    <li><span class="crest" title="U.S. Department of Justice"><img src="seals/doj.png" alt="U.S. Department of Justice"></span><b>Ransomware sentencing.</b> Latvian national sentenced to 102 months for participation in a Russia-based ransomware organization (Conti, Karakurt, Royal, Akira); estimated victim losses across 54+ companies in the hundreds of millions of dollars.<sup><a class="cite" href="https://www.justice.gov/opa/pr/member-prolific-russian-ransomware-group-sentenced-prison" title="DOJ — Russian Ransomware Sentencing, May 4, 2026" target="_blank" rel="noopener">11</a></sup></li>
+    <li><span class="crest" title="U.S. Department of Justice"><img src="seals/doj.png" alt="U.S. Department of Justice"></span><b>Antitrust.</b> DOJ announced investigations into U.S. meatpacking operations in a joint announcement with USDA and the White House Trade and Manufacturing office.<sup><a class="cite" href="https://www.justice.gov/opa/video/acting-attorney-blanche-announces-antitrust-investigations-meatpacking-operations" title="DOJ — Meatpacking Antitrust Investigations, May 4, 2026" target="_blank" rel="noopener">12</a></sup></li>
+    <li><span class="crest" title="Cybersecurity and Infrastructure Security Agency"><img src="seals/cisa.svg" alt="Cybersecurity and Infrastructure Security Agency"></span><b>CISA advisories.</b> Five new industrial-control-system advisories published May 5: ABB B&amp;R Automation Studio, Runtime, PVI; Hitachi Energy PCM600; Johnson Controls CEM AC2000.<sup><a class="cite" href="https://www.cisa.gov/news-events/cybersecurity-advisories" title="CISA — Industrial Control Systems Advisories, May 5, 2026" target="_blank" rel="noopener">13</a></sup></li>
+  </ul>
+
+  <section class="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;Secretary of State Marco Rubio Remarks to Press,&rdquo; May 5, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-of-state-marco-rubio-remarks-to-press-9/">state.gov/releases/&hellip;/rubio-remarks-9</a></li>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;The United States Proposes a UN Security Council Resolution to Defend Freedom of Navigation,&rdquo; May 5, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/the-united-states-proposes-a-un-security-council-resolution-to-defend-freedom-of-navigation-and-secure-the-strait-of-hormuz/">state.gov/releases/&hellip;/un-security-council-resolution</a></li>
+      <li><span class="pub">U.S. Dept. of Energy</span>, &ldquo;DOE Delivers Historic RFP Execution to Secure Global Oil Supply Stability,&rdquo; April 30, 2026.
+        <a href="https://www.energy.gov/hgeo/opr/articles/energy-department-issues-rfp-continue-swift-execution-president-trumps-172">energy.gov/hgeo/opr/&hellip;/trumps-172</a></li>
+      <li><span class="pub">USTR</span>, &ldquo;Public Hearings Regarding Section 301 Investigations Relating to Structural Excess Capacity,&rdquo; May 4, 2026.
+        <a href="https://ustr.gov/about/policy-offices/press-office/press-releases/2026/may/public-hearings-regarding-section-301-investigations-relating-structural-excess-capacity">ustr.gov/&hellip;/section-301-hearings</a></li>
+      <li><span class="pub">Bureau of Economic Analysis</span>, &ldquo;U.S. International Trade in Goods and Services, March 2026,&rdquo; May 5, 2026.
+        <a href="https://www.bea.gov/news/2026/us-international-trade-goods-and-services-march-2026">bea.gov/news/2026/us-international-trade-march-2026</a></li>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;Secretary Rubio's Call with Russian Foreign Minister Lavrov,&rdquo; May 5, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/secretary-rubios-call-with-russian-foreign-minister-lavrov-5/">state.gov/releases/&hellip;/rubio-call-lavrov-5</a></li>
+      <li><span class="pub">U.S. Dept. of Justice</span>, &ldquo;Justice Department Files Complaint Against Minnesota Over Its Attempt to Override Federal Law,&rdquo; May 4, 2026.
+        <a href="https://www.justice.gov/opa/pr/justice-department-files-complaint-against-minnesota-over-its-attempt-override-federal-law">justice.gov/opa/pr/&hellip;/complaint-against-minnesota</a></li>
+      <li><span class="pub">Federal Register</span>, &ldquo;Authorizing Bridger Pipeline Expansion LLC at the International Boundary, Phillips County, Montana,&rdquo; May 5, 2026.
+        <a href="https://www.federalregister.gov/documents/2026/05/05/2026-08909/authorizing-bridger-pipeline-expansion-llc-to-construct-connect-operate-and-maintain-pipeline">federalregister.gov/&hellip;/bridger-pipeline</a></li>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;Reaffirming the United States' Commitment to Humanitarian Assistance in our Hemisphere,&rdquo; May 6, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/reaffirming-the-united-states-commitment-to-humanitarian-assistance-in-our-hemisphere/">state.gov/releases/&hellip;/humanitarian-assistance-hemisphere</a></li>
+      <li><span class="pub">Federal Register</span>, &ldquo;Notice of OFAC Sanctions Action,&rdquo; May 5, 2026 (designation effective April 30, 2026).
+        <a href="https://www.federalregister.gov/documents/2026/05/05/2026-08672/notice-of-ofac-sanctions-action">federalregister.gov/&hellip;/ofac-sanctions-action</a></li>
+      <li><span class="pub">U.S. Dept. of Justice</span>, &ldquo;Member of Prolific Russian Ransomware Group Sentenced to Prison,&rdquo; May 4, 2026.
+        <a href="https://www.justice.gov/opa/pr/member-prolific-russian-ransomware-group-sentenced-prison">justice.gov/opa/pr/&hellip;/russian-ransomware-sentenced</a></li>
+      <li><span class="pub">U.S. Dept. of Justice</span>, &ldquo;Acting Attorney General Blanche Announces Antitrust Investigations on Meatpacking Operations,&rdquo; May 4, 2026.
+        <a href="https://www.justice.gov/opa/video/acting-attorney-blanche-announces-antitrust-investigations-meatpacking-operations">justice.gov/opa/video/&hellip;/meatpacking-investigations</a></li>
+      <li><span class="pub">CISA</span>, Industrial Control Systems Advisories, May 5, 2026.
+        <a href="https://www.cisa.gov/news-events/cybersecurity-advisories">cisa.gov/news-events/cybersecurity-advisories</a></li>
+    </ol>
+  </section>
+
+</main>
+
+<footer class="site">
+  <a href="#">Archive</a>
+  <a href="#">About</a>
+  <a href="#">Sources</a>
+</footer>
+
+<script>
+  (function () {
+    var saved = localStorage.getItem('brief-theme') || 'kraft';
+    setTheme(saved);
+    document.querySelectorAll('#picker button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setTheme(btn.dataset.theme);
+      });
+    });
+    function setTheme(name) {
+      document.body.className = 'theme-' + name;
+      document.querySelectorAll('#picker button').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.theme === name);
+      });
+      localStorage.setItem('brief-theme', name);
+    }
+  })();
+
+  // Bullet hover popup — shows a preview image for any bullet with data-image
+  (function () {
+    var popup = document.createElement('div');
+    popup.id = 'bullet-popup';
+    popup.innerHTML = '<img alt=""><div class="caption"></div>';
+    document.body.appendChild(popup);
+    var img = popup.querySelector('img');
+    var cap = popup.querySelector('.caption');
+    var POPUP_W = 360;
+    var POPUP_H = 420;
+
+    document.querySelectorAll('ul.items li[data-image]').forEach(function (li) {
+      li.addEventListener('mouseenter', function () {
+        img.src = li.dataset.image;
+        cap.textContent = li.dataset.imageCaption || '';
+        popup.style.display = 'block';
+      });
+      li.addEventListener('mousemove', function (e) {
+        var x = e.clientX + 24;
+        var y = e.clientY + 24;
+        if (x + POPUP_W > window.innerWidth - 12) x = e.clientX - POPUP_W - 24;
+        if (y + POPUP_H > window.innerHeight - 12) y = window.innerHeight - POPUP_H - 12;
+        if (y < 12) y = 12;
+        popup.style.left = x + 'px';
+        popup.style.top = y + 'px';
+      });
+      li.addEventListener('mouseleave', function () {
+        popup.style.display = 'none';
+      });
+    });
+  })();
+</script>
+</body>
+</html>

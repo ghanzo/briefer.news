@@ -195,6 +195,56 @@ shortcuts, not docs.
 
 ---
 
+## DoD News (war.gov) — title-only signal due to Akamai IP flag
+
+**Status:** RSS feed working, article-body extraction blocked as of 2026-05-06.
+
+**What we get:** Title + URL + RSS meta_description for every DoD News article.
+The feed itself is fine — we discover ~20 article stubs per scrape.
+
+**What we don't get:** Full article body. War.gov is Akamai-protected at a stricter
+posture than other federal sites (e.g., gao.gov which works fine with stealth).
+
+**Timeline (2026-05-06):**
+- One-off Playwright + stealth test → 10,237 chars from Project Freedom article ✓
+- Pipeline run with stealth + 4-8s pacing → 12/20 succeeded but only ~300 chars
+  each (degraded, partial Akamai response)
+- Pipeline run with stealth + 30-60s pacing → 0/20 succeeded, all "Access Denied"
+
+**Diagnosis:** Our IP was flagged at the Akamai IP-reputation layer after the
+high-rate burst of attempts. Even paced retries 8 hours later still returned
+the denial page. War.gov has stricter detection than gao.gov on the same
+infrastructure. GAO's 25/25 extraction continues to work fine.
+
+**Why we're not pursuing further fixes today:**
+- Playwright+stealth works for first contact but our IP is now poisoned for war.gov
+- Real fix is residential proxy rotation (~$50/mo Bright Data) or paid scraping
+  API (~$30/mo ScrapingBee). Both are infrastructure investments to defer until
+  we know whether DoD content meaningfully drives brief value.
+- Pacing alone insufficient — Akamai checks more than rate (TLS fingerprint,
+  IP rep, browser fingerprint, behavioral signals).
+
+**Yaml status:** `extractor: playwright` REMOVED from DoD entry (was wasting
+15+ min per scrape on guaranteed failures). Now uses default trafilatura which
+fails fast with HTTP 403 — clean failure, no time waste. Title-level signal
+from RSS continues unaffected.
+
+**To re-enable full extraction in future:**
+- Option A: Sign up for ScrapingBee ($30/mo for low volume) — add a thin
+  client wrapper in `extractor.py` that routes specific domains through it
+  when default trafilatura fails.
+- Option B: Residential proxy via Bright Data + custom Playwright stealth setup.
+  More control, more maintenance.
+- Option C: Wait days/weeks for our IP to clear from Akamai's flagged list,
+  then try again with stricter pacing (60-120s) and stop at first failure.
+  Unreliable.
+
+**Code state:** `pipeline/scraper/browser.py` retains the stealth + per-domain
+pacing infrastructure. It works for gao.gov and any other Akamai-protected
+sites we add. Just doesn't help war.gov anymore from this IP.
+
+---
+
 ## ORNL — Oak Ridge News
 
 - **URL:** `https://www.ornl.gov/news`
