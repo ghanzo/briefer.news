@@ -34,14 +34,14 @@ sources:
     active: true
     notes: "moduleID 1144 confirmed via DNN container ID dnn_ctr1144 (user-supplied 2026-05-07). Uses div-item format, not Vue cards."
 
-  - name: "Navy.mil News"
+  - name: "Navy.mil Press Releases"
     domain: navy.mil
     discovery_type: dnn_articlecs
-    api_url: "https://www.navy.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    api_url: "https://www.navy.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=4025"
     category: defense
     tier: 2
-    active: false
-    notes: "Likely same DNN structure as war.gov; moduleID needs discovery"
+    active: true
+    notes: "moduleID 4025 confirmed via dnn_ctr4025 (2026-05-07). Listing: /Press-Office/Press-Releases/"
 
   - name: "Army.mil News"
     domain: army.mil
@@ -50,16 +50,16 @@ sources:
     category: defense
     tier: 2
     active: false
-    notes: "DNN structure suspected; needs probe"
+    notes: "Different page architecture — no storyListing or dnn_ctr ArticleCS module found in family probe; needs deeper inspection"
 
   - name: "Joint Chiefs of Staff"
     domain: jcs.mil
     discovery_type: dnn_articlecs
-    api_url: "https://www.jcs.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    api_url: "https://www.jcs.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=8253"
     category: defense
     tier: 1
-    active: false
-    notes: "Pentagon-level briefings; high signal if reachable"
+    active: true
+    notes: "moduleID 8253 confirmed via dnn_ctr8253 (2026-05-07). Listing: /Media/News/"
 
   - name: "U.S. Marines"
     domain: marines.mil
@@ -68,14 +68,16 @@ sources:
     category: defense
     tier: 3
     active: false
+    notes: "Family probe API timed out — different protection profile, deferred"
 
   - name: "U.S. Air Force"
     domain: af.mil
     discovery_type: dnn_articlecs
-    api_url: "https://www.af.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    api_url: "https://www.af.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=811"
     category: defense
-    tier: 3
-    active: false
+    tier: 2
+    active: true
+    notes: "moduleID 811 confirmed via dnn_ctr811 (2026-05-07). Listing: /News/"
 
   # ── Allied / Coalition government via RSS ──────────────────────────────────
 

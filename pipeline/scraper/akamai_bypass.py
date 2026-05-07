@@ -284,24 +284,49 @@ def akamai_discover_via_dnn_api(api_url: str) -> list[dict]:
     if out:
         return out
 
-    # ── Format B: <div class="item"> with date span + title anchor ───────
-    # centcom.mil press-releases module uses this server-rendered format.
+    # ── Format B+: any anchor whose href is an /Article/<digits>/ path ───
+    # Catches:
+    #   centcom.mil — <div class="item">...<a>title</a>...
+    #   navy.mil    — <article class="grid-item">...<a><h1>title</h1></a>...
+    #   jcs.mil     — <a>title text</a>
+    #   af.mil      — <article>...<a><h1>title</h1></a>...
+    # All DoD ArticleCS modules link to /<Path>/Article/<digits>/<slug>/.
+    article_url_pattern = re.compile(r"/Article/\d+/")
     soup = BeautifulSoup(inner, "lxml")
-    for item in soup.find_all("div", class_="item"):
-        title_a = item.find("a", href=True)
-        if not title_a:
-            continue
-        url = title_a["href"].strip()
-        if not url or url in seen_urls:
-            continue
-        seen_urls.add(url)
 
-        title = title_a.get_text(strip=True)
-        date_span = item.find("span", class_="date")
-        publish_date = date_span.get_text(strip=True) if date_span else None
+    for a in soup.find_all("a", href=True):
+        href = a["href"].strip()
+        if not article_url_pattern.search(href):
+            continue
+        # Skip /Tag/ /Author/ /Year/ links that contain /Article/N/ false positives
+        if any(seg in href for seg in ("/Tag/", "/Author/", "/Year/")):
+            continue
+        if href in seen_urls:
+            continue
 
+        # Title is the anchor text — sometimes wrapped in <h1>/<h2>
+        title = a.get_text(separator=" ", strip=True)
+        if not title or len(title) < 10:
+            continue
+
+        # Find a date in a nearby element (look up the ancestor tree)
+        publish_date = None
+        ancestor = a
+        for _ in range(4):
+            ancestor = ancestor.parent
+            if ancestor is None:
+                break
+            for cls in ("author-dateline", "date", "publish-date", "info-bar"):
+                node = ancestor.find(class_=cls) if hasattr(ancestor, "find") else None
+                if node:
+                    publish_date = node.get_text(strip=True)
+                    break
+            if publish_date:
+                break
+
+        seen_urls.add(href)
         out.append({
-            "url": url,
+            "url": href,
             "title": title,
             "publish_date": publish_date,
             "image_url": None,
