@@ -519,8 +519,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Briefer pipeline")
     parser.add_argument("--run-now",     action="store_true", help="Run full pipeline now")
     parser.add_argument("--scrape-only", action="store_true", help="Run scrape stage only (no AI)")
-    parser.add_argument("--limit",       type=int, default=0, help="Cap article extraction at N (0 = unlimited)")
+    parser.add_argument("--akamai-only", action="store_true",
+                        help="Run akamai-protected sources scrape only (use after --scrape-only)")
+    parser.add_argument("--source",      type=str, default=None,
+                        help="Limit akamai scrape to a single source by domain (e.g. war.gov)")
+    parser.add_argument("--dry-run",     action="store_true",
+                        help="Discover and extract but do not write to DB (akamai-only)")
+    parser.add_argument("--limit",       type=int, default=0,
+                        help="Cap article extraction at N (0 = unlimited)")
     args = parser.parse_args()
+
+    if args.akamai_only:
+        from scraper.akamai_scrape import run_akamai_scrape
+        logger.info(f"--akamai-only flag set (source={args.source}, dry_run={args.dry_run}, limit={args.limit})")
+        run_akamai_scrape(only_domain=args.source, dry_run=args.dry_run, limit=args.limit)
+        sys.exit(0)
 
     if args.scrape_only:
         logger.info(f"--scrape-only flag set (limit={args.limit})")

@@ -1,0 +1,114 @@
+# Akamai-protected and other "hard" gov sources.
+# Scraped via curl_cffi TLS impersonation (defeats Akamai bot detection).
+# Run by `python main.py --akamai-only` AFTER the standard scrape completes.
+#
+# Discovery types:
+#   dnn_articlecs — DotNetNuke ArticleCS GetList API (returns XML w/ story cards).
+#                   All DoD .mil subdomains use this. Need correct moduleID.
+#   rss_curl_cffi — Standard RSS/Atom feed, but fetched via curl_cffi (some
+#                   gov sites have Cloudflare/Akamai on their RSS too).
+#   html_curl_cffi — Plain HTML listing, scrape anchors matching link_pattern.
+#
+# Each source is independently attempted. Failure of one source does not
+# block others — orchestrator logs and moves on.
+
+sources:
+
+  # ── DoD subdomains via DNN ArticleCS API ───────────────────────────────────
+
+  - name: "DOD War.gov News Stories"
+    domain: war.gov
+    discovery_type: dnn_articlecs
+    api_url: "https://www.war.gov/API/ArticleCS/Public/GetList?dpage=0&moduleID=2842"
+    category: defense
+    tier: 1
+    active: true
+    notes: "moduleID 2842 derived from storyListing2842_data Vue var on listing page; needs confirmation on first live run"
+
+  - name: "CENTCOM Press Releases"
+    domain: centcom.mil
+    discovery_type: dnn_articlecs
+    # Module ID still TBD — probe via find_module_id.py on centcom.mil
+    api_url: "https://www.centcom.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    category: defense
+    tier: 1
+    active: false
+    notes: "moduleID needs to be discovered before activation"
+
+  - name: "Navy.mil News"
+    domain: navy.mil
+    discovery_type: dnn_articlecs
+    api_url: "https://www.navy.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    category: defense
+    tier: 2
+    active: false
+    notes: "Likely same DNN structure as war.gov; moduleID needs discovery"
+
+  - name: "Army.mil News"
+    domain: army.mil
+    discovery_type: dnn_articlecs
+    api_url: "https://www.army.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    category: defense
+    tier: 2
+    active: false
+    notes: "DNN structure suspected; needs probe"
+
+  - name: "Joint Chiefs of Staff"
+    domain: jcs.mil
+    discovery_type: dnn_articlecs
+    api_url: "https://www.jcs.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    category: defense
+    tier: 1
+    active: false
+    notes: "Pentagon-level briefings; high signal if reachable"
+
+  - name: "U.S. Marines"
+    domain: marines.mil
+    discovery_type: dnn_articlecs
+    api_url: "https://www.marines.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    category: defense
+    tier: 3
+    active: false
+
+  - name: "U.S. Air Force"
+    domain: af.mil
+    discovery_type: dnn_articlecs
+    api_url: "https://www.af.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    category: defense
+    tier: 3
+    active: false
+
+  # ── Allied / Coalition government via RSS ──────────────────────────────────
+
+  - name: "UK Ministry of Defence"
+    domain: gov.uk
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.gov.uk/government/organisations/ministry-of-defence.atom"
+    category: defense_allied
+    tier: 1
+    active: true
+    notes: "gov.uk standard atom feed; non-Akamai but using curl_cffi for consistency"
+
+  # ── Office of the Director of National Intelligence ────────────────────────
+
+  - name: "ODNI Press Releases"
+    domain: dni.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.dni.gov/index.php/newsroom/press-releases"
+    link_pattern: "/index.php/newsroom/press-releases/press-releases-2026/"
+    category: intelligence
+    tier: 1
+    active: true
+    notes: "WebFetch got 403 earlier; testing curl_cffi as bypass"
+
+  # ── NATO press releases ────────────────────────────────────────────────────
+
+  - name: "NATO Press Releases"
+    domain: nato.int
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.nato.int/cps/en/natohq/news.htm"
+    link_pattern: "/cps/en/natohq/"
+    category: foreign_policy_allied
+    tier: 2
+    active: false
+    notes: "Site says it's transitioning; URL pattern may shift"
