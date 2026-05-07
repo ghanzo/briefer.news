@@ -28,12 +28,11 @@ sources:
   - name: "CENTCOM Press Releases"
     domain: centcom.mil
     discovery_type: dnn_articlecs
-    # Module ID still TBD — probe via find_module_id.py on centcom.mil
-    api_url: "https://www.centcom.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=TBD"
+    api_url: "https://www.centcom.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=1144"
     category: defense
     tier: 1
-    active: false
-    notes: "moduleID needs to be discovered before activation"
+    active: true
+    notes: "moduleID 1144 confirmed via DNN container ID dnn_ctr1144 (user-supplied 2026-05-07). Uses div-item format, not Vue cards."
 
   - name: "Navy.mil News"
     domain: navy.mil

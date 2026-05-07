@@ -247,13 +247,12 @@ def akamai_discover_via_dnn_api(api_url: str) -> list[dict]:
 
     out = []
     seen_urls = set()
+
+    # ── Format A: Vue components (war.gov-style) ─────────────────────────
     # DoD pages use either <story-card> or <listing-with-preview>. Both have
     # attribute values containing embedded HTML (with > inside double quotes),
-    # so we can't use a simple `[^>]+` pattern. Instead split on each opening
-    # tag and parse attribute pairs out of the span until the next element.
+    # so we can't use a simple `[^>]+` pattern. Split on each opening tag.
     elements = re.split(r'(?=<(?:story-card|listing-with-preview)\b)', inner)
-    # Quote-aware attribute pattern: value is everything between double quotes
-    # except an unescaped quote. Allows >, <, single quotes inside.
     attr_pattern = re.compile(r'([\w:-]+)\s*=\s*"([^"]*)"', re.DOTALL)
 
     for el in elements:
@@ -280,6 +279,32 @@ def akamai_discover_via_dnn_api(api_url: str) -> list[dict]:
             "title": attrs.get("article-title", ""),
             "publish_date": attrs.get("publish-date-jss"),
             "image_url": attrs.get("article-image-url") or attrs.get("image-url"),
+        })
+
+    if out:
+        return out
+
+    # ── Format B: <div class="item"> with date span + title anchor ───────
+    # centcom.mil press-releases module uses this server-rendered format.
+    soup = BeautifulSoup(inner, "lxml")
+    for item in soup.find_all("div", class_="item"):
+        title_a = item.find("a", href=True)
+        if not title_a:
+            continue
+        url = title_a["href"].strip()
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+
+        title = title_a.get_text(strip=True)
+        date_span = item.find("span", class_="date")
+        publish_date = date_span.get_text(strip=True) if date_span else None
+
+        out.append({
+            "url": url,
+            "title": title,
+            "publish_date": publish_date,
+            "image_url": None,
         })
 
     return out
