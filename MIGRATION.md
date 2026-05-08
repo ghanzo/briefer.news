@@ -1,0 +1,396 @@
+# MIGRATION.md — Setting up briefer.news on the M4 Mac mini
+
+> Step-by-step setup for a fresh deploy on the M4 mini.
+> Read `CLAUDE.md`, `BRIEF_STYLE.md`, and `PLAN_AUTOMATION.md` first
+> for context.
+>
+> Target: daily 04:00 cron firing scrape + (eventually) Stage 2/3 +
+> publish to AWS, with the first live publish on Monday 2026-05-11.
+
+---
+
+## Why the mini specifically
+
+Akamai bot detection on DoD `.mil` subdomains (war.gov, centcom.mil,
+navy.mil, jcs.mil, af.mil) blocks cloud datacenter IPs. We need a
+**residential IP** — the mini's home-ISP connection is what makes the
+free curl_cffi bypass actually work. Verified working from this
+residential IP on 2026-05-07.
+
+If you ever move the deploy off-mini to AWS/GCP/etc., expect the
+Akamai bypass to fail and need a paid residential proxy ($50-100/mo).
+
+---
+
+## Prerequisites the user must do once (interactively)
+
+These can't be automated — they require credentials, OAuth flows, etc.
+
+### 1. Install software
+
+```bash
+# Homebrew (if not present)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Tools
+brew install --cask docker          # Docker Desktop
+brew install python@3.13            # System Python
+brew install awscli                 # AWS CLI
+brew install gh                     # GitHub CLI (optional but useful)
+
+# Claude Code
+# Install per https://claude.ai/code instructions
+```
+
+### 2. Authenticate Claude Code interactively
+
+Open Terminal, run `claude`, sign in with your Anthropic account.
+Once authenticated, the OAuth token lives in `~/.claude/` and can be
+used by cron jobs via headless `claude -p "..."` invocations.
+
+This is the one step that absolutely must be done by a human at the mini.
+
+### 3. Configure AWS CLI
+
+```bash
+aws configure
+# Paste Access Key ID, Secret, region (us-east-1), output format (json)
+```
+
+The IAM user already exists in the user's AWS account (`SamadhiMaximus`)
+with sufficient permissions per work done on Windows 2026-05-07.
+
+### 4. Set up power management
+
+The mini needs to be awake at 04:00 daily. Either:
+
+```bash
+# Schedule wake at 03:55 every day
+sudo pmset repeat wakeorpoweron MTWRFSU 03:55:00
+```
+
+Or just leave it always-on (M4 mini idles at ~3W).
+
+---
+
+## Project setup (can be scripted)
+
+### 5. Clone the repo
+
+```bash
+mkdir -p ~/code
+cd ~/code
+git clone https://github.com/ghanzo/briefer.news.git briefernewsapp
+cd briefernewsapp
+```
+
+### 6. Create the .env file
+
+The .env file is NOT in the repo (deliberately). Create it from the example:
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` to fill in real values:
+
+```bash
+# Postgres (local)
+POSTGRES_DB=briefer
+POSTGRES_USER=briefer
+POSTGRES_PASSWORD=<generate a strong password>
+DATABASE_URL=postgresql://briefer:<password>@postgres:5432/briefer
+
+# AI providers (optional fallback for when Claude Code on cron fails)
+ANTHROPIC_API_KEY=sk-ant-...        # console.anthropic.com → API keys
+GROQ_API_KEY=gsk_...                # console.groq.com → free signup, free tier
+GEMINI_API_KEY=                     # optional
+XAI_API_KEY=                        # optional
+
+# AWS (for publishing)
+AWS_ACCESS_KEY_ID=...               # if not using `aws configure`
+AWS_SECRET_ACCESS_KEY=...
+CLOUDFRONT_DISTRIBUTION_ID=         # populate after step 11
+```
+
+### 7. Bring up the Docker stack
+
+```bash
+docker compose up -d postgres
+docker compose build pipeline       # builds with curl_cffi
+```
+
+Verify:
+
+```bash
+docker compose ps
+# Should show briefer_postgres up
+```
+
+### 8. First scrape (validate end-to-end)
+
+```bash
+# Standard sources — ~10 min
+docker compose run --rm pipeline python main.py --scrape-only
+
+# Akamai-protected sources — ~30-60 min
+docker compose run --rm pipeline python main.py --akamai-only
+```
+
+Verify articles in DB:
+
+```bash
+docker exec briefer_postgres psql -U briefer -d briefer -c \
+  "SELECT s.name, COUNT(*) FROM articles a JOIN sources s ON a.source_id = s.id GROUP BY s.name ORDER BY COUNT(*) DESC LIMIT 20;"
+```
+
+If you see ~30+ source rows with article counts, the pipeline is healthy.
+
+If war.gov / centcom.mil / etc. return 0 articles or fail with timeouts,
+the Akamai bypass isn't working from this IP. Check:
+- Is the mini on the residential ISP, not a VPN/cellular hotspot?
+- Did `curl_cffi` install correctly in the Docker image?
+- Try `docker compose run --rm pipeline python -c "from curl_cffi import requests; r = requests.get('https://www.war.gov/', impersonate='chrome120'); print(r.status_code, len(r.text))"` — should return 200 with substantial bytes.
+
+---
+
+## Stage 2/3 wiring (if scope allows)
+
+Stage 2 (article summarization) and Stage 3 (brief synthesis) aren't
+yet wired. Two options:
+
+### Option A: Path A from PLAN_AUTOMATION.md (lighter)
+
+Skip Stage 2/3 for now. Daily scrape produces articles in DB; brief
+synthesis stays manual. Live deploy on Monday is "scrape works, brief
+gets written by hand." Gets you to a live URL fastest.
+
+### Option B: Path B (full autopilot)
+
+Wire Stage 2/3 to use Claude Code in headless mode. Approximate flow:
+
+```python
+# pseudo-code, lives in pipeline/processor/synthesize.py
+import subprocess
+result = subprocess.run([
+    "claude", "-p",
+    f"@/app/BRIEF_STYLE.md @/app/lens.md\n\nGiven these articles:\n{articles_json}\n\nProduce a daily brief in May-6 cadence.",
+    "--output-format", "json",
+    "--max-turns", "10"
+], capture_output=True, text=True)
+brief_json = json.loads(result.stdout)
+```
+
+The Claude Code OAuth from step 2 is used implicitly. If Claude Code
+fails (auth expired, usage cap), fall back to direct Anthropic API
+using `ANTHROPIC_API_KEY` from .env.
+
+**Recommendation: Path A for Monday, Path B as a follow-up week 2.**
+Manually-synthesized briefs are good (we have May 6 + May 7 in
+`research/brief_*.md` as examples). Auto-synthesis quality is the
+unknown that risks shipping a bad brief Monday.
+
+---
+
+## AWS hosting (S3 + CloudFront + ACM + Route 53)
+
+### 9. Create S3 bucket for the static site
+
+```bash
+aws s3api create-bucket \
+  --bucket briefer-news-site \
+  --region us-east-1
+```
+
+### 10. Request an ACM certificate
+
+```bash
+aws acm request-certificate \
+  --domain-name briefer.news \
+  --subject-alternative-names www.briefer.news \
+  --validation-method DNS \
+  --region us-east-1
+```
+
+ACM will return a certificate ARN. Note it down. The validation requires
+adding a CNAME to Route 53 — the AWS console makes this one-click.
+
+### 11. Create CloudFront distribution
+
+This step is easier in the AWS console (Origin: the S3 bucket; Default
+root object: `index.html`; Custom domain: `briefer.news`; SSL cert: the
+ACM ARN from step 10). Note the distribution ID — put it in `.env` as
+`CLOUDFRONT_DISTRIBUTION_ID`.
+
+### 12. Update Route 53
+
+In Route 53, add an A-record alias pointing `briefer.news` at the
+CloudFront distribution.
+
+DNS will already exist from prior cleanup (just NS + SOA in the zone
+after we cleared dead aliases on 2026-05-07).
+
+### 13. First publish
+
+```bash
+# From the mini, after the brief is generated locally
+aws s3 sync ~/code/briefernewsapp/output/ s3://briefer-news-site/ --delete
+aws cloudfront create-invalidation \
+  --distribution-id $CLOUDFRONT_DISTRIBUTION_ID \
+  --paths "/*"
+```
+
+Wait 10-30 minutes for DNS propagation + CloudFront edge cache fill.
+Then `briefer.news` should serve your brief.
+
+For Monday's first publish, you can manually copy
+`research/prototype_2026-05-06.html` to `output/index.html` and push
+that, then iterate from there.
+
+---
+
+## Cron / LaunchAgent
+
+### 14. Daily run script
+
+Create `~/code/briefernewsapp/scripts/daily.sh`:
+
+```bash
+#!/bin/bash
+set -e
+cd ~/code/briefernewsapp
+
+LOG=logs/daily-$(date +%Y%m%d).log
+exec >> "$LOG" 2>&1
+
+echo "=== Daily run starting at $(date) ==="
+
+docker compose up -d postgres
+docker compose run --rm pipeline python main.py --scrape-only
+docker compose run --rm pipeline python main.py --akamai-only
+
+# Stage 2/3 — fill in once Path B is wired
+# docker compose run --rm pipeline python main.py --process-only
+
+# Build static site
+# docker compose run --rm pipeline python main.py --build-only
+
+# Publish to AWS
+aws s3 sync output/ s3://briefer-news-site/ --delete
+aws cloudfront create-invalidation \
+  --distribution-id "$CLOUDFRONT_DISTRIBUTION_ID" \
+  --paths "/*"
+
+echo "=== Daily run completed at $(date) ==="
+```
+
+Make executable: `chmod +x scripts/daily.sh`.
+
+### 15. LaunchAgent (preferred over cron on macOS)
+
+Create `~/Library/LaunchAgents/news.briefer.daily.plist`:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>news.briefer.daily</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/<your-username>/code/briefernewsapp/scripts/daily.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>4</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/<your-username>/code/briefernewsapp/logs/launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/<your-username>/code/briefernewsapp/logs/launchd.err</string>
+</dict>
+</plist>
+```
+
+Load it:
+
+```bash
+launchctl load ~/Library/LaunchAgents/news.briefer.daily.plist
+```
+
+Test it manually:
+
+```bash
+launchctl start news.briefer.daily
+```
+
+---
+
+## Monitoring (optional but recommended)
+
+If using Pushover (cheapest, simplest):
+
+1. Install Pushover from the App Store ($5)
+2. Get user key + create app token at pushover.net
+3. Add to `.env`:
+   ```
+   PUSHOVER_USER_KEY=...
+   PUSHOVER_APP_TOKEN=...
+   ```
+4. Add a notification call at end of `daily.sh`:
+
+```bash
+curl -s -F "token=$PUSHOVER_APP_TOKEN" \
+        -F "user=$PUSHOVER_USER_KEY" \
+        -F "message=Briefer daily run done — $(date)" \
+        https://api.pushover.net/1/messages.json
+```
+
+---
+
+## Verification checklist (run before going live)
+
+- [ ] `docker compose ps` shows postgres up
+- [ ] `python main.py --scrape-only` produces ≥300 articles
+- [ ] `python main.py --akamai-only` produces ≥30 articles (war.gov + centcom.mil etc.)
+- [ ] `aws s3 ls s3://briefer-news-site/` shows uploaded files
+- [ ] `briefer.news` resolves and shows expected content (5-30min after upload)
+- [ ] `launchctl list | grep briefer` shows the LaunchAgent loaded
+- [ ] Manual `launchctl start news.briefer.daily` runs end-to-end without error
+- [ ] Pushover notification arrives on phone (if monitoring enabled)
+
+---
+
+## What can go wrong on first cron fire
+
+1. **Mini was asleep at 04:00** — check `pmset` schedule, verify mini woke
+2. **Docker daemon not running** — `open -a Docker` to start; LaunchAgent should
+   wait, but on first boot Docker may need 30s to come up
+3. **Postgres password mismatch** — `.env` and `docker-compose.yml` must agree
+4. **Akamai blocked us** — check `logs/daily-YYYYMMDD.log`. If 0 articles from
+   any .mil source, IP got flagged. Wait 12-24h, retry.
+5. **AWS sync failed** — check IAM permissions, bucket name, region
+6. **Brief renders broken** — only relevant once Stage 2/3 wired. Until then,
+   the static prototype publishes fine.
+
+---
+
+## Where to ask for help
+
+If you're a fresh Claude session on the mini and stuck:
+
+- Read `CLAUDE.md` first (orientation)
+- Read `PLAN_AUTOMATION.md` for the why
+- Read `BRIEF_STYLE.md` before generating any brief content
+- Check `research/dod_bypass_findings_2026-05-07.md` for Akamai specifics
+- Check `research/source_gap_analysis_2026-05-07.md` for source rationale
+- Check git log for context on recent decisions
+
+The user's name is **Max Goshay**. Project lives at
+`github.com/ghanzo/briefer.news`. Domain is `briefer.news` (already in
+the user's AWS via Route 53).
