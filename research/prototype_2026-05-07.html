@@ -682,7 +682,7 @@
     }
   </style>
 </head>
-<body class="theme-newsprint">
+<body class="theme-ink">
 
 <header class="masthead">
   <svg class="flag-mark" viewBox="0 0 48 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -790,8 +790,8 @@
   <div class="footer-meta">
     <span class="footer-credit">&copy; 2026 Briefer News &middot; Independent</span>
     <div id="picker">
-      <button data-theme="newsprint" class="active">Light</button>
-      <button data-theme="ink">Dark</button>
+      <button data-theme="newsprint">Light</button>
+      <button data-theme="ink" class="active">Dark</button>
     </div>
   </div>
 </footer>
@@ -800,7 +800,7 @@
   (function () {
     var available = ['newsprint', 'ink'];
     var saved = localStorage.getItem('brief-theme');
-    if (available.indexOf(saved) === -1) saved = 'newsprint';
+    if (available.indexOf(saved) === -1) saved = 'ink';
     setTheme(saved);
     document.querySelectorAll('#picker button').forEach(function (btn) {
       btn.addEventListener('click', function () {

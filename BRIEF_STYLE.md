@@ -108,6 +108,43 @@ shouldn't be in today's brief — drop it.
 - Naming people without context ("Rubio, Lavrov, and Wadephul met").
 - Throat-clearing ("In a major development...", "Today saw...").
 
+### Accessibility rule (load-bearing)
+
+The headline is for the general intelligent reader, not the policy-class subscriber. Imagine reading it aloud at a dinner party — if you'd have to explain a term, replace it. Punchy, plain, fact-based. **One or two clear actions, max.**
+
+**Specifically replace:**
+- Acronyms / institutional shortcuts most readers wouldn't recognize → plain descriptors
+  - GAESA → "Cuba's military business arm"
+  - DFARS / FOCI → "Pentagon foreign-control rule"
+  - KEV / CVE → "exploited software flaw" or just name the product
+  - FY27 / FY2027 → "2027 budget" or "next year's budget"
+  - SDGT / OFAC → "U.S. sanctions" / "Treasury blacklist"
+  - NPRM / Section 214 / Section 301 → describe the action, not the docket
+- Compound adjectives that read like trade-press jargon
+  - "oil-graft network" → "Iran oil network"
+  - "designation framework" → "sanctions"
+  - "national-security determination" → "ban"
+- Bare proper-noun place names readers don't auto-locate → add a one-word anchor
+  - "Hormuz" → "Strait of Hormuz" or "the Iranian coast"
+  - "Bandar Abbas" → "Iranian port" (then put name in the bullet)
+- Specialist verbs → simple active verbs
+  - "designated" → "blacklisted" or "sanctioned"
+  - "promulgated" → "issued"
+  - "proposed an NPRM" → "proposed a rule"
+
+### Headline accessibility examples
+
+✗ "Cuba's GAESA empire blocked, Iraq oil-graft network sanctioned." — `GAESA`, `oil-graft network`, no everyday meaning
+✓ "U.S. sanctions Cuba's military business arm and an Iraqi oil official tied to Iran."
+
+✗ "Navy posts $377.5B FY27 request; Pentagon DFARS foreign-control rule lands." — `$377.5B`, `FY27`, `DFARS`
+✓ "Navy asks Congress for $377 billion; Pentagon proposes foreign-ownership disclosure rule."
+
+✗ "U.S. forces strike Iranian launch sites in Hormuz; Cuba's GAESA empire blocked." — `GAESA`, "launch sites" reads military-jargon
+✓ "U.S. and Iran trade fire in the Strait of Hormuz; Cuba sanctions tighten."
+
+The point: a smart friend who reads the New York Times but has never opened the Federal Register should fully understand the headline on first read. If they couldn't, the headline is too inside-baseball.
+
 ---
 
 ## Voices rules

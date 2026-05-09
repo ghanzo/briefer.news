@@ -32,10 +32,15 @@ services:
         condition: service_healthy
 
   # ── Pipeline (scraper + processor + site builder) ────────────────────────────
+  # NOTE: this service is NOT meant to run as a long-lived daemon. It exists
+  # so daily.sh can invoke `docker compose run --rm pipeline python main.py …`
+  # for one-off scrape jobs. The image's default CMD `python main.py` would
+  # otherwise start an in-container APScheduler that conflicts with the
+  # LaunchAgent at ~/Library/LaunchAgents/news.briefer.daily.plist.
+  # Therefore: no `restart` policy, and `nginx` no longer `depends_on` it.
   pipeline:
     build: ./pipeline
     container_name: briefer_pipeline
-    restart: unless-stopped
     env_file: .env
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-briefer}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-briefer}
@@ -46,8 +51,12 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    profiles:
+      - manual
 
   # ── Web server ────────────────────────────────────────────────────────────────
+  # nginx serves the static brief HTML from the site_output volume. The volume
+  # holds content even when pipeline is not running, so no depends_on here.
   nginx:
     image: nginx:alpine
     container_name: briefer_nginx
@@ -57,8 +66,6 @@ services:
     volumes:
       - site_output:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-    depends_on:
-      - pipeline
 
 volumes:
   postgres_data:
