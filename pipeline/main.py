@@ -521,6 +521,8 @@ if __name__ == "__main__":
     parser.add_argument("--scrape-only", action="store_true", help="Run scrape stage only (no AI)")
     parser.add_argument("--akamai-only", action="store_true",
                         help="Run akamai-protected sources scrape only (use after --scrape-only)")
+    parser.add_argument("--china-only", action="store_true",
+                        help="Run China-government sources scrape only (use after --scrape-only)")
     parser.add_argument("--source",      type=str, default=None,
                         help="Limit akamai scrape to a single source by domain (e.g. war.gov)")
     parser.add_argument("--dry-run",     action="store_true",
@@ -533,6 +535,12 @@ if __name__ == "__main__":
         from scraper.akamai_scrape import run_akamai_scrape
         logger.info(f"--akamai-only flag set (source={args.source}, dry_run={args.dry_run}, limit={args.limit})")
         run_akamai_scrape(only_domain=args.source, dry_run=args.dry_run, limit=args.limit)
+        sys.exit(0)
+
+    if args.china_only:
+        from scraper.china_scrape import run_china_scrape
+        logger.info(f"--china-only flag set (source={args.source}, dry_run={args.dry_run}, limit={args.limit})")
+        run_china_scrape(only_domain=args.source, dry_run=args.dry_run, limit=args.limit)
         sys.exit(0)
 
     if args.scrape_only:

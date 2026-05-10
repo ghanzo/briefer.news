@@ -1,11 +1,13 @@
 # MIGRATION.md — Setting up briefer.news on the M4 Mac mini
 
-> Step-by-step setup for a fresh deploy on the M4 mini.
-> Read `CLAUDE.md`, `BRIEF_STYLE.md`, and `PLAN_AUTOMATION.md` first
-> for context.
+> **Status: Deployment complete (2026-05-10).** This runbook served its purpose.
+> The system shipped on 2026-05-08 (Path B / autonomous synthesis, ahead of the
+> originally-planned Path A manual brief schedule). Public domain
+> `https://briefer.news` went live on 2026-05-10.
 >
-> Target: daily 04:00 cron firing scrape + (eventually) Stage 2/3 +
-> publish to AWS, with the first live publish on Monday 2026-05-11.
+> Kept here as historical reference for the steps that worked. See the
+> **Deployment Postmortem** at the bottom of this file for what we learned
+> doing it. For day-to-day operations, see `CLAUDE.md`.
 
 ---
 
@@ -394,3 +396,115 @@ If you're a fresh Claude session on the mini and stuck:
 The user's name is **Max Goshay**. Project lives at
 `github.com/ghanzo/briefer.news`. Domain is `briefer.news` (already in
 the user's AWS via Route 53).
+
+---
+
+## Deployment Postmortem (2026-05-10)
+
+What actually happened over the May 7-10 deployment window. Captured for
+future-you and for any future Claude session that needs to know what to
+expect on a similar deploy.
+
+### What went smoothly
+
+- **Compatibility**: M4 Mac mini, macOS 26, 16GB RAM, Docker Desktop arm64 all
+  worked first try. `pipeline` image built cleanly (~2.96GB with playwright
+  chromium); `postgres:16-alpine` migrated the schema on first boot. No surgery
+  needed to anything in the existing `pipeline/` codebase.
+- **Akamai bypass on residential IP**: validated within minutes against war.gov,
+  then rolled to all 6 Akamai-protected sources. The earlier MIGRATION.md
+  warning about residential-IP requirement was accurate; this is the single
+  most important architectural constraint.
+- **LaunchAgents**: both `news.briefer.daily` (04:00) and
+  `news.briefer.synthesize` (07:00) fired exactly on time on first autonomous
+  run. macOS launchd is reliable for this; no need for a fancier scheduler.
+- **Two-stage Claude synthesis (picker + synthesizer)**: the SQL pre-filter ÷
+  Claude picker ÷ Claude synthesizer architecture worked end-to-end on the
+  first autonomous fire. The world-context layer (Stage 0 via `claude -p`
+  + WebSearch) added meaningful framing on day-2.
+- **AWS infrastructure cost stayed near zero**: Route 53 + CloudFront + S3
+  combined < $1/mo at our traffic. Free tier covers everything else.
+
+### What surprised us
+
+1. **The pipeline service vs. LaunchAgent collision.** `docker-compose.yml`
+   originally had `pipeline: restart: unless-stopped` plus `nginx: depends_on:
+   - pipeline`, which auto-started the pipeline service when nginx came up.
+   That ran the in-container APScheduler, which fired its own daily scrape at
+   `SCHEDULE_TIME=06:00 UTC`, conflicting with the LaunchAgent. **Fix**: moved
+   pipeline to `profiles: [manual]`, dropped its restart policy, removed
+   nginx's `depends_on`. The pipeline image is still there for
+   `docker compose run --rm pipeline …` invocations from `daily.sh`.
+
+2. **AWS account split.** Domain was registered in account `026090521469` (root
+   email max.goshay@gmail.com); deployment infrastructure built in account
+   `462170975634` (root email ghanzo@gmail.com). Took a couple of hours of
+   nameserver / Route 53 / IAM debugging to discover this. Now resolved by
+   pointing the registrar's nameservers at the deployment account's hosted
+   zone (`Z07630701MT6TMX2WHCGE`). Both accounts stay; the registrar account
+   only holds the domain registration.
+
+3. **Amplify-managed CloudFront distributions hold CNAMEs across regions.**
+   This was the biggest gotcha. `CNAMEAlreadyExists` errors blocked
+   `associate-alias` for two days. The conflict was an Amplify app
+   `d3gh6znsloy9bt` in **us-east-2** (Ohio) — we'd been working in us-east-1
+   the whole time and `cloudfront list-conflicting-aliases` masks the source
+   account ID, so we couldn't locate it ourselves.
+
+   **What worked**: opened an AWS Support case (Business+ $29/mo plan was
+   needed to file a Technical case; Basic only allows Account/Billing). The
+   CloudFront team triaged, identified that the source distro was Amplify-
+   managed, opened a related case to the Amplify team. Kajal (Amplify) used
+   internal tooling to locate the Amplify app and gave us the exact
+   `delete-domain-association` command. Once we ran it (in us-east-2),
+   `list-conflicting-aliases` cleared *immediately* and `associate-alias`
+   succeeded. Total elapsed time across two cases: about 30 hours
+   wall-clock; most of that was waiting between agent responses.
+
+   **Generalizable lesson**: when AWS surfaces a `CNAMEAlreadyExists` and
+   you can't find the offending distribution in your own account, ALWAYS
+   open Support before assuming it's another tenant. AWS support is willing
+   to release CNAMEs from your own historical (or differently-regioned)
+   resources.
+
+4. **AWS Support tier names changed.** What used to be "Developer Support"
+   ($29/mo) is now branded "Business+". The next tier up is "Enterprise"
+   ($5,000/mo). Don't be alarmed if a Cost Explorer line shows "Business
+   Support+" — it's the $29 plan, not the $100 one.
+
+5. **macOS sudo flow with Claude Code.** Several steps in the original
+   runbook required `sudo` (AWS CLI installer, `pmset` wake schedule). The
+   user couldn't recall their password mid-session. Workarounds: extracted
+   AWS CLI v2 PKG payload to `~/aws-cli/` and symlinked into `~/.local/bin`
+   (no sudo needed); skipped pmset entirely (M4 mini idles at ~3W, just
+   left it always-on).
+
+6. **Headless `claude -p` permissions.** Default headless mode does NOT have
+   permission to use WebSearch, WebFetch, or write files. Had to add
+   `--allowedTools WebSearch WebFetch Read Write Edit` and
+   `--permission-mode acceptEdits` explicitly. Documented in
+   `scripts/world_context.sh` and `scripts/synthesize.sh`.
+
+7. **Headless `claude -p` couldn't read `/tmp/`**. The sandbox is restricted
+   to the working directory. Moved all intermediates to `${REPO}/.run/`
+   (added to `.gitignore`).
+
+8. **YAML regex escape gotcha (China sources).** YAML double-quoted strings
+   evaluate `\\d` as `\d`, but my initial source patterns were off-by-one
+   on the date width (`\d{6}` instead of `\d{5}` for `tYYYYMMDD_NNN.shtml`).
+   Easy fix once detected; flagging because Chinese gov URL patterns vary
+   per site and the test cycle is "edit yaml → run scrape → no matches → debug."
+
+### What we'd skip / change next time
+
+- **Don't bother with the `pmset` wake schedule.** Always-on M4 mini is fine
+  at ~3W idle. Saved one sudo prompt.
+- **Set up AWS profiles upfront**: when we switched between deployment account
+  (`maxbriefer`) and registrar account (`max`), the CLI default got
+  overwritten more than once. Best practice: always use named profiles
+  (`--profile registrar`, `--profile deployment`) instead of swapping
+  default credentials.
+- **Open the AWS Support case earlier.** We tried `associate-alias`
+  workarounds for nearly a day before opening a case. Should have opened it
+  at the first `CNAMEAlreadyExists` error — Edgar (CloudFront) responded
+  within minutes.

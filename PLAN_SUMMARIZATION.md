@@ -1,3 +1,8 @@
+> **Status: Historical / superseded (2026-05-10).**
+> Earliest planning sketch for AI summarization (cost notes, provider comparison). Current production uses Claude Code headless via `scripts/synthesize.sh`. Kept for archival reference of cost reasoning. See `CLAUDE.md` for current architecture.
+
+---
+
 # Summarization Pipeline — Plan & Context
 
 > **SUPERSEDED** — see `PLAN_PROCESSING.md` for the current master plan.

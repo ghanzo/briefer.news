@@ -1,3 +1,8 @@
+> **Status: Historical / superseded (2026-05-10).**
+> Pre-build planning document for the 3-stage processing pipeline (filter → summarize → synthesize). The current production flow uses a different approach: `scripts/synthesize.sh` runs Claude Code headlessly with a SQL pre-filter + picker + synthesizer, plus an ambient world-context layer. Kept for reference; see `CLAUDE.md` and `scripts/synthesize.sh` for current.
+
+---
+
 # Processing Pipeline — Master Plan
 
 > This document supersedes `PLAN_SUMMARIZATION.md`.

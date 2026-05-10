@@ -1,3 +1,8 @@
+> **Status: Historical / superseded (2026-05-10).**
+> This was the deployment-planning document drafted 2026-05-07. The system shipped on 2026-05-08 and the public site went live at https://briefer.news on 2026-05-10. Most decisions here are now realized; some (Path A vs Path B) were leapfrogged. Kept as archival reference for the *why* behind the architecture. For current operations, see `CLAUDE.md` and `MIGRATION.md`.
+
+---
+
 # Briefer News — Automation Plan
 
 > The daily brief, automated. Compute on your M4 Mac mini at home;

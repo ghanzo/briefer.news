@@ -1,0 +1,323 @@
+# China-government sources (Chinese-language).
+#
+# All sources scraped via curl_cffi Chrome impersonation (proven against
+# Akamai-protected DoD sites; Chinese gov sites have similar TLS/CDN
+# behavior). Run by `python main.py --china-only` after the standard scrape.
+#
+# Editorial weight: INTERNAL CHINA EVOLUTION matters more than external-facing
+# diplomatic statements. Sources tagged with `weight: high` are
+# internal-policy / domestic-economic / political-signal sources; `weight:
+# medium` is external/diplomatic; `weight: low` is procedural/data.
+#
+# Discovery types:
+#   html_curl_cffi      — listing page → extract anchor URLs matching link_pattern
+#   mfa_press_conf      — bespoke MFA daily press-conference handling (Q&A structure)
+#   xinhua_home         — Xinhua's homepage as aggregated discovery layer
+#
+# Extraction:
+#   trafilatura         — default, works for most pages
+#   pages_content       — bespoke <div class="pages_content"> selector
+#                         (State Council, NDRC, NBS, others using same CMS)
+#   detail              — <div id="detail"> selector (Xinhua articles)
+#
+# Retries: flaky sources have `retries: 3` (with backoff). Default is 1.
+
+sources:
+
+  # ── A. Voices source — MFA daily press conference ──────────────────────────
+  # Single most valuable source. Daily Q&A transcripts with named spokespersons.
+  # Each conference yields ~5-7 quotable spokesperson responses.
+  - name: "MFA Daily Press Conference"
+    domain: mfa.gov.cn
+    discovery_type: mfa_press_conf
+    listing_url: "https://www.mfa.gov.cn/wjdt_674879/fyrbt_674889/"
+    link_pattern: "/202[5-9]\\d{2}/t\\d{8}_\\d+\\.shtml"
+    category: diplomacy
+    weight: medium                # voices source — external content but high editorial value
+    extractor: trafilatura
+    active: true
+    notes: "Daily on weekdays. Spokespersons: 林剑 Lin Jian, 毛宁 Mao Ning, 郭嘉昆 Guo Jiakun. URL pattern: /YYYYMM/tYYYYMMDD_NNNNNNNN.shtml"
+
+  # ── B. State Council (gov.cn) — definitive policy text ─────────────────────
+  - name: "State Council Policies"
+    domain: gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.gov.cn/zhengce/"
+    link_pattern: "/zhengce/content/202[5-9]\\d{2}/content_\\d{7}\\.htm"
+    category: state_council
+    weight: high                  # internal admin
+    extractor: pages_content      # <div class="pages_content">
+    active: true
+    notes: "State Council orders signed by Premier. Trafilatura fails — needs pages_content selector."
+
+  - name: "State Council Yaowen (Top News)"
+    domain: gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.gov.cn/yaowen/"
+    link_pattern: "/yaowen/liebiao/202[5-9]\\d{2}/content_\\d{7}\\.htm"
+    category: state_council
+    weight: high
+    extractor: pages_content
+    active: true
+
+  # ── C. Xinhua (新华网) — official wire ──────────────────────────────────────
+  - name: "Xinhua News (homepage discovery)"
+    domain: news.cn
+    discovery_type: xinhua_home
+    listing_url: "https://www.news.cn/"
+    link_pattern: "https://www\\.news\\.cn/(?:politics|fortune|tech|world)/202[5-9]\\d{4}/[a-f0-9]+/c\\.html"
+    category: state_media
+    weight: medium                # mix of internal + external
+    extractor: detail             # <div id="detail">
+    active: true
+    notes: "Use homepage as discovery — section indexes are JS-rendered. ~128 URLs per fetch."
+
+  - name: "Xinhua Politics — Leaders"
+    domain: news.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.news.cn/politics/leaders/index.htm"
+    link_pattern: "https://www\\.news\\.cn/politics/leaders/202[5-9]\\d{4}/[a-f0-9]+/c\\.html"
+    category: leadership
+    weight: high                  # Xi/Li internal activities
+    extractor: detail
+    active: true
+    notes: "Top-leadership beat — Xi Jinping, Li Qiang activities."
+
+  # ── D. Internal economic regulators (high-weight) ──────────────────────────
+  - name: "NDRC News Releases"
+    domain: ndrc.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.ndrc.gov.cn/xwdt/xwfb/"
+    link_pattern: "/xwdt/xwfb/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    category: economic_planning
+    weight: high
+    extractor: pages_content
+    active: true
+    notes: "Economic planning announcements. Several per week."
+
+  - name: "PBOC Press Releases"
+    domain: pbc.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.pbc.gov.cn/"
+    link_pattern: "/(?:goutongjiaoliu|hanglingdao)/[\\d/]+/202[5-9]\\d{12}/index\\.html"
+    category: monetary
+    weight: high
+    extractor: trafilatura
+    active: true
+    notes: "Monetary policy + financial system signals. Continuous output."
+
+  - name: "MOF News"
+    domain: mof.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.mof.gov.cn/zhengwuxinxi/caizhengxinwen/"
+    link_pattern: "[a-z]+\\.mof\\.gov\\.cn/[a-z]+/202[5-9]\\d{2}/t\\d{8}_\\d+\\.htm"
+    category: fiscal
+    weight: high
+    extractor: trafilatura
+    active: true
+    notes: "Fiscal policy. Multi-subdomain (jkw, zwgls, jl, etc.)"
+
+  - name: "MIIT News"
+    domain: miit.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.miit.gov.cn/xwdt/index.html"
+    link_pattern: "/xwdt/[a-z]+/[a-z]+/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    category: industry_tech
+    weight: high
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Industrial / tech / chip policy. Flaky — needs retry."
+
+  - name: "CAC Notices"
+    domain: cac.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.cac.gov.cn/"
+    link_pattern: "/202[5-9]-\\d{2}/\\d{2}/c_\\d+\\.htm"
+    category: internet_data
+    weight: high
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Internet / AI / algorithm regulation. Flaky — needs retry."
+
+  - name: "Stats Bureau"
+    domain: stats.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.stats.gov.cn/sj/zxfb/"
+    link_pattern: "/sj/zxfb/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    category: economic_data
+    weight: medium                # data-release cadence is irregular
+    extractor: pages_content
+    active: true
+
+  # ── E. Political signal sources (high-weight) ──────────────────────────────
+  - name: "CCDI News"
+    domain: ccdi.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.ccdi.gov.cn/yaowenn/"
+    link_pattern: "/yaowenn/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    category: discipline_inspection
+    weight: high                  # anti-corruption signals
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Central Discipline Inspection Commission. Anti-corruption / Party discipline cases. Flaky."
+
+  - name: "NPC News"
+    domain: npc.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.npc.gov.cn/"
+    link_pattern: "https?://www\\.npc\\.gov\\.cn/[a-zA-Z0-9_/]+\\.shtml"
+    category: legislative
+    weight: high                  # NPC laws + Standing Committee readouts
+    extractor: trafilatura
+    active: true
+    notes: "National People's Congress. Mirrors Xinhua leaders too."
+
+  - name: "Qiushi (Party Theoretical Journal)"
+    domain: qstheory.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.qstheory.cn/"
+    link_pattern: "https?://(?:www\\.)?qstheory\\.cn/202[5-9]\\d{4}/[a-f0-9]+/c\\.html"
+    category: party_theory
+    weight: high                  # Xi speeches verbatim
+    extractor: detail
+    active: true
+    notes: "Highest-value ideological signal source. Xi Jinping speech texts when published."
+
+  # ── F. Judicial sources ────────────────────────────────────────────────────
+  - name: "Supreme People's Court"
+    domain: court.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.court.gov.cn/"
+    link_pattern: "https?://www\\.court\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: judicial
+    weight: medium
+    extractor: trafilatura
+    active: true
+    notes: "Major rulings + judicial reports. Weekly cadence."
+
+  - name: "Supreme People's Procuracy"
+    domain: spp.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.spp.gov.cn/"
+    link_pattern: "https?://www\\.spp\\.gov\\.cn/[a-zA-Z0-9_/]+\\.shtml"
+    category: judicial
+    weight: medium
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Prosecutorial activity. Often trails CCDI cases. Flaky."
+
+  # ── G. Financial regulators ────────────────────────────────────────────────
+  - name: "CSRC (Securities Regulator)"
+    domain: csrc.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.csrc.gov.cn/"
+    link_pattern: "https?://(?:www\\.)?csrc\\.gov\\.cn/[a-zA-Z0-9_/]+\\.shtml"
+    category: financial_reg
+    weight: high                  # IPO approvals, enforcement
+    extractor: trafilatura
+    active: true
+
+  - name: "SAFE (Foreign Exchange)"
+    domain: safe.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.safe.gov.cn/"
+    link_pattern: "/safe/202[5-9]/\\d{4}/\\d+\\.html"
+    category: financial_reg
+    weight: high                  # currency reserves, capital flows
+    extractor: trafilatura
+    active: true
+
+  - name: "SASAC (SOE Regulator)"
+    domain: sasac.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.sasac.gov.cn/"
+    link_pattern: "https?://www\\.sasac\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: state_owned
+    weight: medium                # SOE moves, leadership changes
+    extractor: trafilatura
+    active: true
+
+  # ── H. Provincial governments (Beijing, Shanghai, Guangdong, Zhejiang) ─────
+  - name: "Shanghai Government"
+    domain: shanghai.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.shanghai.gov.cn/"
+    link_pattern: "/nw\\d+/202[5-9]\\d{4}/[a-f0-9]+\\.html"
+    category: provincial
+    weight: medium                # major economic center
+    extractor: trafilatura
+    active: true
+
+  - name: "Beijing Government"
+    domain: beijing.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.beijing.gov.cn/"
+    link_pattern: "https?://www\\.beijing\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: provincial
+    weight: medium
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Flaky from initial probe — needs retry."
+
+  - name: "Guangdong Government"
+    domain: gd.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.gd.gov.cn/"
+    link_pattern: "https?://www\\.gd\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: provincial
+    weight: medium
+    extractor: trafilatura
+    active: true
+    notes: "Initial probe showed stale dates — may need different sub-path."
+
+  - name: "Zhejiang Government"
+    domain: zj.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.zj.gov.cn/"
+    link_pattern: "https?://www\\.zj\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: provincial
+    weight: medium
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Flaky from initial probe — needs retry."
+
+  # ── I. Held / needs further work (commented active:false to skip on scrape) ─
+
+  - name: "SCIO Press Conferences"
+    domain: scio.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.scio.gov.cn/xwfb/index.htm"
+    link_pattern: "/xwfb/[a-zA-Z0-9_/]+\\.htm"
+    category: white_papers
+    weight: medium
+    extractor: trafilatura
+    active: false
+    notes: "Returned HTTP 521 (Cloudflare origin error) on initial probe. Re-test later."
+
+  - name: "NFRA (Banking/Insurance Regulator)"
+    domain: nfra.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.nfra.gov.cn/"
+    link_pattern: "https?://[a-z]*\\.nfra\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: financial_reg
+    weight: high
+    extractor: trafilatura
+    active: false
+    notes: "Returned 215-byte stub on initial probe. Find correct sub-path."
+
+  - name: "Customs (海关总署)"
+    domain: customs.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.customs.gov.cn/"
+    link_pattern: "https?://[a-z]*\\.customs\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    category: trade_data
+    weight: high
+    extractor: trafilatura
+    active: false
+    notes: "Returned HTTP 412 (Precondition Failed). Needs specific header set — investigate."

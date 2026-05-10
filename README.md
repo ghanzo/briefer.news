@@ -6,7 +6,9 @@ A daily intelligence brief on US-government output. Autonomously scraped, curate
 
 Every morning, this pipeline scrapes ~45 sources of US-government and allied output (State Dept, CENTCOM, DOJ, Treasury, CISA, the Federal Register, UK MoD, etc.). A few hours later, Claude curates the most consequential ~50 items and synthesizes them into a 9-bullet daily brief in the style of [`BRIEF_STYLE.md`](BRIEF_STYLE.md). The result is published as a single static HTML page.
 
-Live output: **briefer.news** *(public domain pending CNAME release from AWS Support; meanwhile the brief is served from `https://d1sl4o5xm2ds0o.cloudfront.net`)*.
+Live output: **https://briefer.news** (also `https://www.briefer.news`).
+
+A parallel **China-source brief** is in active development — same architecture, Chinese-language sources, internal-evolution editorial framing. See [`CHINA_BRIEF.md`](CHINA_BRIEF.md) for status and design.
 
 ## Architecture
 
@@ -103,7 +105,7 @@ briefer.news/
 | Source pool | 45 active feeds (39 standard RSS, 6 Akamai-protected) |
 | Daily article volume | ~50–80 net new articles/day after dedup |
 | Local site | Live at http://localhost on the mini |
-| Public domain (briefer.news) | Pending — AWS Support case open to release a CNAME claim from a self-closed Amplify-managed distribution |
-| Edge URL (interim) | https://d1sl4o5xm2ds0o.cloudfront.net |
+| Public domain | **Live** at https://briefer.news (and www.briefer.news) since 2026-05-10 |
+| China brief | In active development — corpus captured (~500 Chinese-language articles), synthesizer not yet built; see [`CHINA_BRIEF.md`](CHINA_BRIEF.md) |
 | AWS cost | ~$0.50/mo (Route 53 zone only) |
 | Mini cost | ~$3/yr electricity (M4 idles at ~3W) |
