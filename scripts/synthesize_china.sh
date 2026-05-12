@@ -262,6 +262,7 @@ Required reading (in order):
 3. @${REPO}/lens.md — interpretive framework
 4. @${REPO}/research/prototype_china_2026-05-12.html — visual template; preserve all CSS, header, footer, script
 5. @${FULL} — full text of the articles the picker selected
+6. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, new quality productive forces, common prosperity, dual circulation, civil-military fusion, BRI, GDI/GSI, etc.) with a "Today's coverage triggers" section. You'll use these to populate the Strategic Backdrop section.
 
 Today is ${TODAY}.
 
@@ -311,21 +312,41 @@ Bullet caps:
 - ≤3 provincial items
 - ≤3 items focused on China-US relations (we don't want this to become a US-China brief — internal-evolution framing means most bullets are about what China is doing internally)
 
+STRATEGIC BACKDROP: After the 9 bullets, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
+
+Pick rules:
+- Each card connects to AT LEAST 2 of today's bullets via the strategy's themes.
+- Prefer currently-active over closing/superseded doctrines (e.g., prefer "新质生产力" over "Made in China 2025" if both fit).
+- Each card's blurb is **~30 words** linking the doctrine to today's specific items.
+
+Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .backdrop div):
+<h3 class="section-label">Strategic Backdrop</h3>
+<div class="backdrop">
+  <article>
+    <h4 class="strategy-title">[English name from doc's name: field]</h4>
+    <p class="strategy-chinese">[Chinese name from doc's chinese: field]</p>
+    <p class="strategy-status">[Status from doc's status: field] &middot; [Period from doc's period: field]</p>
+    <p class="strategy-blurb">[~30 words connecting today's items to this doctrine. Specific. Name today's bullets.]</p>
+  </article>
+  ...
+</div>
+
 SOURCES section: numbered <ol>, each <li> with publisher in <span class="pub">, article title, date, full URL.
 
-Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark and the "Chinese government sources" tagline. Only replace:
+Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, AND the new .backdrop CSS rules. Only replace:
 - <title>...</title> to "Briefer News — China — May 12, 2026" format (use today's human date)
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
 - <h2 class="headline">...</h2> per rules above
 - <div class="voices">...</div> with 3 bilingual blockquotes
 - <ul class="items">...</ul> with exactly 9 <li> elements
+- The Strategic Backdrop block (everything from <h3 class="section-label">Strategic Backdrop</h3> through </div>) with 2-3 fresh strategy cards per today's items
 - <section class="sources">...</section> with numbered <ol>
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write to the file.
 EOF
 
 echo "--- Stage 4: Claude synthesizes the brief ---"
-"$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --max-turns 80 --permission-mode acceptEdits
+"$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --max-turns 100 --permission-mode acceptEdits
 
 if [ ! -s "$OUT" ]; then
   echo "ERROR: claude did not write HTML to $OUT — bailing, leaving previous brief in place"
@@ -334,6 +355,9 @@ fi
 if ! grep -q 'class="headline"' "$OUT" || ! grep -q 'class="items"' "$OUT" || ! grep -q 'class="sources"' "$OUT"; then
   echo "ERROR: $OUT missing required structural classes — leaving previous brief in place"
   exit 0
+fi
+if ! grep -q 'class="backdrop"' "$OUT"; then
+  echo "WARN: $OUT missing Strategic Backdrop section — publishing anyway, but flag for review"
 fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 
