@@ -88,23 +88,23 @@ sources:
     domain: ndrc.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "https://www.ndrc.gov.cn/xwdt/xwfb/"
-    link_pattern: "/xwdt/xwfb/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    link_pattern: "/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
     category: economic_planning
     weight: high
     extractor: pages_content
     active: true
-    notes: "Economic planning announcements. Several per week."
+    notes: "Economic planning announcements. Several per week. Listing uses relative URLs (./YYYYMM/...)."
 
   - name: "PBOC Press Releases"
     domain: pbc.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "http://www.pbc.gov.cn/"
-    link_pattern: "/(?:goutongjiaoliu|hanglingdao)/[\\d/]+/202[5-9]\\d{12}/index\\.html"
+    link_pattern: "/(?:goutongjiaoliu|hanglingdao|zhengcehuobisi)/[\\d/]+/202[5-9]\\d{12}\\d*/index\\.html"
     category: monetary
     weight: high
     extractor: trafilatura
     active: true
-    notes: "Monetary policy + financial system signals. Continuous output."
+    notes: "Monetary policy + financial system signals. URL timestamp varies in length."
 
   - name: "MOF News"
     domain: mof.gov.cn
@@ -145,35 +145,82 @@ sources:
     domain: stats.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "https://www.stats.gov.cn/sj/zxfb/"
-    link_pattern: "/sj/zxfb/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    link_pattern: "/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
     category: economic_data
     weight: medium                # data-release cadence is irregular
     extractor: pages_content
     active: true
+    notes: "Relative URL pattern."
+
+  # ── D2. MFA non-press-conference news (Foreign Minister activities) ────────
+  - name: "MFA News (Foreign Minister Activities)"
+    domain: mfa.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.fmprc.gov.cn/wjbxw_new/"
+    link_pattern: "/202[5-9]\\d{2}/t\\d{8}_\\d+\\.shtml"
+    category: diplomacy
+    weight: medium
+    extractor: trafilatura
+    active: true
+    notes: "FM Wang Yi activities, treaty signings, bilateral meeting readouts. Complements the MFA press-conf source."
+
+  # ── D3. People's Daily and Party press ─────────────────────────────────────
+  - name: "People's Daily Politics"
+    domain: people.com.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://politics.people.com.cn/"
+    link_pattern: "http://[a-z]+\\.people\\.com\\.cn/n1/202[5-9]/\\d{4}/c\\d+-\\d+\\.html"
+    category: party_press
+    weight: high                  # Politburo coverage + editorial signal
+    extractor: trafilatura
+    active: true
+    notes: "Politburo coverage. URL pattern: <sub>.people.com.cn/n1/YYYY/MMDD/cNNNN-NNNNNNNN.html"
+
+  - name: "People's Daily Opinion (Commentary)"
+    domain: people.com.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://opinion.people.com.cn/"
+    link_pattern: "http://[a-z]+\\.people\\.com\\.cn/n1/202[5-9]/\\d{4}/c\\d+-\\d+\\.html"
+    category: party_press
+    weight: high                  # editorial commentaries carry Politburo-aware signal
+    extractor: trafilatura
+    active: true
+    notes: "People's Daily editorial commentaries — when they comment, it's a Politburo-aware position."
+
+  - name: "CPC News (中国共产党新闻网)"
+    domain: cpc.people.com.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://cpc.people.com.cn/"
+    link_pattern: "http://[a-z.]*people\\.com\\.cn/n1/202[5-9]/\\d{4}/c\\d+-\\d+\\.html"
+    category: party_press
+    weight: high                  # Party theory + Xi activities + Central Committee readouts
+    extractor: trafilatura
+    active: true
+    notes: "Central Party news network. 27+ mentions of 习近平 per fetch. Complements Qiushi."
 
   # ── E. Political signal sources (high-weight) ──────────────────────────────
   - name: "CCDI News"
     domain: ccdi.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "https://www.ccdi.gov.cn/yaowenn/"
-    link_pattern: "/yaowenn/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    link_pattern: "/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
     category: discipline_inspection
     weight: high                  # anti-corruption signals
     extractor: trafilatura
     retries: 3
     active: true
-    notes: "Central Discipline Inspection Commission. Anti-corruption / Party discipline cases. Flaky."
+    notes: "Central Discipline Inspection Commission. Anti-corruption / Party discipline cases. Relative URLs."
 
   - name: "NPC News"
     domain: npc.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "http://www.npc.gov.cn/"
-    link_pattern: "https?://www\\.npc\\.gov\\.cn/[a-zA-Z0-9_/]+\\.shtml"
+    link_pattern: "/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
     category: legislative
     weight: high                  # NPC laws + Standing Committee readouts
     extractor: trafilatura
     active: true
-    notes: "National People's Congress. Mirrors Xinhua leaders too."
+    notes: "National People's Congress. Listing uses ./cN/cN/YYYYMM/tYYYYMMDD_NNN.html relative pattern."
 
   - name: "Qiushi (Party Theoretical Journal)"
     domain: qstheory.cn

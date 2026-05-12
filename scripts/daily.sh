@@ -46,15 +46,26 @@ fi
 sleep 5
 "$DOCKER" compose ps postgres
 
-# ── Stage 1: standard RSS / HTML scrape ─────────────────────────────────────
+# ── Stage 1: parallel scrapes (RSS + Akamai + China) ────────────────────────
+# All three scrapes fire concurrently — each is mostly network-bound on a
+# different set of remote servers, so they don't compete for resources. Log
+# lines are prefixed so you can disentangle them. Cleanup waits for all to
+# finish via the wait calls below.
 echo ""
-echo "--- Stage 1: standard scrape ---"
-"$DOCKER" compose run --rm pipeline python main.py --scrape-only
+echo "--- Stage 1: parallel scrapes ---"
+"$DOCKER" compose run --rm pipeline python main.py --scrape-only 2>&1 | sed 's/^/[rss]    /' &
+RSS_PID=$!
+"$DOCKER" compose run --rm pipeline python main.py --akamai-only 2>&1 | sed 's/^/[akamai] /' &
+AKAMAI_PID=$!
+"$DOCKER" compose run --rm pipeline python main.py --china-only 2>&1 | sed 's/^/[china]  /' &
+CHINA_PID=$!
 
-# ── Stage 1b: Akamai-protected sources ──────────────────────────────────────
+wait $RSS_PID;    RSS_EXIT=$?
+wait $AKAMAI_PID; AKAMAI_EXIT=$?
+wait $CHINA_PID;  CHINA_EXIT=$?
+
 echo ""
-echo "--- Stage 1b: akamai-protected scrape ---"
-"$DOCKER" compose run --rm pipeline python main.py --akamai-only
+echo "Scrape exit codes — rss=$RSS_EXIT  akamai=$AKAMAI_EXIT  china=$CHINA_EXIT"
 
 # ── Stage 2: cleanup old articles (7-day retention) ─────────────────────────
 echo ""

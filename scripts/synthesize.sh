@@ -276,7 +276,7 @@ You are the synthesizer for briefer.news.
 Required reading (in order):
 1. @${REPO}/BRIEF_STYLE.md — editorial style; follow exactly
 2. @${REPO}/lens.md — interpretive frame
-3. @${REPO}/research/prototype_2026-05-07.html — the visual template you must mirror
+3. @${REPO}/research/prototype_us_2026-05-12.html — the visual template you must mirror
 4. @${FULL} — full text of the articles the picker selected
 
 Optional ambient signal (read if present, treat as background not directive):
@@ -290,7 +290,7 @@ Your job:
 - HEADLINE — read BRIEF_STYLE.md "Accessibility rule" carefully. Punchy, plain, fact-based. ONE OR TWO CLEAR ACTIONS MAX. Readable by a smart friend who reads the New York Times but does NOT follow the Federal Register. Replace acronyms and institutional shortcuts with plain descriptors: GAESA → "Cuba's military business arm"; DFARS/FOCI → "foreign-ownership rule"; FY27 → "2027 budget"; "designated" → "sanctioned" or "blacklisted"; bare place names need a one-word anchor ("Hormuz" → "Strait of Hormuz"). Avoid compound jargon ("oil-graft network", "launch sites"). If a term in the headline would need explaining at a dinner party, rewrite it.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
 - Voices: 3 (occasionally 4), each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political).
-- Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_2026-05-07.html. Preserve all CSS, the <head>, <header>, <footer>, and <script> blocks unchanged. Only replace:
+- Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <head>, <header>, <footer>, and <script> blocks unchanged. Only replace:
   - <title>...</title> to "Briefer News — <human date>"
   - <div class="stamp">...</div> to today's date in CAPS
   - <h2 class="headline">...</h2> — 12 to 16 words, plain English, accessible to a non-specialist (see Accessibility rule above)
@@ -320,10 +320,10 @@ echo "--- Stage 5: deploying to nginx volume ---"
   -v "$RUN_DIR":/src:ro \
   -v briefernewsapp_site_output:/dst \
   alpine sh -c "
-    cp /src/today.html /dst/index.html
-    mkdir -p /dst/archive
-    cp /src/today.html /dst/archive/${TODAY}.html
-    ls -la /dst | head -5
+    mkdir -p /dst/usa /dst/usa/archive
+    cp /src/today.html /dst/usa/index.html
+    cp /src/today.html /dst/usa/archive/${TODAY}.html
+    ls -la /dst/usa | head -5
   "
 
 # ── Stage 6: publish to AWS S3 + CloudFront invalidate (non-fatal on error) ─
@@ -338,21 +338,21 @@ AWS=/Users/maxgoshay/.local/bin/aws
 if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
   echo ""
   echo "--- Stage 6: publishing to S3 + CloudFront ---"
-  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/index.html" \
+  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/usa/index.html" \
     --content-type "text/html; charset=utf-8" \
     --cache-control "no-store, no-cache" \
-    && echo "S3: index.html uploaded" \
-    || echo "S3: index.html upload FAILED (non-fatal)"
+    && echo "S3: usa/index.html uploaded" \
+    || echo "S3: usa/index.html upload FAILED (non-fatal)"
 
-  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/archive/${TODAY}.html" \
+  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/usa/archive/${TODAY}.html" \
     --content-type "text/html; charset=utf-8" \
     --cache-control "public, max-age=31536000, immutable" \
-    && echo "S3: archive uploaded" \
-    || echo "S3: archive upload FAILED (non-fatal)"
+    && echo "S3: usa/archive uploaded" \
+    || echo "S3: usa/archive upload FAILED (non-fatal)"
 
   "$AWS" cloudfront create-invalidation \
     --distribution-id "$DIST_ID" \
-    --paths "/index.html" "/archive/${TODAY}.html" \
+    --paths "/usa/index.html" "/usa/archive/${TODAY}.html" \
     --query 'Invalidation.Id' --output text \
     && echo "CloudFront: invalidation created" \
     || echo "CloudFront: invalidation FAILED (non-fatal)"
@@ -363,7 +363,7 @@ fi
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "Synthesis complete at $(date)"
-echo "  Local:      http://localhost"
-echo "  CloudFront: https://d1sl4o5xm2ds0o.cloudfront.net"
-echo "  Custom:     https://briefer.news (pending alias transfer)"
+echo "  Local:      http://localhost/usa/"
+echo "  CloudFront: https://d1sl4o5xm2ds0o.cloudfront.net/usa/"
+echo "  Public:     https://briefer.news/usa/"
 echo "═══════════════════════════════════════════════════════════════"

@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Briefer News — May 7, 2026</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root, body.theme-kraft {
+      --paper: #F5EFE2;
+      --ink: #1A1614;
+      --ink-soft: #3D332C;
+      --ink-light: #6B5D52;
+      --sepia: #7A4F2E;
+      --black: #14110F;
+      --cream: #F2EBD9;
+      --tagline: #C9BFA7;
+    }
+
+    body.theme-newsprint {
+      --paper: #FAFAF8;
+      --ink: #0E0E0E;
+      --ink-soft: #2C2C2C;
+      --ink-light: #8A8A8A;
+      --sepia: #B0181F;
+      --black: #0E0E0E;
+      --cream: #FAFAF8;
+      --tagline: #B0B0B0;
+    }
+
+    body.theme-oxblood {
+      --paper: #F4EEDF;
+      --ink: #1F1A18;
+      --ink-soft: #3D2F2A;
+      --ink-light: #7A6B62;
+      --sepia: #6B1717;
+      --black: #2A1212;
+      --cream: #F0E5D0;
+      --tagline: #C2A8A0;
+    }
+
+    body.theme-navy {
+      --paper: #F2EEE6;
+      --ink: #14181F;
+      --ink-soft: #2A3140;
+      --ink-light: #6B7280;
+      --sepia: #1F3A5F;
+      --black: #0E1A2E;
+      --cream: #EBEEF4;
+      --tagline: #A0AEC0;
+    }
+
+    body.theme-olive {
+      --paper: #F0EBDB;
+      --ink: #1A1A14;
+      --ink-soft: #2D2E1F;
+      --ink-light: #6B6856;
+      --sepia: #3D5232;
+      --black: #1F2A1E;
+      --cream: #ECECDC;
+      --tagline: #B5BAA1;
+    }
+
+    body.theme-mono {
+      --paper: #F5F5F3;
+      --ink: #111111;
+      --ink-soft: #303030;
+      --ink-light: #909090;
+      --sepia: #303030;
+      --black: #0A0A0A;
+      --cream: #F5F5F3;
+      --tagline: #999999;
+    }
+
+    /* Dark themes */
+
+    body.theme-carbon {
+      --paper: #0F0D0B;
+      --ink: #E5DAC2;
+      --ink-soft: #B5A88E;
+      --ink-light: #6E6557;
+      --sepia: #C9925E;
+      --black: #050403;
+      --cream: #E5DAC2;
+      --tagline: #8A7F6B;
+    }
+
+    body.theme-slate {
+      --paper: #14181E;
+      --ink: #DDE0E5;
+      --ink-soft: #A0A8B5;
+      --ink-light: #5C6470;
+      --sepia: #7AAFE0;
+      --black: #0A0C10;
+      --cream: #DDE0E5;
+      --tagline: #6E7682;
+    }
+
+    body.theme-terminal {
+      --paper: #0B0D0A;
+      --ink: #C8D2B0;
+      --ink-soft: #8A9275;
+      --ink-light: #4F5544;
+      --sepia: #C7A75C;
+      --black: #050605;
+      --cream: #C8D2B0;
+      --tagline: #6F7559;
+    }
+
+    body.theme-ink {
+      --paper: #16151A;
+      --ink: #EFE9DD;
+      --ink-soft: #B0AA9E;
+      --ink-light: #6A6660;
+      --sepia: #C45842;
+      --black: #0A090E;
+      --cream: #EFE9DD;
+      --tagline: #807A70;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 22px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Masthead */
+    header.masthead {
+      background: var(--black);
+      color: var(--cream);
+      padding: 32px 24px 28px;
+      text-align: center;
+      border-bottom: 1px solid var(--ink);
+    }
+    header.masthead .flag-mark {
+      display: block;
+      margin: 0 auto 14px;
+      width: 38px;
+      height: 22px;
+      opacity: 0.95;
+    }
+    header.masthead h1 {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(42px, 6.4vw, 64px);
+      letter-spacing: 0.01em;
+      margin: 0 0 10px;
+      line-height: 1;
+    }
+    header.masthead p.tagline {
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(15px, 1.7vw, 18px);
+      color: var(--tagline);
+      letter-spacing: 0.02em;
+      margin: 0;
+    }
+
+    /* Date stamp */
+    .stamp {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 18px 24px 0;
+      text-align: right;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+    }
+
+    /* Body container */
+    main.brief {
+      max-width: 740px;
+      margin: 0 auto;
+      padding: 18px 24px 36px;
+    }
+
+    /* Headline */
+    .headline {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: clamp(28px, 3.2vw, 34px);
+      font-weight: 500;
+      line-height: 1.2;
+      margin: 0 0 14px;
+      letter-spacing: 0;
+    }
+
+    .dek {
+      font-size: 20px;
+      line-height: 1.45;
+      color: var(--ink-soft);
+      margin: 0 0 28px;
+      font-weight: 400;
+      max-width: 64ch;
+    }
+
+    /* Pull quotes */
+    blockquote.pull {
+      margin: 28px 0;
+      padding: 4px 0 4px 26px;
+      border-left: 3px solid var(--sepia);
+      font-style: italic;
+      font-size: 25px;
+      line-height: 1.32;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    blockquote.pull p {
+      margin: 0 0 10px;
+    }
+    blockquote.pull cite {
+      display: block;
+      font-style: normal;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    blockquote.pull cite sup {
+      font-family: 'Newsreader', serif;
+      text-transform: none;
+      letter-spacing: 0;
+      color: var(--sepia);
+      margin-left: 4px;
+      font-size: 13px;
+    }
+
+    /* Bullet list */
+    ul.items {
+      list-style: none;
+      padding: 0;
+      margin: 22px 0;
+    }
+    ul.items li {
+      position: relative;
+      padding: 0 0 14px 22px;
+      line-height: 1.5;
+    }
+    ul.items li::before {
+      content: "·";
+      position: absolute;
+      left: 4px;
+      top: -6px;
+      font-size: 32px;
+      line-height: 1;
+      color: var(--sepia);
+    }
+    ul.items li sup {
+      color: var(--sepia);
+      font-weight: 500;
+      margin-left: 2px;
+      font-size: 0.78em;
+    }
+    ul.items li .when {
+      display: inline-block;
+      margin-left: 10px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      white-space: nowrap;
+      vertical-align: baseline;
+    }
+
+    /* Source crest — agency seal in a small circular badge */
+    .crest {
+      position: absolute;
+      left: 0;
+      top: 1px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--ink-light);
+      border-radius: 50%;
+      background: var(--cream);
+      padding: 3px;
+      flex-shrink: 0;
+      overflow: hidden;
+      cursor: help;
+    }
+
+    /* Inline citation anchors — click jumps to source URL, hover shows title */
+    a.cite {
+      color: inherit;
+      text-decoration: none;
+      border-bottom: 1px dotted transparent;
+      transition: border-color 0.15s ease;
+    }
+    a.cite:hover {
+      border-bottom-color: var(--sepia);
+    }
+    a.cite:focus-visible {
+      outline: 2px solid var(--sepia);
+      outline-offset: 2px;
+      border-radius: 2px;
+    }
+    .crest img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    /* Fallback: text monogram if no image */
+    .crest.text-only {
+      border-color: var(--sepia);
+      background: transparent;
+      padding: 0;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 8.5px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--sepia);
+      text-transform: uppercase;
+    }
+    .crest.text-only.short {
+      font-size: 10px;
+      letter-spacing: 0.06em;
+    }
+
+    /* Sources */
+    .sources {
+      margin: 36px 0 0;
+      padding: 22px 0 0;
+      border-top: 1px solid var(--ink-light);
+    }
+    .sources h2 {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 0 0 18px;
+    }
+    .sources ol {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      counter-reset: src;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .sources ol li {
+      counter-increment: src;
+      padding: 0 0 10px 32px;
+      position: relative;
+      color: var(--ink-soft);
+    }
+    .sources ol li::before {
+      content: counter(src);
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: var(--sepia);
+      font-weight: 500;
+    }
+    .sources a {
+      color: var(--sepia);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--sepia);
+      word-break: break-all;
+    }
+    .sources a:hover {
+      border-bottom-style: solid;
+    }
+    .sources .pub {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Overview / day-at-a-glance hero */
+    .overview {
+      margin: 0 0 30px;
+      padding: 20px 0 22px;
+      border-top: 1px solid var(--ink-light);
+      border-bottom: 1px solid var(--ink-light);
+    }
+    .overview h4 {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin: 0 0 10px;
+    }
+    .overview .arc {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 18px;
+      font-style: italic;
+      line-height: 1.5;
+      color: var(--ink-soft);
+      margin: 0 0 24px;
+      max-width: 60ch;
+    }
+    .overview .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 36px;
+      margin: 0 0 22px;
+    }
+    .overview .row {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding: 3px 0;
+    }
+    .overview .figures .row .num {
+      color: var(--ink);
+      font-weight: 600;
+      min-width: 64px;
+      text-align: right;
+    }
+    .overview .figures .row .what {
+      color: var(--ink-soft);
+    }
+    .overview .speakers .row .agency {
+      color: var(--ink);
+      font-weight: 600;
+      min-width: 56px;
+    }
+    .overview .speakers .row .dots {
+      color: var(--sepia);
+      letter-spacing: 0.18em;
+      font-size: 11px;
+    }
+    .overview .ahead {
+      border-top: 1px solid var(--ink-light);
+      padding-top: 16px;
+    }
+    .overview .ahead .row {
+      justify-content: space-between;
+    }
+    .overview .ahead .event {
+      color: var(--ink);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+    .overview .ahead .when {
+      color: var(--ink-soft);
+      font-size: 12px;
+    }
+    @media (max-width: 540px) {
+      .overview .grid {
+        grid-template-columns: 1fr;
+        gap: 22px;
+      }
+      .overview .figures .row .num {
+        min-width: 56px;
+      }
+    }
+
+    /* Section labels (Voices, Significant items, Sources) */
+    h3.section-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink);
+      margin: 36px 0 18px;
+      padding-top: 22px;
+      border-top: 1px solid var(--ink-light);
+    }
+
+    /* Voices stack */
+    .voices blockquote.pull {
+      margin: 18px 0;
+    }
+    .voices blockquote.pull:first-child {
+      margin-top: 0;
+    }
+    .voices blockquote.pull:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Bullets — bold lead-in for scannability */
+    ul.items li b,
+    ul.items li strong {
+      font-weight: 600;
+      color: var(--ink);
+    }
+
+    /* Footer */
+    footer.site {
+      max-width: 740px;
+      margin: 48px auto 0;
+      padding: 36px 24px 48px;
+      border-top: 1px solid var(--ink-light);
+      text-align: center;
+      color: var(--ink-soft);
+    }
+    footer.site .footer-brand {
+      margin-bottom: 28px;
+    }
+    footer.site .flag-mark {
+      display: block;
+      margin: 0 auto 12px;
+      width: 30px;
+      height: 18px;
+      color: var(--ink-light);
+      opacity: 0.7;
+    }
+    footer.site .footer-name {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 8px;
+      letter-spacing: 0.01em;
+    }
+    footer.site .footer-tagline {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-style: italic;
+      font-size: 15px;
+      color: var(--ink-soft);
+      margin: 0 auto;
+      max-width: 50ch;
+      line-height: 1.5;
+    }
+    footer.site .footer-nav {
+      margin: 24px 0 28px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+    footer.site .footer-nav a {
+      color: var(--ink);
+      text-decoration: none;
+      margin: 0 10px;
+      border-bottom: 1px dotted var(--ink-light);
+      padding-bottom: 1px;
+    }
+    footer.site .footer-nav a:hover {
+      border-bottom-style: solid;
+    }
+    footer.site .footer-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding-top: 22px;
+      border-top: 1px solid var(--ink-light);
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+    }
+    @media (max-width: 540px) {
+      footer.site .footer-meta {
+        flex-direction: column;
+        gap: 16px;
+        text-align: center;
+      }
+      footer.site .footer-nav a {
+        display: inline-block;
+        margin: 4px 8px;
+      }
+    }
+
+    @media (max-width: 540px) {
+      html, body { font-size: 19px; }
+      header.masthead { padding: 40px 18px 32px; }
+      .stamp { padding: 18px 18px 0; }
+      main.brief { padding: 24px 18px 40px; }
+      blockquote.pull { font-size: 20px; padding-left: 18px; }
+      footer.site a { display: inline-block; margin: 6px 8px; }
+    }
+
+    /* Bullet hover popup (image preview) */
+    #bullet-popup {
+      position: fixed;
+      display: none;
+      z-index: 990;
+      background: var(--cream);
+      border: 1px solid var(--ink-light);
+      padding: 10px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      max-width: 360px;
+    }
+    #bullet-popup img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 360px;
+      object-fit: contain;
+    }
+    #bullet-popup .caption {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+      margin-top: 8px;
+      text-align: center;
+    }
+    ul.items li[data-image] {
+      cursor: zoom-in;
+    }
+
+    /* Inline image — magazine-spot illustration on a bullet */
+    ul.items li figure.bullet-image {
+      margin: 14px 0 4px;
+      max-width: 280px;
+      padding: 0;
+    }
+    ul.items li figure.bullet-image img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border: 1px solid var(--ink-light);
+      background: var(--cream);
+    }
+    ul.items li figure.bullet-image figcaption {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-top: 8px;
+      text-align: left;
+    }
+
+    /* Theme picker — sits inside footer */
+    #picker {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    #picker button {
+      border: 1px solid var(--ink-light);
+      background: transparent;
+      padding: 4px 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: inherit;
+      letter-spacing: inherit;
+      text-transform: inherit;
+      color: var(--ink-light);
+      font-weight: 500;
+    }
+    #picker button:hover {
+      color: var(--ink);
+      border-color: var(--ink);
+    }
+    #picker button.active {
+      background: var(--ink);
+      color: var(--paper);
+      border-color: var(--ink);
+    }
+  
+    /* Nav strip — persistent across editions */
+    nav.editions {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding: 0;
+      border-top: 1px solid var(--ink-soft);
+      margin: 18px 0 0;
+    }
+    nav.editions a {
+      display: inline-block;
+      color: var(--ink-soft);
+      text-decoration: none;
+      padding: 14px 22px 13px;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s ease, border-color 0.15s ease;
+      font-weight: 500;
+    }
+    nav.editions a:hover { color: var(--cream); }
+    nav.editions a.active {
+      color: var(--cream);
+      border-bottom-color: var(--sepia);
+    }
+    header.masthead { padding-bottom: 0 !important; }
+
+  </style>
+</head>
+<body class="theme-ink">
+
+<header class="masthead">
+  <svg class="flag-mark" viewBox="0 0 48 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <rect x="0" y="0" width="48" height="2"/>
+    <rect x="0" y="4" width="48" height="2"/>
+    <rect x="0" y="8" width="48" height="2"/>
+    <rect x="0" y="12" width="48" height="2"/>
+    <rect x="0" y="16" width="48" height="2"/>
+    <rect x="0" y="20" width="48" height="2"/>
+    <rect x="0" y="24" width="48" height="2"/>
+    <rect x="0" y="0" width="19" height="14"/>
+  </svg>
+  <h1>Briefer News</h1>
+  <p class="tagline">A daily brief from U.S. government sources</p>
+  <nav class="editions">
+    <a href="../">Home</a>
+    <a href="./" class="active">United States</a>
+    <a href="../china/">China</a>
+  </nav>
+</header>
+
+<div class="stamp">May 7, 2026</div>
+
+<main class="brief">
+
+  <h2 class="headline">
+    Cuba sanctions framework lands; Iran-China oil network targeted; DOJ opens UCLA admissions probe.
+  </h2>
+
+  <h3 class="section-label">Voices</h3>
+  <div class="voices">
+    <blockquote class="pull">
+      <p>&ldquo;[The Cuban government's policies] are repugnant to the moral and political values of free and democratic societies.&rdquo;</p>
+      <cite>Executive Order 14404 &middot; May 1<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404, Sanctions on Cuba, May 7, 2026" target="_blank" rel="noopener">1</a></sup></cite>
+    </blockquote>
+
+    <blockquote class="pull">
+      <p>&ldquo;Racism in admissions is both illegal and anti-American, and this Department will not allow it to continue.&rdquo;</p>
+      <cite>AAG Harmeet K. Dhillon, DOJ Civil Rights &middot; May 6<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race" title="DOJ — UCLA Medical School Discrimination Determination, May 6, 2026" target="_blank" rel="noopener">3</a></sup></cite>
+    </blockquote>
+
+    <blockquote class="pull">
+      <p>&ldquo;America is producing as much natural gas as Russia, China and Iran combined.&rdquo;</p>
+      <cite>Energy Sec. Chris Wright, Three Seas Initiative Summit, Dubrovnik &middot; April 28<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup></cite>
+    </blockquote>
+  </div>
+
+  <h3 class="section-label">Significant items</h3>
+  <ul class="items">
+    <li><b>Cuba sanctions.</b> Executive Order 14404 imposes a full sanctions regime on Cuban officials and on persons operating in the country's energy, defense, metals, financial, or security sectors; reaches adult family members of designated persons.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404 (Sanctions on Cuba), May 7, 2026" target="_blank" rel="noopener">1</a></sup><span class="when">May 1 &middot; Fed. Reg.</span></li>
+    <li><b>Iran-China oil.</b> State and Treasury sanctioned Qingdao Haiye Oil Terminal &mdash; a China-based facility that handled tens of millions of barrels of sanctioned Iranian crude &mdash; plus three Iranian currency-exchange houses moving billions annually.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/u-s-sanctions-tighten-grip-on-iran-china-oil-trade/" title="State Dept. — Iran-China Oil Trade Sanctions, May 1, 2026" target="_blank" rel="noopener">2</a></sup><span class="when">May 1 &middot; State</span></li>
+    <li><b>DOJ v. UCLA.</b> Civil Rights Division determined UCLA's David Geffen School of Medicine intentionally selected medical-school applicants by race; admitted Black and Hispanic applicants had, on average, lower academic qualifications than white and Asian applicants.<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race" title="DOJ — UCLA Medical School Discrimination Determination, May 6, 2026" target="_blank" rel="noopener">3</a></sup><span class="when">May 6 &middot; DOJ</span></li>
+    <li><b>DPRK IT workers.</b> Two U.S. nationals &mdash; Knoot of Nashville, Prince of New York &mdash; sentenced to 18 months for hosting laptop farms that let North Korean IT workers fraudulently work for U.S. companies; ~70 victim companies, $1.2M+ to DPRK.<sup><a class="cite" href="https://www.justice.gov/opa/pr/two-us-nationals-sentenced-facilitating-fraudulent-remote-information-technology-worker-0" title="DOJ — DPRK IT Worker Sentencing, May 6, 2026" target="_blank" rel="noopener">4</a></sup><span class="when">May 6 &middot; DOJ</span></li>
+    <li><b>CISA KEV.</b> Palo Alto Networks PAN-OS out-of-bounds write (CVE-2026-0300) added to the catalog with active-exploitation evidence.<sup><a class="cite" href="https://www.cisa.gov/news-events/alerts/2026/05/06/cisa-adds-one-known-exploited-vulnerability-catalog" title="CISA — KEV Catalog Addition (CVE-2026-0300, Palo Alto PAN-OS), May 6, 2026" target="_blank" rel="noopener">5</a></sup><span class="when">May 6 &middot; CISA</span></li>
+    <li><b>Trump Peace Pipelines.</b> Sec. Wright launched a U.S.-led MOU at the Three Seas Summit in Dubrovnik to expand natural-gas infrastructure across Central and Eastern Europe; concurrent deals: U.S.&ndash;Croatia civil-nuclear/SMR cooperation and Project Pantheon, a $50B+ American data center in Croatia.<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup><span class="when">Apr 28 &middot; DOE</span></li>
+    <li><b>DRC&ndash;M23.</b> DRC government and AFC/M23 representatives met April 13&ndash;17 in Montreux to advance the Doha Framework signed Nov 15, 2025; mediators: Qatar, U.S., Togo (AU mediator), AU Commission, Switzerland.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — DRC/AFC-M23 Joint Statement, April 18, 2026" target="_blank" rel="noopener">7</a></sup><span class="when">Apr 18 &middot; State</span></li>
+    <li><b>Pax Silica.</b> Norway became the 15th signatory of the U.S.-led Pax Silica Initiative for diversified critical-mineral supply chains.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — Norway Joins Pax Silica, May 6, 2026" target="_blank" rel="noopener">8</a></sup><span class="when">May 6 &middot; State</span></li>
+    <li><b>MFN drug pricing.</b> 17 of the largest pharmaceutical manufacturers signed voluntary Most-Favored-Nation pricing agreements; the framework projects $529B in domestic savings over 10 years.<sup><a class="cite" href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/" title="White House — Savings from MFN Drug Pricing Policy, May 2026" target="_blank" rel="noopener">9</a></sup><span class="when">May &middot; WH</span></li>
+  </ul>
+
+  <section class="sources">
+    <h2>Sources</h2>
+    <ol>
+      <li><span class="pub">Federal Register</span>, &ldquo;Imposing Sanctions on Those Responsible for Repression in Cuba&rdquo; (Executive Order 14404 of May 1, 2026), published May 7, 2026.
+        <a href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states">federalregister.gov/&hellip;/eo-14404-cuba-sanctions</a></li>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;U.S. Sanctions Tighten Grip on Iran-China Oil Trade,&rdquo; May 1, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/u-s-sanctions-tighten-grip-on-iran-china-oil-trade/">state.gov/releases/&hellip;/iran-china-oil-trade</a></li>
+      <li><span class="pub">U.S. Dept. of Justice</span>, &ldquo;Justice Department Investigation Determines UCLA's Medical School Discriminated Based on Race in Admissions,&rdquo; May 6, 2026.
+        <a href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race">justice.gov/opa/pr/&hellip;/ucla-medical-school</a></li>
+      <li><span class="pub">U.S. Dept. of Justice</span>, &ldquo;Two U.S. Nationals Sentenced for Facilitating Fraudulent Remote IT Worker Schemes for the DPRK,&rdquo; May 6, 2026.
+        <a href="https://www.justice.gov/opa/pr/two-us-nationals-sentenced-facilitating-fraudulent-remote-information-technology-worker-0">justice.gov/opa/pr/&hellip;/dprk-it-workers</a></li>
+      <li><span class="pub">CISA</span>, &ldquo;CISA Adds One Known Exploited Vulnerability to Catalog&rdquo; (CVE-2026-0300, Palo Alto Networks PAN-OS), May 6, 2026.
+        <a href="https://www.cisa.gov/news-events/alerts/2026/05/06/cisa-adds-one-known-exploited-vulnerability-catalog">cisa.gov/news-events/&hellip;/kev-cve-2026-0300</a></li>
+      <li><span class="pub">U.S. Dept. of Energy</span>, &ldquo;Secretary Wright Signs Agreements To Grow American LNG Exports, Advances Trump Peace Pipelines Framework,&rdquo; April 28, 2026.
+        <a href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines">energy.gov/articles/&hellip;/trump-peace-pipelines</a></li>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;Joint Statement on Progress Between the Government of the DRC and AFC/M23 on Humanitarian Access, Ceasefire Verification, and Prisoner Release,&rdquo; April 18, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/">state.gov/releases/&hellip;/drc-afc-m23-joint-statement</a></li>
+      <li><span class="pub">U.S. Dept. of State</span>, &ldquo;Norway Joins Pax Silica Initiative,&rdquo; May 6, 2026.
+        <a href="https://www.state.gov/releases/office-of-the-spokesperson/">state.gov/releases/&hellip;/norway-pax-silica</a></li>
+      <li><span class="pub">White House</span>, &ldquo;Savings from Most-Favored-Nation Drug Pricing Policy,&rdquo; May 2026.
+        <a href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/">whitehouse.gov/research/&hellip;/mfn-drug-pricing</a></li>
+    </ol>
+  </section>
+
+</main>
+
+<footer class="site">
+  <div class="footer-brand">
+    <svg class="flag-mark" viewBox="0 0 48 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="0" y="0" width="48" height="2"/>
+      <rect x="0" y="4" width="48" height="2"/>
+      <rect x="0" y="8" width="48" height="2"/>
+      <rect x="0" y="12" width="48" height="2"/>
+      <rect x="0" y="16" width="48" height="2"/>
+      <rect x="0" y="20" width="48" height="2"/>
+      <rect x="0" y="24" width="48" height="2"/>
+      <rect x="0" y="0" width="19" height="14"/>
+    </svg>
+    <div class="footer-name">Briefer News</div>
+    <p class="footer-tagline">A daily brief from U.S. government sources. All claims are linked to official publications.</p>
+  </div>
+
+  <nav class="footer-nav">
+    <a href="#archive">Archive</a>
+    <a href="#about">About</a>
+    <a href="#sources">Sources</a>
+    <a href="#rss">RSS</a>
+  </nav>
+
+  <div class="footer-meta">
+    <span class="footer-credit">&copy; 2026 Briefer News &middot; Independent</span>
+    <div id="picker">
+      <button data-theme="newsprint">Light</button>
+      <button data-theme="ink" class="active">Dark</button>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var available = ['newsprint', 'ink'];
+    var saved = localStorage.getItem('brief-theme');
+    if (available.indexOf(saved) === -1) saved = 'ink';
+    setTheme(saved);
+    document.querySelectorAll('#picker button').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        setTheme(btn.dataset.theme);
+      });
+    });
+    function setTheme(name) {
+      document.body.className = 'theme-' + name;
+      document.querySelectorAll('#picker button').forEach(function (b) {
+        b.classList.toggle('active', b.dataset.theme === name);
+      });
+      localStorage.setItem('brief-theme', name);
+    }
+  })();
+
+  // Bullet hover popup — shows a preview image for any bullet with data-image
+  (function () {
+    var popup = document.createElement('div');
+    popup.id = 'bullet-popup';
+    popup.innerHTML = '<img alt=""><div class="caption"></div>';
+    document.body.appendChild(popup);
+    var img = popup.querySelector('img');
+    var cap = popup.querySelector('.caption');
+    var POPUP_W = 360;
+    var POPUP_H = 420;
+
+    document.querySelectorAll('ul.items li[data-image]').forEach(function (li) {
+      li.addEventListener('mouseenter', function () {
+        img.src = li.dataset.image;
+        cap.textContent = li.dataset.imageCaption || '';
+        popup.style.display = 'block';
+      });
+      li.addEventListener('mousemove', function (e) {
+        var x = e.clientX + 24;
+        var y = e.clientY + 24;
+        if (x + POPUP_W > window.innerWidth - 12) x = e.clientX - POPUP_W - 24;
+        if (y + POPUP_H > window.innerHeight - 12) y = window.innerHeight - POPUP_H - 12;
+        if (y < 12) y = 12;
+        popup.style.left = x + 'px';
+        popup.style.top = y + 'px';
+      });
+      li.addEventListener('mouseleave', function () {
+        popup.style.display = 'none';
+      });
+    });
+  })();
+</script>
+</body>
+</html>
