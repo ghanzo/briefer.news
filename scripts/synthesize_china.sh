@@ -67,6 +67,9 @@ ALLOWLIST_SQL="
     ('CSRC (Securities Regulator)', 4),
     ('SAFE (Foreign Exchange)', 4),
     ('SASAC (SOE Regulator)', 4),
+    -- D2: Chinese commercial / professional press (added 2026-05-12)
+    ('Caixin (财新)', 4),
+    ('Yicai (第一财经)', 5),
     -- E: MFA — voices source, lower selection priority but high voice value
     ('MFA Daily Press Conference', 5),
     ('MFA News (Foreign Minister Activities)', 5),
@@ -183,15 +186,18 @@ Read these references first:
 1. @${REPO}/CHINA_BRIEF.md — editorial framing for this brief specifically (READ THIS)
 2. @${REPO}/BRIEF_STYLE.md — general style rules
 3. @${REPO}/lens.md — interpretive framework
-4. @${META} — JSON candidates from Chinese-government sources
+4. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, 新质生产力, common prosperity, dual circulation, civil-military fusion, BRI, etc.) with a "Today's coverage triggers" section. Use these to give EXTRA WEIGHT to candidate articles whose titles touch operative doctrines.
+5. @${META} — JSON candidates from Chinese-government sources
 
 Pick approximately 50 article IDs you would want to read in full to write today's 9-bullet brief.
 
 Editorial framing (per CHINA_BRIEF.md):
 - INTERNAL CHINA EVOLUTION is the priority for the 9 BULLETS — what is China structurally becoming. State Council policy, NDRC/PBOC/MOF/MIIT/CAC regulation, CCDI anti-corruption, NPC legislative, Xi speeches in Qiushi/CPC News/People's Daily, judicial interpretations.
+- **Strategic-doctrine resonance is a tie-breaker.** When two candidates are equally fresh and from equally-weighted sources, prefer the one whose subject matches a current-active doctrine in the strategy library. e.g., an article about AI agent rules > a routine notice, because 新质生产力 is operative; an article about cropland-protection rules > another routine notice, because the cadre-assessment / Beautiful China apparatus connects to common prosperity.
 - **MFA spokespersons (林剑 Lin Jian, 毛宁 Mao Ning, 郭嘉昆 Guo Jiakun) are REQUIRED for the bilingual voices section.** You MUST include AT LEAST 6 MFA Daily Press Conference items in your 50 picks — ideally spread across all three spokespersons and the most recent 3-5 days. Without MFA picks the synthesizer cannot produce diverse voices. This is a hard requirement, not a preference. MFA items will not dominate the brief itself (only 1-2 will end up as bullets) but the synthesizer needs many MFA candidates to choose voice quotes from.
+- **Xi mentions: at least 3 picks where 习近平 appears in title or you can infer Xi as author/speaker.** Xi-speech material is voice-section gold and frames everything else.
 - De-prioritize routine procedural items (operational notices, sub-provincial bureaucratic items, repeat publications).
-- Aim for diversity in the picks: at least one Xi-speech / Party-theory piece, multiple economic/industrial regulators, at least one CCDI political-signal item, ≥6 MFA daily press conferences (REQUIRED for voices), some provincial/Xinhua aggregation, recent economic-data drops (CPI/PPI/GDP/PMI) if present.
+- Aim for diversity in the picks: at least one Xi-speech / Party-theory piece (≥3 with Xi), multiple economic/industrial regulators, at least one CCDI political-signal item, ≥6 MFA daily press conferences (REQUIRED for voices), some provincial/Xinhua aggregation, recent economic-data drops (CPI/PPI/GDP/PMI) if present.
 
 Today is ${TODAY}.
 
@@ -272,6 +278,11 @@ HEADLINE: **HARD MAX 12 WORDS**. ONE clear action only — NO semicolons, NO "X;
 
 Count your headline words. If over 12, cut.
 
+DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> with a SINGLE SENTENCE (35-50 words) that connects 3-4 of today's bullets into the day's macro story. This is where the brief earns its keep — it's the connecting arc Western press would lead with. Name the strategic-doctrine connection if applicable (e.g., "the AI rulebook + tech-loan growth + lawmaking plan together signal new-quality-productive-forces operationalization"). NO bullet-listing. NO numbered lists. ONE sentence that reads like wire-service editorializing.
+
+Example for a hypothetical AI-heavy day:
+<p class="dek">Beijing's AI agent rulebook, central-bank tech-loan growth of 13.7%, and 14 priority bills targeting comprehensive AI together operationalize Xi's "new quality productive forces" doctrine — even as Foreign Ministry rhetoric on Paraguay and a judicial farmland interpretation mark the contested edges of the same project.</p>
+
 VOICES: 3 voices (occasionally 4) as <blockquote class="pull">. **BILINGUAL FORMAT** — each voice contains the verbatim Chinese quote followed by a faithful English translation. NEVER paraphrase inside the Chinese; the translation must reflect the calibrated diplomatic vocabulary (see below). Each 12-30 words per language.
 
 Three registers, drawn from different source types. **HARD RULE: each voice must be from a DIFFERENT speaker AND a DIFFERENT source category.** Never quote the same person twice. If only 2 distinct categories are available in your picks, output 2 voices, not 3 with a repeat.
@@ -333,10 +344,11 @@ Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .back
 
 SOURCES section: numbered <ol>, each <li> with publisher in <span class="pub">, article title, date, full URL.
 
-Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, AND the new .backdrop CSS rules. Only replace:
+Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, AND the .backdrop CSS rules. Only replace:
 - <title>...</title> to "Briefer News — China — May 12, 2026" format (use today's human date)
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
 - <h2 class="headline">...</h2> per rules above
+- Insert <p class="dek">...</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative single-sentence macro arc per the rules above
 - <div class="voices">...</div> with 3 bilingual blockquotes
 - <ul class="items">...</ul> with exactly 9 <li> elements
 - The Strategic Backdrop block (everything from <h3 class="section-label">Strategic Backdrop</h3> through </div>) with 2-3 fresh strategy cards per today's items

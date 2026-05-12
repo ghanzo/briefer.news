@@ -268,6 +268,31 @@ sources:
     extractor: trafilatura
     active: false                 # pruned 2026-05-12 — 0 articles; mirrors gov.cn; covered by PBOC + SAFE
 
+  # ── H. Chinese commercial / professional press ─────────────────────────────
+  # Not government, but Chinese-language and high editorial quality. Surfaces
+  # stories the state press won't lead with (corruption signals, market stress,
+  # regulatory friction). Added 2026-05-12.
+
+  - name: "Caixin (财新)"
+    domain: caixin.com
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.caixin.com/"
+    link_pattern: "https?://(?:www|finance|china|opinion|international|economy|business|companies)\\.caixin\\.com/202[5-9]-\\d{2}-\\d{2}/\\d+\\.html"
+    category: commercial_business
+    weight: high                  # investigative Chinese business journalism; near-gov credibility
+    extractor: trafilatura
+    active: true
+
+  - name: "Yicai (第一财经)"
+    domain: yicai.com
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.yicai.com/news/"
+    link_pattern: "/news/\\d{9}\\.html"
+    category: commercial_business
+    weight: medium                # Shanghai-based business daily; markets + macro + corporate
+    extractor: trafilatura
+    active: true
+
   - name: "SAFE (Foreign Exchange)"
     domain: safe.gov.cn
     discovery_type: html_curl_cffi
