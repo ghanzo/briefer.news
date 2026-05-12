@@ -1,15 +1,17 @@
 # CHINA_BRIEF.md — China-source brief design + status
 
-> Companion document to `BRIEF_STYLE.md` and `lens.md`, but for the China side.
-> Captures editorial framing, source list, what's actually in the corpus today,
-> and what's next. Started 2026-05-10 alongside the US brief going live at
-> https://briefer.news.
+> Companion document to `BRIEF_STYLE.md` and `lens.md`, for the China side
+> of briefer.news. Captures editorial framing, source list, current state,
+> and active editorial direction.
+>
+> **Status: live and autonomous.** Brief at `https://briefer.news/china/`,
+> synth fires 07:30 PDT daily via LaunchAgent `news.briefer.synthesize.china`.
 
 ---
 
 ## Why a China brief
 
-The US-China axis is the defining geopolitical relationship of the era — `lens.md` already says this. Covering only the US side is half the picture. The world watches Chinese gov output patchily; there's editorial value in synthesizing it daily with the same rigor we apply to US gov output.
+The US-China axis is the defining geopolitical relationship of the era — `lens.md` says this. Covering only the US side is half the picture. The world watches Chinese gov output patchily; there's editorial value in synthesizing it daily with the same rigor we apply to US gov output.
 
 **The hardest part isn't technical — it's editorial.** Reading Xinhua and reprinting it produces propaganda. The value of a China brief comes from knowing what to extract, what to discount, and which announcements actually matter. That requires a different lens than the US side.
 
@@ -29,20 +31,24 @@ This means weighting:
 | MIIT industrial / chip / AI rules | Embassy press releases |
 | CAC internet / data / algorithm rules | Generic "official line" statements |
 | CCDI anti-corruption (political signals) | Tweet-grade Global Times commentary |
-| Qiushi (Xi speeches, Party theory) | China Daily English coverage |
+| Qiushi / People's Daily / CPC News (Xi speeches, Party theory) | China Daily English coverage |
 
 MFA daily press conferences stay valuable — they're the **best voice source** (daily transcripts of named spokespersons). But MFA content gets weighted by *substance*, not by volume.
 
+**Picker enforces the framing via two SQL pools** (`scripts/synthesize_china.sh` Stage 1): 175 slots for priority-ordered internal-evolution sources, 25 reserved slots for MFA (15 Daily Press Conference + 10 Foreign Minister Activities). Without the quota, MFA gets crowded out by higher-priority sources entirely.
+
 ---
 
-## Voice format
+## Voice format — bilingual
 
-Per design discussion 2026-05-10: **bilingual voices with Chinese verbatim + English translation, both shown.**
+Per design discussion 2026-05-10, implemented in v3 on 2026-05-12: **bilingual voices with Chinese verbatim + English translation, both shown.**
 
-```
-"中方坚决反对美方动用国家力量打压中国企业。"
-"China firmly opposes the U.S. using state power to suppress Chinese enterprises."
-— MFA Spokesperson Lin Jian, May 9 daily press conference [→ fmprc.gov.cn link]
+```html
+<blockquote class="pull">
+  <p>"中方坚决反对、强烈谴责巴方有关行径。"<br>
+     <em>"China firmly opposes and strongly condemns Paraguay's actions."</em></p>
+  <cite>MFA Spokesperson Guo Jiakun · May 12<sup><a class="cite" href="…">9</a></sup></cite>
+</blockquote>
 ```
 
 Reasons:
@@ -50,142 +56,154 @@ Reasons:
 - Readable for English audience
 - Anchors the brief's "no spin, no paraphrase" trust posture
 
-**Hard rule (parallel to BRIEF_STYLE.md cardinal sin):** never paraphrase inside Chinese quotes. Translation must be faithful, not interpretive.
+**Hard rules** (in synth prompt):
+- Never paraphrase inside Chinese quotes. Translation must be faithful, not interpretive.
+- Three voices, **different speaker AND different source category** for each — synth must drop to 2 voices rather than repeat a speaker.
 
 ### Diplomatic vocabulary calibration
 
-Chinese diplomatic language is graded — flat translations lose the gradation. The synthesizer should know:
+Chinese diplomatic language is graded — flat translations lose the gradation. The synthesizer's prompt includes this table verbatim:
 
-| Chinese | Common (weak) | Calibrated |
+| Chinese | English |
+|---|---|
+| 关切 | concerned (mild) |
+| 严重关切 | grave concern (formal) |
+| 坚决反对 | firmly opposes (immovable / red line) |
+| 严正交涉 | filed formal protest |
+| 强烈谴责 | strongly condemns (escalated) |
+| 必将作出回应 | will certainly respond (action threat) |
+
+Verified working in v3 brief — May 12 Guo Jiakun quote correctly rendered 坚决反对 + 强烈谴责 as "firmly opposes and strongly condemns".
+
+---
+
+## Headline + bullet caps (China-specific)
+
+| Element | Cap | Notes |
 |---|---|---|
-| 关切 | concerned | mild diplomatic note |
-| 严重关切 | strongly concerned | formal grave concern |
-| 坚决反对 | firmly opposes | immovable opposition (formal red line) |
-| 严正交涉 | makes solemn representations | filed a formal protest |
-| 强烈谴责 | strongly condemns | escalated language; significant |
-| 必将作出回应 | will certainly respond | concrete action threat |
+| Headline | **12 words max** | Single action only, no semicolons, plain English (CAC → "internet regulator", NDRC → "central planners", etc.) |
+| Bullet body | **25 words max** | Bold lead + one clear sentence + cite. No clause-stacking with em-dashes. No comma-chain enumeration of every measure in a policy |
+| Voices | 3 (occasionally 2 if categories don't allow 3 distinct speakers) | Bilingual Chinese + English |
+| MFA spokesperson bullets | ≤2 routine denials | Picker quota guarantees MFA candidates exist |
+| Provincial bullets | ≤3 | |
+| China-US relations bullets | ≤3 | Don't let it become a US-China brief — internal-evolution framing prioritizes internal items |
 
-This calibration belongs in the synthesizer's prompt; not yet codified separately.
+These caps are stricter than the US side; baked into the synth prompt in `scripts/synthesize_china.sh`.
 
 ---
 
 ## Source list
 
-Source-of-truth file: **`pipeline/config/china_sources.yaml`**.
-Scraper module: **`pipeline/scraper/china_scrape.py`**.
-Invoked via: `docker compose run --rm pipeline python main.py --china-only`
+Source-of-truth: **`pipeline/config/china_sources.yaml`**.
+Scraper: **`pipeline/scraper/china_scrape.py`**.
+Invoked via: `docker compose run --rm pipeline python main.py --china-only` (or as part of daily.sh's parallel scrape stage).
 
-### Tier 1 (build first — internal-weight elevated)
+**27 active sources** as of 2026-05-12, organized by editorial weight:
 
-| Source | Domain | Discovery | Why it matters |
-|---|---|---|---|
-| MFA Daily Press Conference | mfa.gov.cn | bespoke `mfa_press_conf` | Voices source; daily transcripts; spokespersons Lin Jian / Mao Ning / Guo Jiakun |
-| State Council Policies | gov.cn | html_curl_cffi (custom `pages_content` selector) | Definitive policy text; Premier-signed orders |
-| Xinhua via homepage | news.cn | bespoke `xinhua_home` | Aggregated wire content; ~128 URLs per fetch |
-| NDRC | ndrc.gov.cn | html_curl_cffi | Economic planning announcements |
-| PBOC | pbc.gov.cn | html_curl_cffi | Monetary policy; financial system signals |
-| MOF | mof.gov.cn | html_curl_cffi (multi-subdomain) | Fiscal policy |
-| MIIT | miit.gov.cn | html_curl_cffi (with retry) | Industrial / chip / AI policy |
-| CAC | cac.gov.cn | html_curl_cffi (with retry) | Internet / data / algorithm regulation |
-| Qiushi | qstheory.cn | html_curl_cffi (custom `detail` selector) | Xi speeches verbatim; Party theory — highest ideological signal |
-| CCDI | ccdi.gov.cn | html_curl_cffi (with retry) | Anti-corruption / Party discipline |
-| NPC | npc.gov.cn | html_curl_cffi | Legislative + leadership readouts |
-| Supreme People's Court | court.gov.cn | html_curl_cffi | Major rulings, judicial reports |
-| Supreme People's Procuracy | spp.gov.cn | html_curl_cffi (with retry) | Prosecutorial activity (often trails CCDI) |
-| CSRC | csrc.gov.cn | html_curl_cffi | Securities regulator |
-| SAFE | safe.gov.cn | html_curl_cffi | Foreign exchange / reserves |
-| SASAC | sasac.gov.cn | html_curl_cffi | SOE management |
-| Stats Bureau | stats.gov.cn | html_curl_cffi (custom `pages_content`) | Economic data drops |
+### Tier 1 — internal-policy core (priority 1)
+| Source | Domain |
+|---|---|
+| Qiushi (Party Theoretical Journal) | qstheory.cn |
+| People's Daily Politics | people.com.cn |
+| People's Daily Opinion (Commentary) | people.com.cn |
+| CPC News (中国共产党新闻网) | cpc.people.com.cn |
+| State Council Policies | gov.cn |
+| State Council Yaowen (Top News) | gov.cn |
 
-### Tier 2 (provincial, by major economic center)
+### Tier 2 — economic / industrial regulators (priority 2)
+| Source | Domain |
+|---|---|
+| NDRC News Releases | ndrc.gov.cn |
+| PBOC Press Releases | pbc.gov.cn |
+| MOF News | mof.gov.cn |
+| MIIT News | miit.gov.cn |
+| CAC Notices | cac.gov.cn |
+| Stats Bureau | stats.gov.cn |
 
-| Source | Domain | Status |
-|---|---|---|
-| Shanghai Government | shanghai.gov.cn | ✓ working |
-| Beijing Government | beijing.gov.cn | flaky — needs retry |
-| Guangdong Government | gd.gov.cn | ✓ working |
-| Zhejiang Government | zj.gov.cn | flaky — needs retry |
+### Tier 3 — political / judicial (priority 3)
+| Source | Domain |
+|---|---|
+| CCDI News | ccdi.gov.cn |
+| NPC News | npc.gov.cn |
+| Supreme People's Court | court.gov.cn |
+| Supreme People's Procuracy | spp.gov.cn |
 
-### Held / blocked (`active: false` in yaml)
+### Tier 4 — financial regulators (priority 4)
+CSRC, SAFE, SASAC
 
+### Tier 5 — MFA voices (priority 5, with reserved 25-slot pool)
+MFA Daily Press Conference (林剑 Lin Jian / 毛宁 Mao Ning / 郭嘉昆 Guo Jiakun), MFA News (Foreign Minister Activities)
+
+### Tier 6 — Xinhua aggregation (priority 6)
+Xinhua News (homepage discovery), Xinhua Politics — Leaders
+
+### Tier 7 — provincial (priority 7)
+Shanghai, Beijing, Guangdong, Zhejiang
+
+### Held / blocked (`active: false`)
 | Source | Issue |
 |---|---|
-| SCIO Press Conferences | HTTP 521 (Cloudflare origin error) on initial probe; retry later |
+| SCIO Press Conferences | HTTP 521 (Cloudflare origin error) |
 | NFRA (banking/insurance regulator) | Returns 215-byte stub — needs correct sub-path |
 | Customs (海关总署) | HTTP 412 — needs specific header set |
 
 ---
 
-## Current corpus (as of 2026-05-10)
-
-First full china scrape ran 2026-05-09 → 2026-05-10. Captured **499 articles across 11 sources, 862 KB of Chinese-language text.** All articles tagged `language='zh'` in the `articles` table.
-
-| Source | Articles | Avg chars |
-|---|---|---|
-| Supreme People's Procuracy | 90 | 2,387 |
-| Guangdong Government | 69 | 1,231 |
-| Xinhua News (homepage) | 63 | 1,347 |
-| SAFE | 62 | 1,634 |
-| CAC Notices | 61 | 1,251 |
-| Qiushi | 58 | 2,735 |
-| MFA Daily Press Conference | 40 | 1,968 |
-| SASAC | 30 | 1,299 |
-| MOF News | 15 | 1,195 |
-| Shanghai Government | 8 | 1,366 |
-| State Council Policies | 3 | 5,215 |
-
-### Pattern-fix backlog (12 sources returned 0 articles)
-
-The first scrape captured 11 of 23 active sources. The remaining 12 are accessible (probes confirm HTTP 200) but the `link_pattern` regex in `china_sources.yaml` doesn't match what's in those listings. To-fix:
-
-State Council Yaowen, Xinhua Politics-Leaders, NDRC, PBOC, MIIT, Stats Bureau, CCDI, NPC, Supreme Court, CSRC, Beijing, Zhejiang.
-
-These are 30-second probes each — fetch listing, find actual URL pattern, update yaml. Highest-value to fix first (per internal-weight): **NDRC, PBOC, MIIT, CCDI, NPC**.
-
----
-
-## Architecture (planned, not yet built)
-
-Mirroring the US brief's autonomous flow:
+## Architecture (live)
 
 ```
-04:00 PDT  daily.sh — extend to also call --china-only after --akamai-only
-07:30 PDT  synthesize_china.sh — NEW (US synth runs at 07:00; offset 30min for resource separation)
-              ├─ Stage 0: china_world_context.sh — what global outlets say about China today
-              │  + china_structural_arcs.md — slow-changing internal-evolution themes (refresh monthly)
-              ├─ Stage 1: SQL pre-filter on language='zh'
-              ├─ Stage 2: Claude picker (with internal-weight + diplomatic-glossary instruction)
-              ├─ Stage 3: SQL fetch full text
-              ├─ Stage 4: Claude synthesizer — bullets in English with Chinese citations,
-              │  voices bilingual (Chinese verbatim + English translation)
-              ├─ Stage 5: deploy to local nginx volume (/china subpath)
-              └─ Stage 6: deploy to S3 + CloudFront invalidate (/china/index.html)
+04:00 PDT  daily.sh — parallel scrape (rss + akamai + china) via `&` / `wait`
+              └─ china_scrape.py runs 27 sources sequentially within itself
+                 (per-source extraction, retries with exponential backoff)
+
+07:30 PDT  synthesize_china.sh — autonomous daily synth
+              ├─ Stage 1: SQL pre-filter
+              │     ├─ internal_pool: 175 slots, priority-ordered, MFA excluded
+              │     └─ voices_pool: 25 reserved MFA slots
+              │           ├─ 15 MFA Daily Press Conference (most recent)
+              │           └─ 10 MFA News (Foreign Minister Activities, most recent)
+              ├─ Stage 2: Claude picker (~50 picks, ≥6 MFA required for voices)
+              ├─ Stage 3: SQL fetch full text (5000 char LEFT)
+              ├─ Stage 4: Claude synthesizer
+              │     ├─ Bilingual voices (Chinese verbatim + English translation)
+              │     ├─ Hard 12-word headline cap, 25-word bullet cap
+              │     ├─ Diplomatic-glossary calibration table inline
+              │     └─ Render into research/prototype_china_2026-05-12.html
+              ├─ Stage 5: deploy to local nginx /china/
+              └─ Stage 6: deploy to S3 /china/ + CloudFront invalidate
 ```
 
-**Output URL planned**: `https://briefer.news/china/` (subpath on existing domain) or `https://china.briefer.news/` (subdomain — would need ACM cert update).
+**Output URL:** `https://briefer.news/china/`
 
 ---
 
-## What's next
+## Active editorial direction (forward-looking)
 
-In rough order:
+Captured 2026-05-12 evening; to address in upcoming sessions.
 
-1. **Fix the 12 zero-result source patterns** (NDRC, PBOC, MIIT, CCDI, NPC priority). ~30 min total.
-2. **Run a second china scrape** with the patterns fixed — should land another ~300-500 articles.
-3. **Build `scripts/synthesize_china.sh`** mirroring `synthesize.sh` shape, with China-specific prompts. Includes diplomatic-glossary table inline.
-4. **Write `china_structural_arcs.md`** — 8-12 slow-changing internal-evolution themes (real-estate stress, demographic shift, AI/chips sovereignty, Common Prosperity, energy transition, political consolidation, etc.).
-5. **Build `scripts/world_context_china.sh`** — Claude WebSearch tuned to China-internal narrative arcs.
-6. **Manual trial synthesis** — run synthesize_china.sh on the captured corpus, look at what comes out, iterate on prompts before automating.
-7. **New LaunchAgent** `news.briefer.synthesize.china` at 07:30 once trial output is publishable quality.
-8. **Deploy** to `/china` subpath on briefer.news.
+1. **Voice ordering — Xi at top.** When Xi is in the picks, he should lead the voices section rather than appearing in slot #2 or #3. Synth prompt's "three registers, different speaker" rule produces good diversity but doesn't enforce hierarchy. Fix: add explicit Xi-leads rule to synth prompt.
+
+2. **Quote freshness.** v3 brief used a Xi quote from Feb 4 phone call to Trump (~3 months old). Looks misleading in a "daily brief" context. Add a recency rule: voice quotes ≤30 days unless explicitly anchoring a structural arc, with the date in the cite either way.
+
+3. **Structural anchor docs.** Beyond daily output, brief should draw on long-arc strategy: 15th Five-Year Plan (15FYP), Common Prosperity, Belt and Road, Made in China 2025/2035, etc. **Pending build:** `china_structural_arcs.md` (8-12 themes) + Stage 0 `china_world_context.sh` analogous to the US side.
+
+4. **Dashboard framing — "from and to China".** Page should function as a two-way information dashboard: signals FROM China (current — their official output) AND signals TO China (sanctions / trade actions / diplomatic moves / allied responses). Implementation TBD; likely needs a separate ingestion layer for the "to China" side. Clarify next session.
 
 ---
 
-## Open editorial questions
+## Open editorial questions (still open)
 
 - **Naming**: "Briefer News — China" or distinct branding?
-- **English-only headlines**: yes (audience is English-reading), but should bullets be English with Chinese citations only, or include Chinese-original snippets inline alongside the English description?
-- **Provincial coverage volume cap**: 4 provinces × ~70 articles each could swamp the picker. Hard cap at e.g. 5 provincial bullets per brief?
-- **Anti-corruption (CCDI) coverage cadence**: high-volume, low-individual-event-importance most days, then occasional senior-official fall is huge. Picker needs to discriminate "routine vs. tier-leadership" cases.
-- **Qiushi treatment**: Xi speeches are long. Excerpting verbatim vs. summarizing? Probably excerpt for voices, summarize for bullets.
-- **When to flip the China brief on for autonomous publish**: only after several days of manual trials confirming editorial quality.
+- **Provincial coverage volume cap**: current cap of 3 working OK; revisit if provincial sources start producing more usable items.
+- **Anti-corruption (CCDI) cadence**: high-volume low-individual-importance most days, occasional senior-official fall is huge. Picker needs to discriminate "routine vs. tier-leadership" — currently no explicit signal.
+- **Qiushi treatment**: Xi speeches are long. Excerpting verbatim vs. summarizing? Currently excerpt for voices, summarize for bullets — working OK.
+- **The "to China" layer**: see direction item #4 above.
+
+---
+
+## What's done (chronological)
+
+- **2026-05-10** — sources scaffolded (23 active), first scrape captured 499 articles across 11 sources, manual trial synth showed strong output
+- **2026-05-12 morning** — 4 new sources added (MFA News, People's Daily Politics, People's Daily Opinion, CPC News), pattern fixes applied, fresh scrape recovered 12 zero-result sources
+- **2026-05-12 afternoon** — `synthesize_china.sh` built end-to-end; v1 trial → v2 (China red theme + tighter word caps) → v3 (MFA quota + hard diverse-speaker rule) all run against fresh corpus
+- **2026-05-12 evening** — multi-edition site shipped (selector at `/`, US at `/usa/`, China at `/china/`); China LaunchAgent at 07:30 PDT loaded; commit `bc68be1` pushed to ghanzo/briefer.news

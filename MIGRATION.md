@@ -1,13 +1,15 @@
 # MIGRATION.md — Setting up briefer.news on the M4 Mac mini
 
-> **Status: Deployment complete (2026-05-10).** This runbook served its purpose.
-> The system shipped on 2026-05-08 (Path B / autonomous synthesis, ahead of the
-> originally-planned Path A manual brief schedule). Public domain
-> `https://briefer.news` went live on 2026-05-10.
+> **Status: Deployment complete + restructured multi-edition (2026-05-12).**
+> This runbook served its purpose. The system shipped on 2026-05-08 (Path B /
+> autonomous synthesis, ahead of the originally-planned Path A manual brief
+> schedule). Public domain `https://briefer.news` went live on 2026-05-10.
+> Multi-edition restructure (selector at `/`, US at `/usa/`, China at `/china/`,
+> autonomous China synth at 07:30 PDT) shipped 2026-05-12.
 >
-> Kept here as historical reference for the steps that worked. See the
-> **Deployment Postmortem** at the bottom of this file for what we learned
-> doing it. For day-to-day operations, see `CLAUDE.md`.
+> Kept here as historical reference for the steps that worked. See the two
+> postmortem sections at the bottom of this file for what we learned doing it.
+> For day-to-day operations, see `CLAUDE.md`.
 
 ---
 
@@ -508,3 +510,96 @@ expect on a similar deploy.
   workarounds for nearly a day before opening a case. Should have opened it
   at the first `CNAMEAlreadyExists` error — Edgar (CloudFront) responded
   within minutes.
+
+---
+
+## Multi-edition Postmortem (2026-05-12)
+
+What happened during the multi-edition restructure. The China brief had been
+running manually for a few days; this session built the autonomous side and
+restructured the site so it could host more than one edition.
+
+### What went smoothly
+
+- **China synth shipped end-to-end in one session.** SQL pre-filter + Claude
+  picker + Claude synthesizer + S3/CloudFront publish, all in one script
+  (`scripts/synthesize_china.sh`). Three iterations against the same corpus
+  (v1 → v2 → v3) refined the prompts in tight feedback loops.
+- **Multi-edition restructure took ~45 min.** Moving the US brief from `/` to
+  `/usa/`, adding a selector at `/`, adding nav strips to both country pages
+  — clean migration via copying S3 objects, injecting nav HTML into existing
+  briefs, deploying selector last. No data loss; old `/archive/` paths still
+  serve as backstop.
+- **CloudFront Function for trailing-slash rewrites.** Wrote the JS, created
+  the function, published to LIVE stage, attached to the default cache
+  behavior, waited for distribution-deployed. Total ~5 min including AWS
+  wait time. Standard fix for S3+CloudFront sites; should have done it on
+  initial deploy.
+- **LaunchAgent for China synth wired without surprises.** Mirrored the
+  existing `news.briefer.synthesize.plist` structure, loaded via `launchctl
+  load`, verified active via `launchctl list`. New time 07:30 PDT chosen to
+  offset 30 min from US synth so they don't compete for Claude API quota.
+
+### What surprised us
+
+1. **SQL pre-filter priority ordering shut MFA out entirely.** The original
+   `ORDER BY priority ASC, pub_date DESC ... LIMIT 200` filled all 200 slots
+   with priority-1 through priority-3 sources, never reaching MFA at
+   priority 5. Without MFA in the candidate pool, the picker had no
+   spokesperson transcripts to draw from. Fix: split the SQL into two CTEs —
+   `internal_pool` (175 slots, priority-ordered, MFA excluded) and
+   `voices_pool` (25 reserved MFA slots, sub-quota 15 Daily Press
+   Conference + 10 Foreign Minister Activities). Without the sub-quota,
+   whichever MFA source was scraped more recently filled all 25 slots and
+   shut out the other.
+
+2. **Picker read "MFA shouldn't dominate" as "skip MFA entirely."** Even
+   after the SQL fix put MFA into the pool, the picker's prompt phrasing
+   produced zero MFA picks in two consecutive runs. Replaced with hard-rule
+   language: "MUST include AT LEAST 6 MFA Daily Press Conference items in
+   your 50 picks. This is a hard requirement, not a preference." That
+   worked — v3 picker landed exactly 7 MFA picks.
+
+3. **`briefer.news/china/` (with trailing slash) returned a CloudFront 403
+   that fell back to the root US brief.** CloudFront's DefaultRootObject
+   only applies to `/`, not to `/<dir>/`. S3 has no directory-index support
+   for OAC-fronted buckets. The fallback behavior masquerades as "the URL
+   works" — content-length 31845 (US brief) instead of 29989 (China brief).
+   Caught by checking `x-cache: Error from cloudfront` header. Fix: a
+   CloudFront Function that rewrites `/<dir>/` → `/<dir>/index.html` at the
+   viewer-request edge.
+
+4. **CloudFront Functions need both create AND publish steps.** Creating
+   the function puts it in DEVELOPMENT stage; you have to explicitly
+   `publish-function` to move it to LIVE before attaching it to a
+   distribution. The CLI returns a clean ARN from `publish-function` that's
+   what goes into the distribution config.
+
+5. **Same-prefix S3 paths in two AWS accounts caused no issues.** The
+   migration moved `s3://briefer-news-site/index.html` content to
+   `s3://briefer-news-site/usa/index.html` and replaced the root with the
+   selector. Both old `/archive/` (now legacy) and new `/usa/archive/`
+   serve correctly without redirect rules. Kept the old archives as a
+   backstop for any external links.
+
+6. **Nav strip injection via Python was simpler than editing prototype +
+   re-synth.** v3 China brief was already deployed; the US brief was last
+   synthesized 12 hours earlier. Rather than wait for the next 07:00 synth
+   to pick up nav-strip changes, wrote a small Python script that injects
+   the nav HTML + CSS into existing rendered HTML. Idempotent (re-running
+   strips and re-injects). Used in both staging (preview) and the live
+   migration.
+
+### What we'd skip / change next time
+
+- **Add CloudFront Function at initial deploy**, not as a retrofit. Any
+  S3-backed CloudFront site with subdirectories needs it.
+- **Don't use absolute paths in cross-page nav** unless you're SURE the site
+  will always be served from the root. The initial nav strip used `/usa/`
+  and `/china/` which broke when staged at `/preview/`. Relative paths
+  (`../usa/`, `../china/`, `../`) work in both production and preview.
+- **Sanity-check SQL pre-filter distributions before debugging synth
+  output.** If voices look weak or imbalanced, the first question should be
+  "what's in the candidate pool" — not "what's the picker doing." A 30-sec
+  `jq` on `china_candidates_meta.json` would have caught the MFA-zero issue
+  before any synth ran.

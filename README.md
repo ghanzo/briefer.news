@@ -1,28 +1,35 @@
 # briefer.news
 
-A daily intelligence brief on US-government output. Autonomously scraped, curated, and synthesized into a published page each morning.
+A daily intelligence platform on multi-government output. Autonomously scraped, curated, and synthesized into a published page per edition each morning.
 
 ## What it is
 
-Every morning, this pipeline scrapes ~45 sources of US-government and allied output (State Dept, CENTCOM, DOJ, Treasury, CISA, the Federal Register, UK MoD, etc.). A few hours later, Claude curates the most consequential ~50 items and synthesizes them into a 9-bullet daily brief in the style of [`BRIEF_STYLE.md`](BRIEF_STYLE.md). The result is published as a single static HTML page.
+Every morning, this pipeline scrapes ~72 sources of government output across two editions:
+- **US edition** — 45 sources (State Dept, CENTCOM, DOJ, Treasury, CISA, Federal Register, UK MoD, etc.) → brief at **https://briefer.news/usa/**
+- **China edition** — 27 Chinese-government sources (MFA, State Council, Xinhua, NDRC, PBOC, MIIT, CAC, Qiushi, CCDI, NPC, judicial, provincial, etc.) → brief at **https://briefer.news/china/**
 
-Live output: **https://briefer.news** (also `https://www.briefer.news`).
+A few hours after each scrape, Claude curates the most consequential ~50 items per edition and synthesizes them into a 9-bullet daily brief in the style of [`BRIEF_STYLE.md`](BRIEF_STYLE.md). The China brief follows additional editorial rules in [`CHINA_BRIEF.md`](CHINA_BRIEF.md) (bilingual voices, diplomatic-vocabulary calibration, internal-evolution priority).
 
-A parallel **China-source brief** is in active development — same architecture, Chinese-language sources, internal-evolution editorial framing. See [`CHINA_BRIEF.md`](CHINA_BRIEF.md) for status and design.
+The site root **https://briefer.news** is an editions selector with live-fetched headlines from each edition. Designed to scale to additional country editions (UK / EU / Russia planned).
 
 ## Architecture
 
 ```
 M4 Mac mini at home (residential IP — required for Akamai bypass)
-├── Postgres ─────────── article store (7-day rolling retention)
-├── Pipeline ─────────── Python scrape stack
-│                        (curl_cffi + Playwright + trafilatura)
-├── Claude Code ──────── headless picker + synthesizer + WebSearch
+├── Postgres ─────────── article store (7-day rolling retention, 200-300 articles/day)
+├── Pipeline ─────────── Python scrape stack (curl_cffi + Playwright + trafilatura)
+│                        ├── US (RSS + Akamai) ── 45 sources
+│                        └── China (curl_cffi)  ── 27 sources
+├── Claude Code ──────── headless picker + synthesizer + WebSearch (per-edition)
 └── nginx ────────────── local source-of-truth render
                             │
                             ▼
-                    AWS S3 + CloudFront
-                       (public edge)
+                    AWS S3 + CloudFront + CloudFront Function
+                            (public edge, multi-edition)
+                            │
+                            ├── briefer.news/        → selector
+                            ├── briefer.news/usa/    → US brief
+                            └── briefer.news/china/  → China brief
 ```
 
 **Why the mini specifically:** Akamai bot-detection on DoD `.mil` subdomains blocks cloud datacenter IPs. The mini's residential ISP is what makes the curl_cffi Chrome-impersonation bypass actually work. Verified live for war.gov, centcom.mil, navy.mil, jcs.mil, af.mil. See [`research/dod_bypass_findings_2026-05-07.md`](research/dod_bypass_findings_2026-05-07.md).
@@ -31,10 +38,11 @@ M4 Mac mini at home (residential IP — required for Akamai bypass)
 
 | Time (PDT) | LaunchAgent | Stages |
 |---|---|---|
-| 04:00 | `news.briefer.daily` | RSS scrape (39 sources) → Akamai sweep (6 sources) → DB cleanup (7-day retention) |
-| 07:00 | `news.briefer.synthesize` | World-context (Claude WebSearch) → SQL pre-filter (200 candidates) → Claude picker (~50) → SQL fetch full text → Claude synthesizer → deploy to local nginx + S3 + CloudFront invalidation |
+| 04:00 | `news.briefer.daily` | **3 scrapes in parallel** — RSS (39 sources) + Akamai (6 sources) + China (27 sources) — then DB cleanup (7-day retention) |
+| 07:00 | `news.briefer.synthesize` | World-context (Claude WebSearch) → SQL pre-filter (200 candidates) → Claude picker (~50) → SQL fetch full text → Claude synthesizer → deploy to `/usa/` + S3 + CloudFront invalidation |
+| 07:30 | `news.briefer.synthesize.china` | SQL pre-filter (175 internal + 25 reserved MFA) → Claude picker (≥6 MFA required) → SQL fetch full text → Claude synthesizer (bilingual voices, diplomatic-glossary calibration) → deploy to `/china/` + S3 + CloudFront invalidation |
 
-Logs land in `logs/daily-YYYYMMDD.log` and `logs/synthesize-YYYYMMDD.log`. Failures are non-fatal — yesterday's brief stays live until the next successful synth.
+Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesize-china-YYYYMMDD.log`. Failures are non-fatal — yesterday's brief stays live until the next successful synth.
 
 ## Editorial framework
 
@@ -83,12 +91,16 @@ briefer.news/
 │   ├── builder/                    # Jinja2 templates (older path)
 │   └── db/models.py                # SQLAlchemy schema
 ├── scripts/                        # operational scripts (LaunchAgent targets)
-│   ├── daily.sh                    # 04:00 — scrape + cleanup
-│   ├── synthesize.sh               # 07:00 — world-context + picker + synth + publish
+│   ├── daily.sh                    # 04:00 — parallel scrapes (rss+akamai+china) + cleanup
+│   ├── synthesize.sh               # 07:00 — US synth → /usa/
+│   ├── synthesize_china.sh         # 07:30 — China synth → /china/
 │   ├── cleanup.sh                  # 7-day article retention
 │   └── world_context.sh            # Claude WebSearch → ambient global-narrative file
 ├── research/                       # design references, sample briefs, probe scripts
-│   ├── prototype_2026-05-07.html   # visual template (dark mode default)
+│   ├── prototype_us_2026-05-12.html      # CURRENT US template (dark default, nav strip)
+│   ├── prototype_china_2026-05-12.html   # CURRENT China template (red theme, PRC flag)
+│   ├── prototype_selector_2026-05-12.html # CURRENT home selector (two-card layout)
+│   ├── prototype_2026-05-07.html         # original US template (kept; superseded)
 │   └── brief_*.md                  # human-written reference briefs
 ├── nginx/nginx.conf
 ├── docker-compose.yml
@@ -102,10 +114,12 @@ briefer.news/
 
 | | |
 |---|---|
-| Source pool | 45 active feeds (39 standard RSS, 6 Akamai-protected) |
-| Daily article volume | ~50–80 net new articles/day after dedup |
+| Source pool | **72 active feeds** — 45 US (39 RSS + 6 Akamai-protected) + 27 Chinese-government |
+| Daily article volume | ~200-300 net new articles/day after dedup across both editions |
 | Local site | Live at http://localhost on the mini |
-| Public domain | **Live** at https://briefer.news (and www.briefer.news) since 2026-05-10 |
-| China brief | In active development — corpus captured (~500 Chinese-language articles), synthesizer not yet built; see [`CHINA_BRIEF.md`](CHINA_BRIEF.md) |
+| Public domain | **Live** at https://briefer.news (multi-edition) since 2026-05-12 |
+| US edition | Live at https://briefer.news/usa/ — autonomous synth 07:00 PDT |
+| China edition | Live at https://briefer.news/china/ — autonomous synth 07:30 PDT (since 2026-05-12). Bilingual voices, internal-evolution framing |
+| Selector | Live at https://briefer.news/ — JS-fetched headlines from each edition |
 | AWS cost | ~$0.50/mo (Route 53 zone only) |
 | Mini cost | ~$3/yr electricity (M4 idles at ~3W) |

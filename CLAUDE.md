@@ -6,7 +6,7 @@ This file orients a fresh Claude session. Read it first.
 
 ## What this project is
 
-**briefer.news** — a daily intelligence brief that ingests US-government output, runs it through an autonomous Claude-Code pipeline, and publishes a static HTML page each morning. **Live at https://briefer.news.** Owner is Max Goshay. Repo at `github.com/ghanzo/briefer.news`.
+**briefer.news** — a daily intelligence platform that ingests multiple governments' output, runs each through an autonomous Claude-Code pipeline, and publishes a static HTML page per edition each morning. **Live at https://briefer.news** — multi-edition since 2026-05-12, with a selector at the root, US brief at `/usa/`, and China brief at `/china/`. Owner is Max Goshay. Repo at `github.com/ghanzo/briefer.news`.
 
 Two products in this repo:
 
@@ -15,21 +15,24 @@ Two products in this repo:
 
 The interpretive lens is in `lens.md` and `AIMS.md` — six layers in priority order: energy/resources, US-China axis, tech chokepoints, financial currents, human systems, innovation signals.
 
-A **parallel China-source brief** is in active development. Source list and scraper are scaffolded (`pipeline/config/china_sources.yaml`, `pipeline/scraper/china_scrape.py`); 499 Chinese-language articles already in DB; synthesizer not yet built. See **`CHINA_BRIEF.md`** for design + status.
+Two editions currently shipping; designed to scale to N (UK, EU, Russia, etc.):
+- **US edition** at `/usa/` — 45 sources (39 RSS + 6 Akamai-protected DoD), synth at 07:00 PDT
+- **China edition** at `/china/` — 27 Chinese-gov sources, synth at 07:30 PDT, bilingual voices format. See **`CHINA_BRIEF.md`** for editorial framing.
 
 ---
 
-## Where we are (current build stage — updated 2026-05-10)
+## Where we are (current build stage — updated 2026-05-12)
 
 | Stage | Status |
 |---|---|
 | **1. Source foundation (US gov)** | **Done** — 45 active US-gov + allied sources scraping daily |
 | **2. Pipeline validation** | **Done** — autonomous scrape runs at 04:00 PDT every day |
-| **3. AI synthesis** | **Done — autonomous via Claude Code headless.** SQL pre-filter → picker → synthesizer, with world-context layer. Brief generated 07:00 PDT daily. |
-| **4. Editorial output** | **Done** — dark-mode default, accessibility-first headlines, 9-bullet/3-voice format locked |
-| **5. Operations** | **Done** — two LaunchAgents on M4 mini, autonomous + cleanup + S3 publish + CloudFront invalidation. AWS deployment complete. |
-| **6. China-source brief** | **In active development** — sources scaffolded, 499 articles in DB, synthesizer pending. See `CHINA_BRIEF.md`. |
-| **7. Expansion** | Deferred — international + commercial + data APIs |
+| **3. AI synthesis (US)** | **Done — autonomous via Claude Code headless.** SQL pre-filter → picker → synthesizer, with world-context layer. Brief generated 07:00 PDT daily, deployed to `/usa/`. |
+| **4. Editorial output** | **Done** — dark-mode default, accessibility-first headlines, 9-bullet/3-voice format locked. China brief uses bilingual voices (Chinese verbatim + English translation), 12-word headline cap, 25-word bullet cap. |
+| **5. Operations** | **Done** — three LaunchAgents on M4 mini, parallel scrapes + cleanup + per-edition publish to S3 + CloudFront invalidation. AWS deployment complete. |
+| **6. China-source brief** | **Done — live at briefer.news/china/.** 27 sources, autonomous synth at 07:30 PDT. Bilingual voices, MFA picker quota, internal-evolution editorial framing. See `CHINA_BRIEF.md`. |
+| **7. Multi-edition platform** | **Done — live since 2026-05-12.** Selector at `/`, US at `/usa/`, China at `/china/`, CloudFront Function rewrites trailing-slash URLs. Designed to scale to N editions. |
+| **8. Expansion** | Deferred — additional country editions (UK / EU / Russia per selector mockup), commercial sources, data APIs |
 
 **Critical principle (still applies):** *Don't add more sources without seeing the pipeline output first.* The user-facing test is the daily brief, not a probe count.
 
@@ -37,24 +40,32 @@ A **parallel China-source brief** is in active development. Source list and scra
 
 ## How the autonomous flow runs
 
-Two LaunchAgents on the M4 Mac mini at home:
+Three LaunchAgents on the M4 Mac mini at home:
 
 | Time (PDT) | LaunchAgent | What runs |
 |---|---|---|
-| 04:00 | `news.briefer.daily` | `scripts/daily.sh` → standard scrape (39 RSS) → Akamai sweep (6 sources) → cleanup (7-day retention) |
-| 07:00 | `news.briefer.synthesize` | `scripts/synthesize.sh` → world-context (Claude WebSearch, Stage 0) → SQL pre-filter (200 candidates) → Claude picker (~50) → SQL fetch full text → Claude synthesizer → deploy to local nginx + S3 + CloudFront invalidation |
+| 04:00 | `news.briefer.daily` | `scripts/daily.sh` → **3 scrapes in parallel** (standard 39 RSS / Akamai 6 sources / China 27 sources, each backgrounded with `&` then `wait`d, output prefixed `[rss]`/`[akamai]`/`[china]`) → cleanup (7-day retention) |
+| 07:00 | `news.briefer.synthesize` | `scripts/synthesize.sh` → world-context (Claude WebSearch, Stage 0) → SQL pre-filter (200 candidates) → Claude picker (~50) → SQL fetch full text → Claude synthesizer → deploy to local nginx `/usa/` + S3 `/usa/` + CloudFront invalidation |
+| 07:30 | `news.briefer.synthesize.china` | `scripts/synthesize_china.sh` → SQL pre-filter (175 internal-evolution slots + 25 reserved MFA slots, sub-quota 15 Daily Press Conf / 10 Foreign Minister Activities) → Claude picker (≥6 MFA required, internal-evolution priority) → SQL fetch full text → Claude synthesizer (bilingual voices, diplomatic-glossary calibration, 12-word headline cap, 25-word bullet cap) → deploy to local nginx `/china/` + S3 `/china/` + CloudFront invalidation |
 
-Logs land in `logs/daily-YYYYMMDD.log` and `logs/synthesize-YYYYMMDD.log`. Failures are non-fatal — yesterday's brief stays live until the next successful synth.
+Logs land in `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, and `logs/synthesize-china-YYYYMMDD.log`. Failures are non-fatal — yesterday's brief stays live until the next successful synth.
 
 **Why the M4 mini specifically:** Akamai bot detection on DoD `.mil` subdomains (war.gov, centcom.mil, navy.mil, jcs.mil, af.mil) blocks cloud datacenter IPs. The mini's residential ISP makes the curl_cffi Chrome-impersonation bypass actually work. **Production cannot move off-mini without paid residential proxies (~$50-100/mo).**
 
 ---
 
-## Source counts (US gov + allied)
+## Source counts
 
+### US edition (45 active)
 - **39 active standard RSS / web-scrape sources** in `pipeline/config/sources.yaml` — State Dept regional desks, DoD, Federal Reserve, Treasury, USTR, GAO, DOJ NS, CISA, Federal Register (×2), CBP, DOJ OPA, FBI National, CFPB, BLS, BEA, CBO, NY Fed Liberty Street, GovInfo (3), Court of Appeals (2), EIA, plus international (BBC/AJ/DW/Yonhap/AllAfrica/UK/Kremlin/TASS/UN/WHO/IAEA), commercial (OilPrice, Mining.com, Hacker News).
 - **6 active Akamai-protected sources** in `pipeline/config/akamai_sources.yaml` — DOD War.gov, CENTCOM, Navy.mil, JCS, U.S. Air Force, UK MoD. Scraped via `--akamai-only` stage with curl_cffi TLS-impersonation. ~50 articles/day (mostly de-dup; UK MoD is the highest-yield).
-- **Total: 45 active sources** producing **~50-100 net new articles/day** after dedup.
+
+### China edition (27 active)
+- **27 active Chinese-government sources** in `pipeline/config/china_sources.yaml` — MFA Daily Press Conference + MFA News, State Council Policies + Yaowen, Xinhua News (homepage) + Xinhua Politics—Leaders, NDRC, PBOC, MOF, MIIT, CAC, Stats Bureau, Qiushi (Party theory), CCDI (anti-corruption), NPC, Supreme People's Court, Supreme People's Procuracy, CSRC, SAFE, SASAC, People's Daily Politics + Opinion, CPC News, Shanghai/Beijing/Guangdong/Zhejiang governments. Three held (`active: false`): SCIO, NFRA, Customs.
+- Scraped via `--china-only` stage with curl_cffi (same TLS impersonation as Akamai layer). ~150-200 articles/day after dedup.
+
+### Total
+- **72 active sources** producing **~200-300 net new articles/day** after dedup across both editions.
 - Held sources (`active: false`) remain in yaml ready to enable later.
 
 ---
@@ -102,8 +113,9 @@ briefernewsapp/
 ├── aws-support-case-body.md        ← saved AWS Support case body (used for the Amplify resolution)
 │
 ├── scripts/                        ← OPERATIONAL SCRIPTS — LaunchAgent targets
-│   ├── daily.sh                    ← 04:00 — scrape + cleanup
-│   ├── synthesize.sh               ← 07:00 — world-context + picker + synth + deploy + S3
+│   ├── daily.sh                    ← 04:00 — parallel scrapes (rss + akamai + china) + cleanup
+│   ├── synthesize.sh               ← 07:00 — US synth → /usa/
+│   ├── synthesize_china.sh         ← 07:30 — China synth → /china/ (bilingual voices)
 │   ├── cleanup.sh                  ← 7-day article retention (called from daily.sh)
 │   └── world_context.sh            ← Claude WebSearch → ambient global-narrative file
 │
@@ -130,7 +142,10 @@ briefernewsapp/
 │
 ├── research/                       ← design references, sample briefs, probe scripts
 │   ├── prototype_2026-05-06.html   ← original LIVE site prototype (kept for reference)
-│   ├── prototype_2026-05-07.html   ← visual template the synthesizer uses (DARK DEFAULT)
+│   ├── prototype_2026-05-07.html   ← original US visual template (kept; superseded)
+│   ├── prototype_us_2026-05-12.html      ← CURRENT US template (nav strip baked in)
+│   ├── prototype_china_2026-05-12.html   ← CURRENT China template (red theme, PRC-flag SVG, nav strip)
+│   ├── prototype_selector_2026-05-12.html ← CURRENT home selector page (two-card layout, JS fetches headlines from each edition)
 │   ├── brief_2026-05-06.md         ← May 6 hand-written brief (markdown)
 │   ├── brief_2026-05-07.md         ← May 7 hand-written brief (markdown)
 │   ├── brief_2026-05-07.5_wider-lens.md ← A/B comparison: gov + news outlets
@@ -147,6 +162,17 @@ briefernewsapp/
 ---
 
 ## Recent non-obvious decisions
+
+### 2026-05-12 (multi-edition launch + China brief autonomous)
+
+1. **Site restructured to multi-edition.** Root `/` is now a selector page (two cards, JS fetches today's headline from each edition); US brief moved from `/` to `/usa/`; China brief at `/china/`. Existing `/archive/` preserved as a backstop; new daily archives go to `/usa/archive/` and `/china/archive/`. Designed to scale to N editions (UK / EU / Russia listed as "coming soon" on selector).
+2. **CloudFront Function added** `briefer-news-index-rewrite` (viewer-request, runtime `cloudfront-js-2.0`) to rewrite `/<dir>/` → `/<dir>/index.html`. Without it, `/usa/` and `/china/` would return CloudFront 403 (S3 has no directory-index support). One-time setup; persistent.
+3. **China brief shipped autonomous.** `scripts/synthesize_china.sh` built and a new LaunchAgent `news.briefer.synthesize.china` runs at 07:30 PDT. Two non-obvious editorial decisions baked into the script:
+   - **MFA quota in SQL pre-filter.** Pure priority-ordered ranking crowded out MFA (priority 5) entirely. Fix: split into two CTEs — 175 internal-evolution slots + 25 reserved MFA slots (sub-quota 15 Daily Press Conf + 10 Foreign Minister Activities so the more-recently-scraped feed doesn't shut out the other).
+   - **Hard ≥6 MFA requirement in picker prompt.** Even with MFA in the candidate pool, the picker was reading "MFA should not dominate" as "skip MFA." Replaced with "MUST include ≥6 MFA picks across spokespersons — required for voices."
+4. **`scripts/daily.sh` parallelized.** Three scrapes (`--scrape-only`, `--akamai-only`, `--china-only`) now run concurrently with `&` + `wait`, log lines prefixed `[rss]`/`[akamai]`/`[china]`, individual exit codes reported. Saves ~30 min wall time. Concurrent docker containers + DB connections handled fine by M4 + Postgres.
+5. **Bilingual voices format (China side only).** Each voice in `<blockquote class="pull">` contains verbatim Chinese followed by `<em>`-wrapped English translation. Diplomatic-glossary calibration table inline in the synth prompt (关切→"concerned"; 严重关切→"grave concern"; 坚决反对→"firmly opposes"; etc.) — synthesizer must use the calibrated form, not flat literal translation.
+6. **Per-edition color identity.** US keeps original sepia/orange (`--sepia: #C45842`). China is red on warm dark (`--sepia: #C8252A`, `--paper: #15100F`). Selector page is neutral warm-dark (`--sepia: #B5A88E`) so no edition has color primacy. PRC-flag SVG (5 yellow circles on red rectangle) replaces US-flag SVG on China masthead.
 
 ### 2026-05-10 (briefer.news LIVE; China brief sources scaffolded)
 
@@ -243,6 +269,10 @@ launchctl print gui/$(id -u)/news.briefer.daily
 # Manually trigger a LaunchAgent (skips schedule wait):
 launchctl start news.briefer.daily
 launchctl start news.briefer.synthesize
+launchctl start news.briefer.synthesize.china
+
+# Manual China brief synthesis:
+scripts/synthesize_china.sh
 ```
 
 ### Docker stack
@@ -270,5 +300,5 @@ The synth and world-context scripts use Claude Code in headless mode. Required f
 - `--max-turns 40` (synth) or `25` (world_context) — enough budget for chunked file reads
 - Files outside `${REPO}/.run/` may not be readable by headless Claude (sandbox limit) — keep all intermediates in `.run/`.
 
-### Git status as of 2026-05-10
-Latest commit on `main`: `dd7b395 Update README to match the autonomous M4-mini pipeline`. About to add another commit batch for these doc refreshes + the China scaffolding (`china_sources.yaml`, `china_scrape.py`, `--china-only` in `main.py`, `CHINA_BRIEF.md`, new `MIGRATION.md` postmortem).
+### Git status as of 2026-05-12
+Multi-edition restructure shipped in commit `bc68be1 China brief edition + multi-edition restructure (/, /usa/, /china/)`. Includes `synthesize_china.sh`, parallelized `daily.sh`, US synth moved to `/usa/` deploy, three new prototypes (`prototype_us_2026-05-12.html`, `prototype_china_2026-05-12.html`, `prototype_selector_2026-05-12.html`), and 4 new China sources in `china_sources.yaml`. LaunchAgent `news.briefer.synthesize.china.plist` lives in `~/Library/LaunchAgents/` (not in repo). CloudFront Function `briefer-news-index-rewrite` lives in AWS (not in repo).
