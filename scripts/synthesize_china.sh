@@ -70,6 +70,9 @@ ALLOWLIST_SQL="
     -- D2: Chinese commercial / professional press (added 2026-05-12)
     ('Caixin (财新)', 4),
     ('Yicai (第一财经)', 5),
+    -- D3: Energy regulators / sector (added 2026-05-12)
+    ('NEA (国家能源局)', 2),
+    ('China Electricity Council (中国电力企业联合会)', 4),
     -- E: MFA — voices source, lower selection priority but high voice value
     ('MFA Daily Press Conference', 5),
     ('MFA News (Foreign Minister Activities)', 5),
@@ -198,6 +201,7 @@ Editorial framing (per CHINA_BRIEF.md):
 - **Xi mentions: at least 3 picks where 习近平 appears in title or you can infer Xi as author/speaker.** Xi-speech material is voice-section gold and frames everything else.
 - De-prioritize routine procedural items (operational notices, sub-provincial bureaucratic items, repeat publications).
 - Aim for diversity in the picks: at least one Xi-speech / Party-theory piece (≥3 with Xi), multiple economic/industrial regulators, at least one CCDI political-signal item, ≥6 MFA daily press conferences (REQUIRED for voices), some provincial/Xinhua aggregation, recent economic-data drops (CPI/PPI/GDP/PMI) if present.
+- **Energy preference: include 1-2 energy-policy or energy-data items when material exists** (NEA capacity announcements, NDRC energy planning, State Council energy-related notices, EV/battery/solar industrial policy, carbon-market regulation). Editorial framing is **internal transition + capacity buildout** — what China is building (renewable + nuclear + EV + grid + battery industrial base), not import-source diplomacy.
 
 Today is ${TODAY}.
 

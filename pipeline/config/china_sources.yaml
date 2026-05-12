@@ -293,6 +293,33 @@ sources:
     extractor: trafilatura
     active: true
 
+  # ── I. Energy regulators / sector ──────────────────────────────────────────
+  # Added 2026-05-12. Editorial framing: internal transition + capacity buildout
+  # (per CHINA_BRIEF.md energy doctrine docs). NEA is the central energy regulator;
+  # CEC publishes monthly fuel-mix and capacity data.
+
+  - name: "NEA (国家能源局)"
+    domain: nea.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.nea.gov.cn/xwzx/"
+    link_pattern: "\\d{8}/[a-f0-9]+/c\\.html"
+    category: energy_reg
+    weight: high                  # central energy regulator; capacity, fuel-mix, renewable buildout
+    extractor: trafilatura
+    active: true
+
+  - name: "China Electricity Council (中国电力企业联合会)"
+    domain: cec.org.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.cec.org.cn/menu/index.html?584"
+    link_pattern: "/detail/index\\.html\\?\\d+_\\d+"
+    category: energy_reg
+    weight: medium                # monthly capacity / generation / fuel-mix stats
+    extractor: trafilatura
+    retries: 3
+    active: true
+    notes: "Flaky from cloud-IP probes; should work from mini residential IP via curl_cffi. Link pattern is a best-effort guess — verify after first scrape."
+
   - name: "SAFE (Foreign Exchange)"
     domain: safe.gov.cn
     discovery_type: html_curl_cffi
