@@ -266,7 +266,7 @@ sources:
     category: financial_reg
     weight: high                  # IPO approvals, enforcement
     extractor: trafilatura
-    active: true
+    active: false                 # pruned 2026-05-12 — 0 articles; mirrors gov.cn; covered by PBOC + SAFE
 
   - name: "SAFE (Foreign Exchange)"
     domain: safe.gov.cn
@@ -308,7 +308,7 @@ sources:
     weight: medium
     extractor: trafilatura
     retries: 3
-    active: true
+    active: false                 # pruned 2026-05-12 — 0 articles; flaky timeouts; Shanghai/Guangdong cover provincial signal
     notes: "Flaky from initial probe — needs retry."
 
   - name: "Guangdong Government"
@@ -331,7 +331,7 @@ sources:
     weight: medium
     extractor: trafilatura
     retries: 3
-    active: true
+    active: false                 # pruned 2026-05-12 — 0 articles; flaky timeouts; Shanghai/Guangdong cover provincial signal
     notes: "Flaky from initial probe — needs retry."
 
   # ── I. Held / needs further work (commented active:false to skip on scrape) ─

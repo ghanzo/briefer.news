@@ -80,6 +80,7 @@ sources:
     url: "https://www.state.gov/rss-feed/collected-department-releases/feed/"
     category: geopolitics
     tier: 1
+    active: false                 # pruned 2026-05-12 — 0 articles; stale feed; regional desks cover the substance
 
   # Treaties (TIAS) — full text of Treaties and International Agreements Series.
   # Low volume (~1-3/month) but every entry is a major geopolitical action.
