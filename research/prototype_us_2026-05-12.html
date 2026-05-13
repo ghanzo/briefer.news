@@ -348,6 +348,76 @@
       letter-spacing: 0.06em;
     }
 
+    /* Energy metrics dashboard */
+    section.metrics {
+      margin: 26px 0 0;
+      padding: 22px 0 0;
+      border-top: 1px solid var(--ink-soft);
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 32px;
+    }
+    @media (max-width: 720px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .metric-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+    }
+    .metric-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .metric-value {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .metric-unit {
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+    .metric-delta {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--sepia);
+    }
+    .metric-delta.flat { color: var(--ink-light); }
+    .metric-source {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-top: 3px;
+    }
+    .metrics-footnote {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin: 16px 0 0;
+      padding-top: 12px;
+      border-top: 1px dashed var(--ink-soft);
+      opacity: 0.8;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -879,6 +949,59 @@
     <li><b>Pax Silica.</b> Norway became the 15th signatory of the U.S.-led Pax Silica Initiative for diversified critical-mineral supply chains.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — Norway Joins Pax Silica, May 6, 2026" target="_blank" rel="noopener">8</a></sup><span class="when">May 6 &middot; State</span></li>
     <li><b>MFN drug pricing.</b> 17 of the largest pharmaceutical manufacturers signed voluntary Most-Favored-Nation pricing agreements; the framework projects $529B in domestic savings over 10 years.<sup><a class="cite" href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/" title="White House — Savings from MFN Drug Pricing Policy, May 2026" target="_blank" rel="noopener">9</a></sup><span class="when">May &middot; WH</span></li>
   </ul>
+
+
+  <h3 class="section-label">By the Numbers</h3>
+  <section class="metrics">
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Strategic Petroleum Reserve</div>
+        <div class="metric-row">
+          <span class="metric-value">395.2</span>
+          <span class="metric-unit">Mb</span>
+          <span class="metric-delta">&uarr; +0.8 wk</span>
+        </div>
+        <div class="metric-source">EIA &middot; week ending May 8</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">WTI crude spot</div>
+        <div class="metric-row">
+          <span class="metric-value">$74.85</span>
+          <span class="metric-unit">/bbl</span>
+          <span class="metric-delta">&uarr; +$1.20 1d</span>
+        </div>
+        <div class="metric-source">EIA &middot; May 12</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Crude production</div>
+        <div class="metric-row">
+          <span class="metric-value">13.4</span>
+          <span class="metric-unit">Mb/d</span>
+          <span class="metric-delta flat">&rarr; flat</span>
+        </div>
+        <div class="metric-source">EIA &middot; week ending May 8</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Crude imports</div>
+        <div class="metric-row">
+          <span class="metric-value">6.1</span>
+          <span class="metric-unit">Mb/d</span>
+          <span class="metric-delta">&darr; -0.3 wk</span>
+        </div>
+        <div class="metric-source">EIA &middot; week ending May 8</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Products supplied (demand)</div>
+        <div class="metric-row">
+          <span class="metric-value">20.4</span>
+          <span class="metric-unit">Mb/d</span>
+          <span class="metric-delta flat">&rarr; flat</span>
+        </div>
+        <div class="metric-source">EIA &middot; week ending May 8</div>
+      </div>
+    </div>
+    <p class="metrics-footnote">Preview values pending automated EIA scrape. Live update at next data release (Wed weekly).</p>
+  </section>
 
   <section class="sources">
     <h2>Sources</h2>

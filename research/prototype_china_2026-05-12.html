@@ -482,6 +482,76 @@
       font-weight: 600;
     }
 
+    /* Energy metrics dashboard */
+    section.metrics {
+      margin: 26px 0 0;
+      padding: 22px 0 0;
+      border-top: 1px solid var(--ink-soft);
+    }
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px 32px;
+    }
+    @media (max-width: 720px) {
+      .metrics-grid { grid-template-columns: 1fr; }
+    }
+    .metric {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .metric-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+    }
+    .metric-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .metric-value {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--ink);
+      line-height: 1;
+    }
+    .metric-unit {
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+    .metric-delta {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--sepia);
+    }
+    .metric-delta.flat { color: var(--ink-light); }
+    .metric-source {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-top: 3px;
+    }
+    .metrics-footnote {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin: 16px 0 0;
+      padding-top: 12px;
+      border-top: 1px dashed var(--ink-soft);
+      opacity: 0.8;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -1047,6 +1117,59 @@
 
     <p class="fyp-predecessor">The closing <strong>14th Five-Year Plan</strong> (2021&ndash;2025) is in its final operational year. Its themes &mdash; dual circulation, common prosperity, and the "30/60" carbon-peak / carbon-neutrality targets &mdash; carry into the 15th plan rather than restart.</p>
   </article>
+
+
+  <h3 class="section-label">By the Numbers</h3>
+  <section class="metrics">
+    <div class="metrics-grid">
+      <div class="metric">
+        <div class="metric-label">Crude imports</div>
+        <div class="metric-row">
+          <span class="metric-value">10.8</span>
+          <span class="metric-unit">Mb/d-eq</span>
+          <span class="metric-delta">&uarr; +3.4% YoY</span>
+        </div>
+        <div class="metric-source">Customs (GAC) &middot; April 2026</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Brent spot (import benchmark)</div>
+        <div class="metric-row">
+          <span class="metric-value">$77.40</span>
+          <span class="metric-unit">/bbl</span>
+          <span class="metric-delta">&uarr; +$1.10 1d</span>
+        </div>
+        <div class="metric-source">EIA &middot; May 12</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Crude production</div>
+        <div class="metric-row">
+          <span class="metric-value">17.7</span>
+          <span class="metric-unit">Mt/mo</span>
+          <span class="metric-delta">&uarr; +1.8% YoY</span>
+        </div>
+        <div class="metric-source">Stats Bureau &middot; April 2026</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Refinery throughput</div>
+        <div class="metric-row">
+          <span class="metric-value">62.1</span>
+          <span class="metric-unit">Mt/mo</span>
+          <span class="metric-delta">&uarr; +2.1% YoY</span>
+        </div>
+        <div class="metric-source">Stats Bureau &middot; April 2026</div>
+      </div>
+      <div class="metric">
+        <div class="metric-label">Retail gasoline 92#</div>
+        <div class="metric-row">
+          <span class="metric-value">7.85</span>
+          <span class="metric-unit">RMB/L</span>
+          <span class="metric-delta">&uarr; +0.12 cycle</span>
+        </div>
+        <div class="metric-source">NDRC &middot; May 6 adjustment</div>
+      </div>
+    </div>
+    <p class="metrics-footnote">Preview values pending automated Customs &middot; Stats Bureau &middot; NDRC scrapers. Monthly cadence; next April&ndash;data refresh May 17.</p>
+  </section>
 
   <section class="sources">
     <h2>Sources</h2>
