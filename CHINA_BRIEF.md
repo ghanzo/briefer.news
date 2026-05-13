@@ -39,25 +39,24 @@ MFA daily press conferences stay valuable — they're the **best voice source** 
 
 ---
 
-## Voice format — bilingual
+## Voice format — English-only
 
-Per design discussion 2026-05-10, implemented in v3 on 2026-05-12: **bilingual voices with Chinese verbatim + English translation, both shown.**
+Per design decision 2026-05-13 (revising the prior 2026-05-10 bilingual design): **voices are English translations only**. The verbatim Chinese was visually heavy and the English translations are already faithful (per the calibration table below), so the Chinese block was redundant on a page meant to be read.
 
 ```html
 <blockquote class="pull">
-  <p>"中方坚决反对、强烈谴责巴方有关行径。"<br>
-     <em>"China firmly opposes and strongly condemns Paraguay's actions."</em></p>
+  <p>"China firmly opposes and strongly condemns Paraguay's actions."</p>
   <cite>MFA Spokesperson Guo Jiakun · May 12<sup><a class="cite" href="…">9</a></sup></cite>
 </blockquote>
 ```
 
-Reasons:
-- Preserves sourcing fidelity (verbatim Chinese can be checked against the .gov.cn URL)
-- Readable for English audience
-- Anchors the brief's "no spin, no paraphrase" trust posture
+Trust posture is preserved by:
+- Faithful (not interpretive) translation, calibrated via the diplomatic-vocabulary table below
+- Direct .gov.cn citation in the `<cite>` — any reader can verify the source
+- Diplomatic-glossary calibration so escalation/de-escalation language translates with its proper gradation
 
 **Hard rules** (in synth prompt):
-- Never paraphrase inside Chinese quotes. Translation must be faithful, not interpretive.
+- Translation must be faithful, not interpretive. Translate the gradation (see calibration table), not the literal word.
 - Three voices, **different speaker AND different source category** for each — synth must drop to 2 voices rather than repeat a speaker.
 
 ### Diplomatic vocabulary calibration

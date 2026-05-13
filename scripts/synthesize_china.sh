@@ -296,20 +296,20 @@ DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> with 
 Example for a hypothetical AI-heavy day:
 <p class="dek">Beijing's AI agent rulebook, central-bank tech-loan growth of 13.7%, and 14 priority bills targeting comprehensive AI together operationalize Xi's "new quality productive forces" doctrine — even as Foreign Ministry rhetoric on Paraguay and a judicial farmland interpretation mark the contested edges of the same project.</p>
 
-VOICES: 3 voices (occasionally 4) as <blockquote class="pull">. **BILINGUAL FORMAT** — each voice contains the verbatim Chinese quote followed by a faithful English translation. NEVER paraphrase inside the Chinese; the translation must reflect the calibrated diplomatic vocabulary (see below). Each 12-30 words per language.
+VOICES: 3 voices (occasionally 4) as <blockquote class="pull">. **ENGLISH-ONLY FORMAT** — each voice is a faithful English translation of the original Chinese quote. The translation MUST reflect the calibrated diplomatic vocabulary (see below) — translate the gradation, not the literal word. Each 12-30 words.
 
 Three registers, drawn from different source types. **HARD RULE: each voice must be from a DIFFERENT speaker AND a DIFFERENT source category.** Never quote the same person twice. If only 2 distinct categories are available in your picks, output 2 voices, not 3 with a repeat.
-- One MFA spokesperson (林剑 Lin Jian / 毛宁 Mao Ning / 郭嘉昆 Guo Jiakun) — attribute by name + role. With 25 MFA articles in the candidate pool you should always have material here.
+- One MFA spokesperson (Lin Jian / Mao Ning / Guo Jiakun) — attribute by English name + role. With 25 MFA articles in the candidate pool you should always have material here.
 - One State Council / Xi speech / Party theory voice — anchor to the policy / speech
 - One regulator / Party body / judicial voice — anchor to the regulation
 
 Voice HTML template (use this structure):
 <blockquote class="pull">
-  <p>&ldquo;[Chinese verbatim quote]&rdquo;<br><em>&ldquo;[Faithful English translation]&rdquo;</em></p>
+  <p>&ldquo;[Faithful English translation]&rdquo;</p>
   <cite>[Speaker name + role] &middot; [Date]<sup><a class="cite" href="[URL]" title="[Source]" target="_blank" rel="noopener">[N]</a></sup></cite>
 </blockquote>
 
-Diplomatic vocabulary calibration — these Chinese terms have graded meaning; translate accordingly:
+Diplomatic vocabulary calibration — translate the gradation, not the literal word:
 | Chinese | English |
 |---|---|
 | 关切 | concerned (mild) |
@@ -343,12 +343,11 @@ Pick rules:
 - Prefer currently-active over closing/superseded doctrines (e.g., prefer "新质生产力" over "Made in China 2025" if both fit).
 - Each card's blurb is **~30 words** linking the doctrine to today's specific items.
 
-Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .backdrop div):
+Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .backdrop div). **Do NOT include a Chinese name line** — English name + status only.
 <h3 class="section-label">Strategic Backdrop</h3>
 <div class="backdrop">
   <article>
     <h4 class="strategy-title">[English name from doc's name: field]</h4>
-    <p class="strategy-chinese">[Chinese name from doc's chinese: field]</p>
     <p class="strategy-status">[Status from doc's status: field] &middot; [Period from doc's period: field]</p>
     <p class="strategy-blurb">[~30 words connecting today's items to this doctrine. Specific. Name today's bullets.]</p>
   </article>
