@@ -418,6 +418,60 @@
       opacity: 0.8;
     }
 
+/* SPR feature — full-width tank gauge */
+    .metric-spr {
+      grid-column: 1 / -1;
+      margin-bottom: 4px;
+    }
+    .spr-gauge {
+      position: relative;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ink-soft);
+      border-radius: 2px;
+      margin: 10px 0 28px;
+    }
+    .spr-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--sepia);
+      opacity: 0.88;
+    }
+    .spr-tick {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 1px;
+      background: var(--ink-light);
+    }
+    .spr-tick-max {
+      background: var(--ink);
+      opacity: 0.7;
+    }
+    .spr-tick-label {
+      position: absolute;
+      top: 100%;
+      left: 3px;
+      margin-top: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      white-space: nowrap;
+    }
+    .spr-tick:last-child .spr-tick-label {
+      right: 3px;
+      left: auto;
+    }
+    .spr-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: -2px;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -954,14 +1008,19 @@
   <h3 class="section-label">By the Numbers</h3>
   <section class="metrics">
     <div class="metrics-grid">
-      <div class="metric">
+      <div class="metric metric-spr">
         <div class="metric-label">Strategic Petroleum Reserve</div>
-        <div class="metric-row">
+        <div class="spr-gauge">
+          <div class="spr-fill" style="width: 55.4%;"></div>
+          <div class="spr-tick" style="left: 89.4%;"><span class="spr-tick-label">2021 peak 638</span></div>
+          <div class="spr-tick spr-tick-max" style="left: 100%;"><span class="spr-tick-label">cap 714</span></div>
+        </div>
+        <div class="spr-readout">
           <span class="metric-value">395.2</span>
-          <span class="metric-unit">Mb</span>
+          <span class="metric-unit">Mb &middot; 55% of capacity</span>
           <span class="metric-delta">&uarr; +0.8 wk</span>
         </div>
-        <div class="metric-source">EIA &middot; week ending May 8</div>
+        <div class="metric-source">EIA &middot; week ending May 8 &middot; design capacity 714 Mb</div>
       </div>
       <div class="metric">
         <div class="metric-label">WTI crude spot</div>
