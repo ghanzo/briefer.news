@@ -103,6 +103,13 @@ NOISE_FILTER="
   AND a.title NOT ILIKE '%政府信息公开工作年度报告%'
 "
 
+# ── Stage 0: China world-context (inbound signals, ambient framing) ─────────
+# Reference material only — never cited or quoted in the brief. Synth uses it
+# to calibrate framing emphasis and to optionally surface "outside-the-gate"
+# acknowledgements. Non-fatal: if it fails, synth proceeds without it.
+echo "--- Stage 0: china world-context (Claude WebSearch) ---"
+"$REPO/scripts/china_world_context.sh"
+
 # ── Stage 1: SQL pre-filter ────────────────────────────────────────────────
 # Two-pool design: 175 internal-evolution slots (priority-ordered, excluding MFA)
 # + 25 reserved MFA slots (most recent across both MFA sources). Without the reserved
@@ -190,7 +197,8 @@ Read these references first:
 2. @${REPO}/BRIEF_STYLE.md — general style rules
 3. @${REPO}/lens.md — interpretive framework
 4. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, 新质生产力, common prosperity, dual circulation, civil-military fusion, BRI, etc.) with a "Today's coverage triggers" section. Use these to give EXTRA WEIGHT to candidate articles whose titles touch operative doctrines.
-5. @${META} — JSON candidates from Chinese-government sources
+5. **World-context (ambient signal):** @${REPO}/.run/china_world_context.md if it exists. This is REFERENCE MATERIAL ONLY — what non-Chinese sources are reporting about China today, inbound signals (sanctions / export controls / allied military), and politically-vital stories Chinese state press won't carry. Use it to bias toward candidates that engage with what the world is watching, AND to recognize when our corpus is silent on something globally significant.
+6. @${META} — JSON candidates from Chinese-government sources
 
 Pick approximately 50 article IDs you would want to read in full to write today's 9-bullet brief.
 
@@ -272,7 +280,8 @@ Required reading (in order):
 3. @${REPO}/lens.md — interpretive framework
 4. @${REPO}/research/prototype_china_2026-05-12.html — visual template; preserve all CSS, header, footer, script
 5. @${FULL} — full text of the articles the picker selected
-6. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, new quality productive forces, common prosperity, dual circulation, civil-military fusion, BRI, GDI/GSI, etc.) with a "Today's coverage triggers" section. You'll use these to populate the Strategic Backdrop section.
+6. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, new quality productive forces, common prosperity, dual circulation, civil-military fusion, BRI, GDI/GSI, energy 30/60, energy security, etc.) with a "Today's coverage triggers" section. You'll use these to populate the Strategic Backdrop section.
+7. **World-context (ambient signal, NOT publishable):** @${REPO}/.run/china_world_context.md if it exists. This is what non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. Use it ONLY to (a) calibrate which bullets to emphasize and how, (b) inform the Day's Narrative dek's macro framing, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce content from this file in the brief.** The brief still publishes only from Chinese-language primary sources.
 
 Today is ${TODAY}.
 
