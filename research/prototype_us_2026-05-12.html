@@ -681,7 +681,9 @@
       border-color: var(--ink);
     }
   
-    /* Nav strip — persistent across editions */
+
+  
+    /* Nav strip — persistent edition switcher */
     nav.editions {
       display: flex;
       justify-content: center;
@@ -707,6 +709,7 @@
     nav.editions a.active {
       color: var(--cream);
       border-bottom-color: var(--sepia);
+      font-weight: 700;
     }
     header.masthead { padding-bottom: 0 !important; }
 
@@ -728,7 +731,6 @@
   <h1>Briefer News</h1>
   <p class="tagline">A daily brief from U.S. government sources</p>
   <nav class="editions">
-    <a href="../">Home</a>
     <a href="./" class="active">United States</a>
     <a href="../china/">China</a>
   </nav>
@@ -883,5 +885,22 @@
     });
   })();
 </script>
+
+<script>
+  // Set briefer-edition cookie on tab click so user's explicit choice
+  // overrides geo-default at the root on return visits.
+  document.querySelectorAll('nav.editions a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      var href = a.getAttribute('href') || '';
+      var edition = '';
+      if (href.indexOf('usa') !== -1) edition = 'usa';
+      else if (href.indexOf('china') !== -1) edition = 'china';
+      if (edition) {
+        document.cookie = 'briefer-edition=' + edition + '; path=/; max-age=31536000; samesite=lax';
+      }
+    });
+  });
+</script>
+
 </body>
 </html>
