@@ -383,6 +383,92 @@
       margin: 0;
     }
 
+    /* Five-Year Plan — long-arc strategic anchor */
+    .fyp {
+      margin: 22px 0 0;
+      padding: 22px 24px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--ink-soft);
+      border-radius: 3px;
+    }
+    .fyp-header {
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--ink-soft);
+    }
+    .fyp-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .fyp-title {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-weight: 600;
+      font-size: 22px;
+      line-height: 1.2;
+      margin: 0;
+      color: var(--ink);
+    }
+    .fyp-status {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      white-space: nowrap;
+    }
+    .fyp-chinese {
+      font-size: 15px;
+      color: var(--ink-light);
+      font-style: italic;
+      margin: 4px 0 0;
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+    }
+    .fyp-body {
+      font-size: 16px;
+      line-height: 1.5;
+      margin: 0 0 14px;
+      color: var(--ink);
+    }
+    .fyp-themes {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 14px;
+    }
+    .fyp-themes li {
+      position: relative;
+      padding: 4px 0 4px 18px;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .fyp-themes li::before {
+      content: "·";
+      position: absolute;
+      left: 4px;
+      top: -4px;
+      font-size: 24px;
+      line-height: 1;
+      color: var(--sepia);
+    }
+    .fyp-themes li strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+    .fyp-predecessor {
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+      padding-top: 12px;
+      border-top: 1px solid var(--ink-soft);
+      color: var(--ink-light);
+    }
+    .fyp-predecessor strong {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -840,6 +926,29 @@
       <p class="strategy-blurb">Platform-algorithm regulation is the operational arm of common prosperity; today's CAC negative list driving Meituan and Didi changes is its current expression.</p>
     </article>
   </div>
+
+  <h3 class="section-label">Five-Year Plan</h3>
+  <article class="fyp">
+    <header class="fyp-header">
+      <div class="fyp-title-row">
+        <h4 class="fyp-title">Fifteenth Five-Year Plan</h4>
+        <span class="fyp-status">Drafting &middot; 2026&ndash;2030</span>
+      </div>
+      <p class="fyp-chinese">第十五个五年规划</p>
+    </header>
+
+    <p class="fyp-body">China's Five-Year Plans are the central economic and social planning instrument of the Party-state. The <strong>15th Five-Year Plan</strong> is being drafted now; it will be ratified at the 20th Central Committee's 5th Plenum in autumn 2026 and adopted by the National People's Congress in March 2027. Xi Jinping's January 20, 2026 speech to provincial and ministerial leaders &mdash; republished in <em>Qiushi</em> on April 30 &mdash; laid out the political-economic framing.</p>
+
+    <ul class="fyp-themes">
+      <li><strong>Manufacturing modernization</strong> as the leading strategic task &mdash; not services, not consumption.</li>
+      <li><strong>High-level tech self-reliance</strong> (高水平科技自立自强) in chips, basic research, AI infrastructure.</li>
+      <li><strong>New quality productive forces</strong> (新质生产力) as the integrating economic doctrine, replacing real-estate-driven growth.</li>
+      <li><strong>Demographic response</strong> &mdash; aging, contraction, regional divergence as defining constraints.</li>
+      <li><strong>Higher-quality common prosperity</strong> &mdash; gradual, market-compatible, "not egalitarianism, not welfarism."</li>
+    </ul>
+
+    <p class="fyp-predecessor">The closing <strong>14th Five-Year Plan</strong> (2021&ndash;2025) is in its final operational year. Its themes &mdash; dual circulation, common prosperity, and the "30/60" carbon-peak / carbon-neutrality targets &mdash; carry into the 15th plan rather than restart.</p>
+  </article>
 
   <section class="sources">
     <h2>Sources</h2>

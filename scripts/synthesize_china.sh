@@ -348,7 +348,7 @@ Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .back
 
 SOURCES section: numbered <ol>, each <li> with publisher in <span class="pub">, article title, date, full URL.
 
-Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, AND the .backdrop CSS rules. Only replace:
+Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, the .backdrop CSS rules, AND the .fyp CSS rules. Only replace:
 - <title>...</title> to "Briefer News — China — May 12, 2026" format (use today's human date)
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
 - <h2 class="headline">...</h2> per rules above
@@ -357,6 +357,8 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <ul class="items">...</ul> with exactly 9 <li> elements
 - The Strategic Backdrop block (everything from <h3 class="section-label">Strategic Backdrop</h3> through </div>) with 2-3 fresh strategy cards per today's items
 - <section class="sources">...</section> with numbered <ol>
+
+**Preserve unchanged:** the Five-Year Plan section (<h3 class="section-label">Five-Year Plan</h3> and the <article class="fyp">…</article> block immediately following it). This is a static long-arc anchor; do not edit its title, status, body, themes, or predecessor note. It sits between Strategic Backdrop and Sources.
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write to the file.
 EOF
