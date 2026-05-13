@@ -665,6 +665,79 @@
       margin-top: 8px;
     }
 
+/* Crude-stocks feature gauge (US SPR, China estimated stocks) */
+    .metric-spr {
+      grid-column: 1 / -1;
+      margin-bottom: 4px;
+    }
+    .spr-gauge {
+      position: relative;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ink-soft);
+      border-radius: 2px;
+      margin: 10px 0 28px;
+    }
+    .spr-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--sepia);
+      opacity: 0.88;
+    }
+    .spr-fill.estimated {
+      background-image: repeating-linear-gradient(
+        135deg,
+        var(--sepia),
+        var(--sepia) 6px,
+        rgba(0,0,0,0.12) 6px,
+        rgba(0,0,0,0.12) 8px
+      );
+    }
+    .spr-tick {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 1px;
+      background: var(--ink-light);
+    }
+    .spr-tick-max {
+      background: var(--ink);
+      opacity: 0.7;
+    }
+    .spr-tick-label {
+      position: absolute;
+      top: 100%;
+      left: 3px;
+      margin-top: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      white-space: nowrap;
+    }
+    .spr-tick:last-child .spr-tick-label {
+      right: 3px;
+      left: auto;
+    }
+    .spr-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: -2px;
+    }
+    .metric-spr .metric-label .estimate-tag {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--sepia);
+      margin-left: 6px;
+      padding: 1px 5px;
+      border: 1px solid var(--sepia);
+      border-radius: 2px;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -1282,6 +1355,20 @@
           <span>19 5y high</span>
         </div>
         <div class="metric-source">Stats Bureau &middot; April 2026</div>
+      </div>
+      <div class="metric metric-spr">
+        <div class="metric-label">Strategic + commercial crude stocks <span class="estimate-tag">EST</span></div>
+        <div class="spr-gauge">
+          <div class="spr-fill estimated" style="width: 70%;"></div>
+          <div class="spr-tick" style="left: 60%;"><span class="spr-tick-label">2022 cycle low ~900</span></div>
+          <div class="spr-tick spr-tick-max" style="left: 100%;"><span class="spr-tick-label">est. cap ~1,500</span></div>
+        </div>
+        <div class="spr-readout">
+          <span class="metric-value">~1,050</span>
+          <span class="metric-unit">Mb &middot; ~70% of estimated capacity</span>
+          <span class="metric-delta">&uarr; building</span>
+        </div>
+        <div class="metric-source">S&amp;P &middot; Kpler &middot; IEA consensus &middot; China does not publish official figures</div>
       </div>
       <div class="metric metric-refinery">
         <div class="metric-label">Refinery throughput &middot; capacity utilization</div>
