@@ -552,6 +552,79 @@
       opacity: 0.8;
     }
 
+/* Mini range gauge — shows current within typical range */
+    .mini-gauge {
+      position: relative;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ink-soft);
+      border-radius: 1px;
+      margin: 10px 0 4px;
+    }
+    .mini-gauge-pos {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 2px;
+      background: var(--sepia);
+    }
+    .mini-gauge-range {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      color: var(--ink-light);
+      margin: 0 0 4px;
+    }
+
+    /* Refinery throughput feature — China capacity fill gauge */
+    .metric-refinery {
+      grid-column: 1 / -1;
+      margin-bottom: 4px;
+    }
+    .refinery-gauge {
+      position: relative;
+      height: 26px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ink-soft);
+      border-radius: 2px;
+      margin: 10px 0 28px;
+    }
+    .refinery-fill {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--sepia);
+      opacity: 0.88;
+    }
+    .refinery-tick {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 1px;
+      background: var(--ink);
+      opacity: 0.7;
+    }
+    .refinery-tick-label {
+      position: absolute;
+      top: 100%;
+      right: 3px;
+      margin-top: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      white-space: nowrap;
+    }
+    .refinery-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: -2px;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -1129,6 +1202,13 @@
           <span class="metric-unit">Mb/d-eq</span>
           <span class="metric-delta">&uarr; +3.4% YoY</span>
         </div>
+        <div class="mini-gauge">
+          <div class="mini-gauge-pos" style="left: 60%;"></div>
+        </div>
+        <div class="mini-gauge-range">
+          <span>9.0 5y low</span>
+          <span>12.0 5y high</span>
+        </div>
         <div class="metric-source">Customs (GAC) &middot; April 2026</div>
       </div>
       <div class="metric">
@@ -1137,6 +1217,13 @@
           <span class="metric-value">$77.40</span>
           <span class="metric-unit">/bbl</span>
           <span class="metric-delta">&uarr; +$1.10 1d</span>
+        </div>
+        <div class="mini-gauge">
+          <div class="mini-gauge-pos" style="left: 47%;"></div>
+        </div>
+        <div class="mini-gauge-range">
+          <span>$40 5y low</span>
+          <span>$120 5y high</span>
         </div>
         <div class="metric-source">EIA &middot; May 12</div>
       </div>
@@ -1147,16 +1234,27 @@
           <span class="metric-unit">Mt/mo</span>
           <span class="metric-delta">&uarr; +1.8% YoY</span>
         </div>
-        <div class="metric-source">Stats Bureau &middot; April 2026</div>
-      </div>
-      <div class="metric">
-        <div class="metric-label">Refinery throughput</div>
-        <div class="metric-row">
-          <span class="metric-value">62.1</span>
-          <span class="metric-unit">Mt/mo</span>
-          <span class="metric-delta">&uarr; +2.1% YoY</span>
+        <div class="mini-gauge">
+          <div class="mini-gauge-pos" style="left: 68%;"></div>
+        </div>
+        <div class="mini-gauge-range">
+          <span>15 5y low</span>
+          <span>19 5y high</span>
         </div>
         <div class="metric-source">Stats Bureau &middot; April 2026</div>
+      </div>
+      <div class="metric metric-refinery">
+        <div class="metric-label">Refinery throughput &middot; capacity utilization</div>
+        <div class="refinery-gauge">
+          <div class="refinery-fill" style="width: 88.7%;"></div>
+          <div class="refinery-tick" style="left: 100%;"><span class="refinery-tick-label">cap 70 Mt/mo</span></div>
+        </div>
+        <div class="refinery-readout">
+          <span class="metric-value">62.1</span>
+          <span class="metric-unit">Mt/mo &middot; 89% of capacity</span>
+          <span class="metric-delta">&uarr; +2.1% YoY</span>
+        </div>
+        <div class="metric-source">Stats Bureau &middot; April 2026 &middot; nameplate capacity ~70 Mt/mo</div>
       </div>
       <div class="metric">
         <div class="metric-label">Retail gasoline 92#</div>
@@ -1164,6 +1262,13 @@
           <span class="metric-value">7.85</span>
           <span class="metric-unit">RMB/L</span>
           <span class="metric-delta">&uarr; +0.12 cycle</span>
+        </div>
+        <div class="mini-gauge">
+          <div class="mini-gauge-pos" style="left: 53%;"></div>
+        </div>
+        <div class="mini-gauge-range">
+          <span>6.0 5y low</span>
+          <span>9.5 5y high</span>
         </div>
         <div class="metric-source">NDRC &middot; May 6 adjustment</div>
       </div>
