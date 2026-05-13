@@ -288,12 +288,14 @@ Your job:
 - From the candidates, select the 9 most consequential items per BRIEF_STYLE.md priority order.
 - Apply BRIEF_STYLE.md rules: at most 2 DOJ items, at most 3 purely-domestic items, mix of registers in the voices.
 - HEADLINE — read BRIEF_STYLE.md "Accessibility rule" carefully. Punchy, plain, fact-based. ONE OR TWO CLEAR ACTIONS MAX. Readable by a smart friend who reads the New York Times but does NOT follow the Federal Register. Replace acronyms and institutional shortcuts with plain descriptors: GAESA → "Cuba's military business arm"; DFARS/FOCI → "foreign-ownership rule"; FY27 → "2027 budget"; "designated" → "sanctioned" or "blacklisted"; bare place names need a one-word anchor ("Hormuz" → "Strait of Hormuz"). Avoid compound jargon ("oil-graft network", "launch sites"). If a term in the headline would need explaining at a dinner party, rewrite it.
+- DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> connecting today's bullets into the day's macro story. **30-45 words. Two short sentences max. Prose flow, not enumeration.** Use connecting clauses ("Today threads through…", "Beneath the policy moves…", "Iran sits behind…") to set the scene rather than em-dash-then-list constructions. Avoid the "X, Y, and Z [verb] W" enumeration — pick a stance and let the items support it.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
 - Voices: 3 (occasionally 4), each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political).
 - Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <head>, <header>, <footer>, and <script> blocks unchanged. Only replace:
   - <title>...</title> to "Briefer News — <human date>"
-  - <div class="stamp">...</div> to today's date in CAPS
+  - <div class="stamp">...</div> to today's date in CAPS (e.g. "MAY 13, 2026", not "May 13, 2026")
   - <h2 class="headline">...</h2> — 12 to 16 words, plain English, accessible to a non-specialist (see Accessibility rule above)
+  - Insert <p class="dek">…</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per rules above
   - <div class="voices">...</div> — 3 voices as <blockquote class="pull">
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
   - <section class="sources">...</section> — numbered <ol> with publisher, title, date, link, shortened display URL

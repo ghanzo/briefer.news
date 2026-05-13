@@ -291,10 +291,19 @@ HEADLINE: **HARD MAX 12 WORDS**. ONE clear action only — NO semicolons, NO "X;
 
 Count your headline words. If over 12, cut.
 
-DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> with a SINGLE SENTENCE (35-50 words) that connects 3-4 of today's bullets into the day's macro story. This is where the brief earns its keep — it's the connecting arc Western press would lead with. Name the strategic-doctrine connection if applicable (e.g., "the AI rulebook + tech-loan growth + lawmaking plan together signal new-quality-productive-forces operationalization"). NO bullet-listing. NO numbered lists. ONE sentence that reads like wire-service editorializing.
+DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> connecting today's bullets into the day's macro story. **30-45 words. Two short sentences max. Prose flow, not enumeration.**
 
-Example for a hypothetical AI-heavy day:
-<p class="dek">Beijing's AI agent rulebook, central-bank tech-loan growth of 13.7%, and 14 priority bills targeting comprehensive AI together operationalize Xi's "new quality productive forces" doctrine — even as Foreign Ministry rhetoric on Paraguay and a judicial farmland interpretation mark the contested edges of the same project.</p>
+**ANTI-PATTERN — do not write the dek like this:**
+"X, Y, and Z operationalize [doctrine] — even as A and B mark the edges." (Reads as a list-stuck-into-a-sentence. Mechanical. The reader feels the structure of the items being recited.)
+
+**RIGHT pattern — prose that reads naturally:**
+"Beijing meets Trump's state visit from a posture of internal consolidation. The AI rulebook, lawmaking slate, and looser money all advance Xi's 'new quality productive forces' doctrine; at the edges, inflation and Foreign Ministry rhetoric sharpen."
+
+Style notes:
+- Use connecting clauses ("Beijing meets…", "Today threads through…", "Beneath the geopolitics…", "Behind the formal posture…") to set the scene, NOT em-dash-then-list constructions.
+- Avoid the "X, Y, and Z [verb] W" enumeration. Pick a stance and let the items support it.
+- Name the doctrine connection naturally inside the prose, not as a tagged outcome.
+- Two sentences is often smoother than one long one.
 
 VOICES: 3 voices (occasionally 4) as <blockquote class="pull">. **ENGLISH-ONLY FORMAT** — each voice is a faithful English translation of the original Chinese quote. The translation MUST reflect the calibrated diplomatic vocabulary (see below) — translate the gradation, not the literal word. Each 12-30 words.
 
