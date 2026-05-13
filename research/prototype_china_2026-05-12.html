@@ -625,6 +625,45 @@
       margin-top: -2px;
     }
 
+/* Electricity consumption — full-width range feature */
+    .metric-electricity {
+      grid-column: 1 / -1;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--ink-soft);
+    }
+    .electricity-gauge {
+      position: relative;
+      height: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--ink-soft);
+      border-radius: 1px;
+      margin: 12px 0 6px;
+    }
+    .electricity-pos {
+      position: absolute;
+      top: -4px;
+      bottom: -4px;
+      width: 2px;
+      background: var(--sepia);
+    }
+    .electricity-range {
+      display: flex;
+      justify-content: space-between;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      color: var(--ink-light);
+      margin: 0 0 4px;
+    }
+    .electricity-readout {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -1272,8 +1311,24 @@
         </div>
         <div class="metric-source">NDRC &middot; May 6 adjustment</div>
       </div>
+      <div class="metric metric-electricity">
+        <div class="metric-label">Electricity consumption</div>
+        <div class="electricity-gauge">
+          <div class="electricity-pos" style="left: 33%;"></div>
+        </div>
+        <div class="electricity-range">
+          <span>650 TWh shoulder low</span>
+          <span>950 TWh summer peak</span>
+        </div>
+        <div class="electricity-readout">
+          <span class="metric-value">750</span>
+          <span class="metric-unit">TWh/mo &middot; 33% of seasonal range</span>
+          <span class="metric-delta">&uarr; +5.2% YoY</span>
+        </div>
+        <div class="metric-source">National Bureau of Statistics &middot; April 2026</div>
+      </div>
     </div>
-    <p class="metrics-footnote">Preview values pending automated Customs &middot; Stats Bureau &middot; NDRC scrapers. Monthly cadence; next April&ndash;data refresh May 17.</p>
+    <p class="metrics-footnote">Preview values pending automated Customs &middot; Stats Bureau &middot; NDRC scrapers. Monthly cadence; next data refresh mid-month.</p>
   </section>
 
   <section class="sources">
