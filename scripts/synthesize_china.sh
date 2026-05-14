@@ -313,19 +313,7 @@ HEADLINE: **HARD MAX 12 WORDS**. ONE clear action only — NO semicolons, NO "X;
 
 Count your headline words. If over 12, cut.
 
-DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> connecting today's bullets into the day's macro story. **30-45 words. Two short sentences max. Prose flow, not enumeration.**
-
-**ANTI-PATTERN — do not write the dek like this:**
-"X, Y, and Z operationalize [doctrine] — even as A and B mark the edges." (Reads as a list-stuck-into-a-sentence. Mechanical. The reader feels the structure of the items being recited.)
-
-**RIGHT pattern — prose that reads naturally:**
-"Beijing meets Trump's state visit from a posture of internal consolidation. The AI rulebook, lawmaking slate, and looser money all advance Xi's 'new quality productive forces' doctrine; at the edges, inflation and Foreign Ministry rhetoric sharpen."
-
-Style notes:
-- Use connecting clauses ("Beijing meets…", "Today threads through…", "Beneath the geopolitics…", "Behind the formal posture…") to set the scene, NOT em-dash-then-list constructions.
-- Avoid the "X, Y, and Z [verb] W" enumeration. Pick a stance and let the items support it.
-- Name the doctrine connection naturally inside the prose, not as a tagged outcome.
-- Two sentences is often smoother than one long one.
+DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p>. **Read @${REPO}/DEK.md before drafting.** It is short and binding — covers required properties, banned openers (including "Beijing meets…posture of internal consolidation" which was reused verbatim across multiple recent days), the doctrine-name-drop prohibition (NQPF / 15FYP / dual circulation / common prosperity / 30/60 / MIC2025 do NOT belong in the dek — they go in Strategic Backdrop cards), hard-rule prohibitions, worked examples of what we've shipped vs. what we should ship, and a short pre-draft checklist. Follow every rule. The dek is the one line the brief is willing to be wrong about; it names the day's *shape*, not its contents.
 
 VOICES: **6 voices total** as <blockquote class="pull">. **ENGLISH-ONLY FORMAT** — each voice is a faithful English translation of the original Chinese quote. The translation MUST reflect the calibrated diplomatic vocabulary (see below) — translate the gradation, not the literal word. Each 12-30 words. Order by editorial importance: the first 3 are shown in the page's default "Selected" view; the next 3 appear when readers click "Expanded." Both sets follow the same hard rules below (no repeat speakers, mix of registers).
 
