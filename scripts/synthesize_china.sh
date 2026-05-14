@@ -120,13 +120,32 @@ echo "--- Stage 1: SQL pre-filter to candidate metadata ---"
 "$DOCKER" exec briefer_postgres psql -U briefer -d briefer -tA -c "
   ${ALLOWLIST_SQL},
   internal_pool AS (
+    -- CCDI tier-leadership promotion: routine anti-corruption notices flood CCDI daily
+    -- (deputy bureau chiefs under investigation). Tier-leadership falls (Politburo / CMC /
+    -- minister / provincial party secretary / senior PLA general) are editorially huge but
+    -- get drowned in volume. Promote those to priority 1 via title/body keyword match.
     SELECT
       a.id,
       s.name AS source,
       a.title,
       a.publish_date::date AS pub_date,
       a.url,
-      al.priority
+      CASE
+        WHEN s.name = 'CCDI News' AND (
+             a.title ILIKE '%政治局%'         -- Politburo
+          OR a.title ILIKE '%中央军委%'       -- CMC
+          OR a.title ILIKE '%中央委员%'       -- Central Committee member
+          OR a.title ILIKE '%上将%'           -- General (senior PLA)
+          OR a.title ILIKE '%中将%'           -- Lieutenant General (senior PLA)
+          OR a.title ILIKE '%省委书记%'       -- Provincial Party Secretary
+          OR a.title ILIKE '%副国级%'         -- vice-state level
+          OR a.title ILIKE '%副部级%'         -- vice-ministerial level
+          OR a.title ILIKE '%部长%'           -- full minister
+          OR a.title ILIKE '%双开%'           -- "double-expulsion" (Party + position)
+          OR a.full_text ILIKE '%开除党籍%'   -- expelled from the Party
+        ) THEN 1
+        ELSE al.priority
+      END AS priority
     FROM articles a
     JOIN sources s ON a.source_id = s.id
     JOIN allowlist al ON al.name = s.name
@@ -136,7 +155,7 @@ echo "--- Stage 1: SQL pre-filter to candidate metadata ---"
       AND a.scraped_at >= NOW() - INTERVAL '7 days'
       AND s.name NOT LIKE 'MFA%'
       ${NOISE_FILTER}
-    ORDER BY al.priority ASC, pub_date DESC NULLS LAST, LENGTH(a.full_text) DESC
+    ORDER BY priority ASC, pub_date DESC NULLS LAST, LENGTH(a.full_text) DESC
     LIMIT 175
   ),
   voices_pool AS (
@@ -208,6 +227,7 @@ Editorial framing (per CHINA_BRIEF.md):
 - **MFA spokespersons (林剑 Lin Jian, 毛宁 Mao Ning, 郭嘉昆 Guo Jiakun) are REQUIRED for the bilingual voices section.** You MUST include AT LEAST 6 MFA Daily Press Conference items in your 50 picks — ideally spread across all three spokespersons and the most recent 3-5 days. Without MFA picks the synthesizer cannot produce diverse voices. This is a hard requirement, not a preference. MFA items will not dominate the brief itself (only 1-2 will end up as bullets) but the synthesizer needs many MFA candidates to choose voice quotes from.
 - **Xi mentions: at least 3 picks where 习近平 appears in title or you can infer Xi as author/speaker.** Xi-speech material is voice-section gold and frames everything else.
 - De-prioritize routine procedural items (operational notices, sub-provincial bureaucratic items, repeat publications).
+- **CCDI tier-leadership rule (HARD).** Most CCDI items are routine — a deputy bureau chief at a provincial agency under investigation. Cap routine CCDI at 1 in your 50-pick set. But when a CCDI item touches the senior leadership tier — Politburo members, CMC members, full ministers, provincial Party secretaries, senior PLA generals (上将/中将), "双开" (double-expulsion / 开除党籍) cases, or vice-state/vice-ministerial figures — it is editorially HUGE and must always be picked. The SQL pre-filter has already promoted these to priority 1; treat them as candidates equal to State Council policy releases. Use your political knowledge of named officials to discriminate beyond just keyword matching: if a name appears in the picks and you recognize it as senior-tier even without the keyword match, treat it as tier-leadership.
 - Aim for diversity in the picks: at least one Xi-speech / Party-theory piece (≥3 with Xi), multiple economic/industrial regulators, at least one CCDI political-signal item, ≥6 MFA daily press conferences (REQUIRED for voices), some provincial/Xinhua aggregation, recent economic-data drops (CPI/PPI/GDP/PMI) if present.
 - **Energy preference: include 1-2 energy-policy or energy-data items when material exists** (NEA capacity announcements, NDRC energy planning, State Council energy-related notices, EV/battery/solar industrial policy, carbon-market regulation). Editorial framing is **internal transition + capacity buildout** — what China is building (renewable + nuclear + EV + grid + battery industrial base), not import-source diplomacy.
 
@@ -350,6 +370,9 @@ Bullet caps:
 - ≤2 routine MFA spokesperson denial items
 - ≤3 provincial items
 - ≤3 items focused on China-US relations (we don't want this to become a US-China brief — internal-evolution framing means most bullets are about what China is doing internally)
+- ≤1 routine CCDI item (deputy bureau chief / provincial agency-level investigations). EXCEPTION: tier-leadership CCDI items (Politburo / CMC / minister / provincial Party secretary / senior PLA general / "双开" cases / 开除党籍) do NOT count against this cap and should always be bullets when present. When you write such a bullet, lead with the named position and the formal phrase ("expelled from the Party" / "双开" double-expulsion) — distinguish clearly from routine notices.
+
+**Qiushi anchor rule (HARD).** When a bullet sources from Qiushi (求是, Party Theoretical Journal), the bullet text MUST anchor to the speech / piece — explicitly name "in a Qiushi speech [date]", "Xi's [date] speech republished in Qiushi", or "Qiushi commentary, [date]". Otherwise the bullet reads as breaking news when the underlying material is long-arc doctrinal framing.
 
 OUTSIDE THE GATE: After the 9 bullets (and after the summit transcript section, if present), render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/china_world_context.md.
 

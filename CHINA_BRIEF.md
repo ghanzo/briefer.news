@@ -194,13 +194,22 @@ The brief's spine remains Chinese government primary sources — 9 bullets, voic
 
 ---
 
-## Open editorial questions (still open)
+## Open editorial questions
 
-- **Naming**: "Briefer News — China" or distinct branding?
-- **Provincial coverage volume cap**: current cap of 3 working OK; revisit if provincial sources start producing more usable items.
-- **Anti-corruption (CCDI) cadence**: high-volume low-individual-importance most days, occasional senior-official fall is huge. Picker needs to discriminate "routine vs. tier-leadership" — currently no explicit signal.
-- **Qiushi treatment**: Xi speeches are long. Excerpting verbatim vs. summarizing? Currently excerpt for voices, summarize for bullets — working OK.
-- **The "to China" layer**: see direction item #4 above.
+Resolved 2026-05-14:
+
+- **Naming.** *Decided: keep unified — "Briefer News — China".* Parent brand is "daily intelligence brief on government sources" and scales across editions. Strategic Backdrop, Outside the Gate, and Five-Year Plan sections are explicitly cross-cutting frameworks; distinct branding would imply editorial independence we don't actually want. Distinct names also break the `briefer.news/china/` domain story.
+
+- **Provincial coverage volume cap.** *Stable at ≤3/day.* Not a binding cap in practice (most days have 0 provincial bullets). Revisit only if Shanghai/Guangdong start producing higher-volume usable items.
+
+- **Anti-corruption (CCDI) cadence.** *Decided 2026-05-14: hybrid discriminator landed.*
+  - SQL pre-filter in `scripts/synthesize_china.sh` now promotes CCDI items to priority 1 when title matches 政治局 (Politburo) / 中央军委 (CMC) / 中央委员 (Central Committee member) / 上将 / 中将 (senior PLA) / 省委书记 (provincial Party Secretary) / 副国级 / 副部级 (vice-state / vice-ministerial) / 部长 (full minister) / 双开 (double-expulsion), OR full-text matches 开除党籍 (expelled from the Party).
+  - Picker prompt adds the routine/tier-leadership distinction with explicit instruction to discriminate using political knowledge of named officials beyond keyword matching.
+  - Synth prompt caps routine CCDI at 1 bullet; tier-leadership items bypass the cap and lead with named position + formal phrase ("expelled from the Party" / 双开).
+
+- **Qiushi treatment.** *Decided 2026-05-14: anchor rule landed.* Synth prompt now requires bullets sourced from Qiushi to anchor explicitly to the speech / piece ("in a Qiushi speech [date]", "Xi's [date] speech republished in Qiushi", "Qiushi commentary [date]"). Prevents long-arc doctrinal framing from reading as breaking news.
+
+- **The "to China" layer.** *Decided 2026-05-14 — Outside the Gate section live.* See direction item #4 above.
 
 ---
 
