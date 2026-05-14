@@ -329,8 +329,14 @@ Your job:
 
   Use lowercase letters (a, b, c, d, e) for Outside the Gate cite markers — keep them visually distinct from the numbered (1-9) bullet cites that point to US-gov sources. The visual cue helps readers parse "this section is the non-US-gov exception."
 
-- Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <head>, <header>, <footer>, and <script> blocks unchanged. Only replace:
-  - <title>...</title> to "Briefer News — <human date>"
+- Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <header>, <footer>, and <script> blocks unchanged. Preserve the <p class="weekly-link">...</p> nav element immediately after the Outside the Gate block — do not remove it. Only replace:
+  - <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand. Format: `[KEY PHRASES] · [Month Day] · Briefer News`. Example: `Trump-Xi summit, Hormuz coalition · May 14 · Briefer News`. Goal: ≤65 total chars. Avoid acronyms; use plain-English noun phrases that match what a reader would Google ("Hormuz coalition" not "CENTCOM patrol", "Trump-Xi summit" not "bilateral meeting").
+  - <meta name="description" content="..."> — paste TODAY's full dek text (verbatim, including punctuation). The dek is already 30-55 words, ideal length for search snippets and social previews.
+  - <meta property="og:title" content="..."> — same string as the <title> tag.
+  - <meta property="og:description" content="..."> — same as the meta description (today's dek).
+  - <meta property="og:url" content="..."> — leave as "https://briefer.news/usa/" (canonical URL, not the dated archive URL).
+  - <meta name="twitter:title" content="..."> — same as <title>.
+  - <meta name="twitter:description" content="..."> — same as meta description (today's dek).
   - <div class="stamp">...</div> to today's date in CAPS (e.g. "MAY 13, 2026", not "May 13, 2026")
   - <h2 class="headline">...</h2> — 12 to 16 words, plain English, accessible to a non-specialist (see Accessibility rule above)
   - Insert <p class="dek">…</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per rules above

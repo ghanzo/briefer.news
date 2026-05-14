@@ -418,8 +418,14 @@ Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .back
 
 SOURCES section: numbered <ol>, each <li> with publisher in <span class="pub">, article title, date, full URL.
 
-Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <head>, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, the .backdrop CSS rules, AND the .fyp CSS rules. Only replace:
-- <title>...</title> to "Briefer News — China — May 12, 2026" format (use today's human date)
+Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, the .backdrop CSS rules, AND the .fyp CSS rules. Preserve the <p class="weekly-link">...</p> nav element immediately after the Outside the Gate block — do not remove it. Only replace:
+- <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand+edition. Format: `[KEY PHRASES] · [Month Day] · Briefer News China`. Example: `Xi welcomes Trump, Taiwan red line · May 14 · Briefer News China`. Goal: ≤70 total chars. Avoid acronyms in the title; use plain-English noun phrases that match what a reader would Google (no NDRC / CAC / MIIT — use "central planners," "internet regulator," "industry ministry"; no "新质生产力 NQPF" — use "AI-and-tech doctrine" or the specific policy in plain words).
+- <meta name="description" content="..."> — paste today's full dek text (verbatim, including punctuation). The dek is already 30-55 words, ideal length for search snippets and social previews.
+- <meta property="og:title" content="..."> — same string as the <title> tag.
+- <meta property="og:description" content="..."> — same as meta description (today's dek).
+- <meta property="og:url" content="..."> — leave as "https://briefer.news/china/" (canonical URL, not the dated archive URL).
+- <meta name="twitter:title" content="..."> — same as <title>.
+- <meta name="twitter:description" content="..."> — same as meta description (today's dek).
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
 - <h2 class="headline">...</h2> per rules above
 - Insert <p class="dek">...</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per the rules above
