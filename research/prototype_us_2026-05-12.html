@@ -694,6 +694,55 @@
       border-bottom: 1px dotted var(--sepia);
     }
 
+/* Voices view-switcher (Selected / Expanded) */
+    nav.voices-views {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 14px;
+    }
+    nav.voices-views button {
+      background: transparent;
+      border: 1px solid var(--ink-soft);
+      color: var(--ink-soft);
+      padding: 8px 14px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+    nav.voices-views button:hover {
+      color: var(--ink);
+      border-color: var(--ink-light);
+    }
+    nav.voices-views button.active {
+      color: var(--paper);
+      background: var(--sepia);
+      border-color: var(--sepia);
+    }
+    .voices.default-view blockquote.pull:nth-of-type(n+4) {
+      display: none;
+    }
+    .voices.default-view .voices-pending {
+      display: none;
+    }
+    .voices-pending {
+      margin: 14px 0 0;
+      padding: 14px 16px;
+      border: 1px dashed var(--ink-soft);
+      border-radius: 2px;
+      color: var(--ink-light);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .voices-pending strong {
+      color: var(--ink-soft);
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -1196,7 +1245,11 @@
   <p class="dek">Iran runs through nearly every item today. Treasury sanctions the oil network, forty nations meet on a Strait of Hormuz reopening plan, the Yemen emergency renews, and an AI-policy note even flags compute exposure if the strait closes. Domestic energy quietly accelerates: Strategic Reserve sale, Navy reactivation, record output.</p>
 
   <h3 class="section-label">Voices</h3>
-  <div class="voices">
+  <nav class="voices-views" role="tablist">
+    <button class="active" data-vview="default" role="tab" aria-selected="true">Selected</button>
+    <button data-vview="expanded" role="tab" aria-selected="false">Expanded</button>
+  </nav>
+  <div class="voices default-view">
     <blockquote class="pull">
       <p>&ldquo;[The Cuban government's policies] are repugnant to the moral and political values of free and democratic societies.&rdquo;</p>
       <cite>Executive Order 14404 &middot; May 1<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404, Sanctions on Cuba, May 7, 2026" target="_blank" rel="noopener">1</a></sup></cite>
@@ -1211,6 +1264,9 @@
       <p>&ldquo;America is producing as much natural gas as Russia, China and Iran combined.&rdquo;</p>
       <cite>Energy Sec. Chris Wright, Three Seas Initiative Summit, Dubrovnik &middot; April 28<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup></cite>
     </blockquote>
+  <div class="voices-pending">
+    <p><strong>Expanded view pending.</strong> The synthesizer currently produces 3 voices per brief; the next autonomous synth (07:00 PDT for US, 07:30 PDT for China) will produce 6 voices total — 3 priority + 3 supplementary — and the additional speakers will appear here.</p>
+  </div>
   </div>
 
   <h3 class="section-label">Significant items</h3>
@@ -1533,6 +1589,25 @@
       section.querySelectorAll('.transcript-view').forEach(function(v) {
         v.classList.toggle('active', v.classList.contains('tview-' + target));
       });
+    });
+  });
+</script>
+
+
+<script>
+  // Voices section view-switcher
+  document.querySelectorAll('nav.voices-views button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var target = btn.dataset.vview;
+      var nav = btn.parentElement;
+      var voices = nav.parentElement.querySelector('div.voices');
+      if (!voices) return;
+      nav.querySelectorAll('button').forEach(function(b) {
+        var on = (b === btn);
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      voices.classList.toggle('default-view', target === 'default');
     });
   });
 </script>

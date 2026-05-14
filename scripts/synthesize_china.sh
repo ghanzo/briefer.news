@@ -305,7 +305,7 @@ Style notes:
 - Name the doctrine connection naturally inside the prose, not as a tagged outcome.
 - Two sentences is often smoother than one long one.
 
-VOICES: 3 voices (occasionally 4) as <blockquote class="pull">. **ENGLISH-ONLY FORMAT** — each voice is a faithful English translation of the original Chinese quote. The translation MUST reflect the calibrated diplomatic vocabulary (see below) — translate the gradation, not the literal word. Each 12-30 words.
+VOICES: **6 voices total** as <blockquote class="pull">. **ENGLISH-ONLY FORMAT** — each voice is a faithful English translation of the original Chinese quote. The translation MUST reflect the calibrated diplomatic vocabulary (see below) — translate the gradation, not the literal word. Each 12-30 words. Order by editorial importance: the first 3 are shown in the page's default "Selected" view; the next 3 appear when readers click "Expanded." Both sets follow the same hard rules below (no repeat speakers, mix of registers).
 
 Three registers, drawn from different source types. **HARD RULE: each voice must be from a DIFFERENT speaker AND a DIFFERENT source category.** Never quote the same person twice. If only 2 distinct categories are available in your picks, output 2 voices, not 3 with a repeat.
 - One MFA spokesperson (Lin Jian / Mao Ning / Guo Jiakun) — attribute by English name + role. With 25 MFA articles in the candidate pool you should always have material here.
