@@ -7,9 +7,11 @@
 #   briefer.news/usa/og-week/
 #   briefer.news/china/og-week/
 #
-# Intended cadence: Saturday morning (LaunchAgent setup deferred — for
-# now this script is invoked manually or via the scheduled remote agent
-# during the rollout phase).
+# Cadence: daily-rolling. Fires every morning at 08:00 PDT via
+# ~/Library/LaunchAgents/news.briefer.digests.plist (wrapped by
+# daily_digests.sh, runs first; weekly.sh follows). The aggregator
+# uses a "today − 6 days" window, so the /og-week/ page slides forward
+# one day per run and is always current.
 #
 # Failure mode: any stage fails → log, exit 0, leave previous page live.
 

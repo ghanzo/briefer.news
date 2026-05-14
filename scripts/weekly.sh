@@ -6,9 +6,11 @@
 #   2. Claude synthesizer reads WEEKLY.md + prototype + JSON → HTML
 #   3. Deploy each edition to S3 /usa/weekly/ + /china/weekly/
 #
-# Intended cadence: Sunday morning. LaunchAgent setup is deferred — run
-# this manually until we've seen one cycle of post-change daily archives
-# accumulate (roughly the week of 2026-05-15 to 2026-05-21).
+# Cadence: daily-rolling. Fires every morning at 08:00 PDT via
+# ~/Library/LaunchAgents/news.briefer.digests.plist (wrapped by
+# daily_digests.sh, which runs og_weekly.sh first). The aggregator
+# uses a "today − 6 days" window, so the /weekly/ page slides forward
+# one day per run and is always current — never stale-for-a-week.
 #
 # Failure mode: any stage fails → log, exit 0, leave previous weekly live.
 
