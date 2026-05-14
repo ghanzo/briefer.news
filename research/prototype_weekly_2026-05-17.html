@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Briefer News — Weekly · Week of 8 – 14 May, 2026 · U.S.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root, body.theme-kraft {
+      --paper: #F5EFE2;
+      --ink: #1A1614;
+      --ink-soft: #3D332C;
+      --ink-light: #6B5D52;
+      --sepia: #7A4F2E;
+      --black: #14110F;
+      --cream: #F2EBD9;
+      --tagline: #C9BFA7;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 21px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Masthead */
+    header.masthead {
+      background: var(--black); color: var(--cream);
+      padding: 22px 24px 16px; text-align: center;
+      border-bottom: 1px solid var(--ink);
+    }
+    header.masthead h1 {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(28px, 4.4vw, 44px);
+      letter-spacing: 0.01em;
+      margin: 0 0 6px; line-height: 1;
+    }
+    header.masthead p.tagline {
+      font-style: italic;
+      font-weight: 400;
+      font-size: clamp(12px, 1.3vw, 14px);
+      color: var(--tagline);
+      letter-spacing: 0.02em;
+      margin: 0;
+    }
+
+    /* Week stamp */
+    .stamp {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 12px 24px 0;
+      text-align: right;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sepia);
+    }
+
+    /* Body container */
+    main.weekly {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 12px 24px 60px;
+    }
+
+    /* Headline */
+    h2.headline {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: clamp(28px, 3.2vw, 34px);
+      font-weight: 500;
+      line-height: 1.2;
+      margin: 0 0 4px;
+      max-width: 22ch;
+    }
+
+    /* Lead paragraph — replaces the daily dek; longer and weightier */
+    .week-read {
+      font-size: 22px;
+      line-height: 1.55;
+      color: var(--ink);
+      margin: 0 0 36px;
+      font-weight: 400;
+      max-width: 64ch;
+      padding-top: 18px;
+      position: relative;
+    }
+    .week-read::before {
+      content: '';
+      display: block;
+      width: 48px;
+      height: 2px;
+      background: var(--sepia);
+      margin: 0 0 16px;
+    }
+
+    /* Section labels */
+    h3.section-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      margin: 36px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--ink-soft);
+    }
+
+    /* Threads — prose section */
+    .threads-prose {
+      font-size: 19px;
+      line-height: 1.55;
+      max-width: 64ch;
+      color: var(--ink);
+      margin: 0 0 12px;
+    }
+    .threads-prose p { margin: 0 0 14px; }
+    .threads-prose p:last-child { margin-bottom: 0; }
+
+    /* The Week's Bullets — longer / more explanatory than daily bullets */
+    ul.week-bullets {
+      list-style: none;
+      padding: 0;
+      margin: 16px 0 0;
+      counter-reset: weekbullet;
+    }
+    ul.week-bullets li {
+      position: relative;
+      padding: 0 0 28px 40px;
+      line-height: 1.55;
+      counter-increment: weekbullet;
+      max-width: 66ch;
+      font-size: 18px;
+    }
+    ul.week-bullets li::before {
+      content: counter(weekbullet);
+      position: absolute;
+      left: 0; top: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--sepia);
+    }
+    ul.week-bullets li b {
+      color: var(--ink);
+    }
+    ul.week-bullets li sup {
+      color: var(--sepia);
+      font-weight: 500;
+      margin-left: 2px;
+      font-size: 0.78em;
+    }
+    ul.week-bullets li .week-tag {
+      display: inline-block;
+      margin-left: 10px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      white-space: nowrap;
+      vertical-align: baseline;
+    }
+    ul.week-bullets li sup .cite {
+      color: var(--sepia);
+      text-decoration: none;
+    }
+
+    /* Voices — same shape as daily */
+    blockquote.pull {
+      margin: 16px 0 20px;
+      padding: 0 0 0 18px;
+      border-left: 3px solid var(--sepia);
+    }
+    blockquote.pull p {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-style: italic;
+      font-size: 20px;
+      line-height: 1.45;
+      margin: 0 0 6px;
+      color: var(--ink);
+    }
+    blockquote.pull cite {
+      font-style: normal;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+    }
+    blockquote.pull cite sup .cite {
+      color: var(--sepia);
+      text-decoration: none;
+    }
+
+    /* Strategic Backdrop weekly (China only) — same chips as daily */
+    .backdrop {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin: 16px 0 0;
+    }
+    @media (max-width: 720px) {
+      .backdrop { grid-template-columns: 1fr; }
+    }
+    .backdrop article {
+      padding: 18px 18px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--ink-soft);
+      border-radius: 3px;
+    }
+    .backdrop .strategy-title {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-weight: 600;
+      font-size: 18px;
+      line-height: 1.2;
+      margin: 0 0 2px;
+      color: var(--ink);
+    }
+    .backdrop .strategy-status {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      margin: 0 0 10px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--ink-soft);
+    }
+    .backdrop .strategy-blurb {
+      font-size: 15px;
+      line-height: 1.45;
+      color: var(--ink);
+      margin: 0;
+    }
+
+    /* Outside the Gate weekly — same shape as the OG section in dailies */
+    .og-subtitle {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      margin: -8px 0 12px;
+    }
+    .og-subtitle::before {
+      content: "\2197 ";
+      opacity: 0.7;
+    }
+    ul.outside-gate {
+      list-style: none;
+      margin: 0; padding: 0;
+      border-left: 2px solid var(--sepia);
+      padding-left: 16px;
+    }
+    ul.outside-gate li {
+      margin: 0 0 16px;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink);
+    }
+    ul.outside-gate li:last-child { margin-bottom: 0; }
+    ul.outside-gate li b { color: var(--ink); }
+    ul.outside-gate li .when {
+      display: block;
+      margin-top: 4px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+    }
+    ul.outside-gate li sup .cite {
+      color: var(--sepia);
+      text-decoration: none;
+    }
+    .og-empty {
+      margin: 16px 0;
+      padding: 18px 20px;
+      border: 1px dashed var(--ink-light);
+      border-radius: 3px;
+      color: var(--ink-light);
+      font-size: 16px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* Day-by-day footer — links back to each daily brief */
+    footer.daily-foot {
+      margin-top: 48px;
+      padding-top: 18px;
+      border-top: 1px solid var(--ink-soft);
+    }
+    footer.daily-foot .foot-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      margin: 0 0 12px;
+    }
+    footer.daily-foot ul {
+      list-style: none;
+      padding: 0; margin: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+    }
+    footer.daily-foot a {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--sepia);
+    }
+    footer.daily-foot a:hover { border-bottom-style: solid; }
+  </style>
+</head>
+<body class="theme-kraft">
+
+  <header class="masthead">
+    <h1>Briefer News</h1>
+    <p class="tagline">The week · U.S.</p>
+  </header>
+
+  <div class="stamp">Week of 8 – 14 May, 2026</div>
+
+  <main class="weekly">
+
+    <h2 class="headline">
+      Washington went to Beijing with leverage and came back with a Taiwan warning.
+    </h2>
+
+    <p class="week-read">Trump's state visit was the week's choreography; the harder story was that Xi set the agenda from the opening sentence. The coalition phase of the Iran war finally exceeded the striking phase, forty navies organizing what eight months of strikes never produced. By Friday it was clear: the week's most consequential sentence wasn't said in any briefing — it was Xi telling Trump that Taiwan is "fire and water."</p>
+
+    <h3 class="section-label">Threads at week's end</h3>
+    <div class="threads-prose">
+      <p>The Iran war reached its <b>seventy-sixth day</b> with the coalition rather than the trigger becoming the story; forty navies in Hormuz outsize any single strike, and the question now is whether the Paris communiqué carries the next session in Riyadh. <b>Trump landed in Beijing Wednesday</b> and left Friday — the summit ended without a joint statement and with Taiwan as Xi's chosen sharp edge. <b>Ukraine entered its fifth year</b> unchanged in shape and worse in stamina; the week's drone strikes on Kyiv produced one Western aid tranche and no other movement.</p>
+    </div>
+
+    <h3 class="section-label">The week's bullets</h3>
+    <ul class="week-bullets">
+      <li><b>Xi names Taiwan first.</b> In the open-press portion of Wednesday's bilateral, Xi told Trump "Taiwan independence and cross-Strait peace are as irreconcilable as fire and water" and that the U.S. must "exercise extra caution." Read in retrospect, this was the meeting's actual lead — not the trade-deal optics or the "constructive strategic stability" framing. The U.S. side, on the record, said nothing.<sup><a class="cite" href="#" title="MFA readout">1</a></sup><span class="week-tag">May 14 · MFA</span></li>
+      <li><b>Coalition Hormuz organization.</b> Forty navies met in Paris to plan the Strait of Hormuz reopening; the UK contributed Typhoon jets, HMS Dragon, and additional Gulf air defenses. The Iran war moved into its coalition phase this week — a transition the U.S.-only press releases hadn't surfaced clearly.<sup><a class="cite" href="#" title="State Dept">2</a></sup><span class="week-tag">May 12 · State</span></li>
+      <li><b>Pre-summit consolidation.</b> Beijing published the AI-agents rulebook and the 14-bill 2026 lawmaking plan in the days before Trump landed. Editorially, the timing was the story: a regime arranging the room before the visiting president walked in.<sup><a class="cite" href="#" title="State Council">3</a></sup><span class="week-tag">May 8 · State Council</span></li>
+      <li><b>SPR fourth tranche.</b> The Strategic Petroleum Reserve sent another tranche toward market with the Iran war's energy pressure mounting; the SPR is the U.S. domestic counterweight to the coalition's Strait-of-Hormuz work, and this week's release made the connection explicit.<sup><a class="cite" href="#" title="DOE">4</a></sup><span class="week-tag">May 13 · DOE</span></li>
+      <li><b>Iran oil determination renewed.</b> The presidential determination keeping the squeeze on Iran-oil buyers was reissued Thursday — quiet, technical, and confirming the U.S. side intends the oil pressure to remain through the coalition's near horizon.<sup><a class="cite" href="#" title="Federal Register">5</a></sup><span class="week-tag">May 14 · FR</span></li>
+    </ul>
+
+    <h3 class="section-label">Voices of the week</h3>
+
+    <blockquote class="pull">
+      <p>&ldquo;We must make it work, and never mess it up.&rdquo;</p>
+      <cite>Xi Jinping · May 14<sup><a class="cite" href="#" title="MFA">1</a></sup></cite>
+    </blockquote>
+
+    <blockquote class="pull">
+      <p>&ldquo;The relationship between China and the USA is going to be better than ever before.&rdquo;</p>
+      <cite>Donald Trump · May 14<sup><a class="cite" href="#" title="Xinhua">2</a></sup></cite>
+    </blockquote>
+
+    <blockquote class="pull">
+      <p>&ldquo;The U.S. side must exercise extra caution in handling the Taiwan question.&rdquo;</p>
+      <cite>Xi Jinping · May 14<sup><a class="cite" href="#" title="People's Daily">3</a></sup></cite>
+    </blockquote>
+
+    <h3 class="section-label">Outside the Gate · this week in inbound signals</h3>
+    <p class="og-subtitle">Non-U.S.-gov signals across the past seven days</p>
+    <div class="og-empty">No Outside the Gate items archived this week yet. The section came online 2026-05-15; weekly aggregations fill in as daily briefs publish.</div>
+
+    <footer class="daily-foot">
+      <p class="foot-label">Daily briefs this week</p>
+      <ul>
+        <li><a href="/usa/archive/2026-05-14.html">Thu · May 14</a></li>
+        <li><a href="/usa/archive/2026-05-13.html">Wed · May 13</a></li>
+        <li><a href="/usa/archive/2026-05-12.html">Tue · May 12</a></li>
+        <li><a href="/archive/2026-05-11.html">Mon · May 11</a></li>
+        <li><a href="/archive/2026-05-10.html">Sun · May 10</a></li>
+        <li><a href="/archive/2026-05-09.html">Sat · May 9</a></li>
+        <li><a href="/archive/2026-05-08.html">Fri · May 8</a></li>
+      </ul>
+    </footer>
+
+  </main>
+
+</body>
+</html>
