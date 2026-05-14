@@ -581,6 +581,119 @@
       margin-top: 8px;
     }
 
+/* Transcript feature — multi-view event coverage */
+    section.transcript {
+      margin: 26px 0 0;
+      padding: 22px 22px 20px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--ink-soft);
+      border-radius: 3px;
+    }
+    section.transcript .transcript-header {
+      padding-bottom: 12px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--ink-soft);
+    }
+    section.transcript h3.section-label {
+      margin: 0 0 4px;
+      padding: 0;
+      border: none;
+    }
+    section.transcript .transcript-meta {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin: 0;
+    }
+    nav.transcript-views {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 0 0 18px;
+    }
+    nav.transcript-views button {
+      background: transparent;
+      border: 1px solid var(--ink-soft);
+      color: var(--ink-soft);
+      padding: 8px 14px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+    }
+    nav.transcript-views button:hover {
+      color: var(--ink);
+      border-color: var(--ink-light);
+    }
+    nav.transcript-views button.active {
+      color: var(--paper);
+      background: var(--sepia);
+      border-color: var(--sepia);
+    }
+    .transcript-view {
+      display: none;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+    .transcript-view.active {
+      display: block;
+    }
+    .transcript-view p {
+      margin: 0 0 12px;
+    }
+    .transcript-view .moment {
+      position: relative;
+      padding: 10px 0 10px 60px;
+      border-top: 1px solid var(--ink-soft);
+    }
+    .transcript-view .moment:first-child {
+      border-top: none;
+    }
+    .transcript-view .moment .speaker {
+      position: absolute;
+      left: 0;
+      top: 12px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      font-weight: 600;
+    }
+    .transcript-view .moment .quote {
+      font-style: normal;
+      font-size: 16px;
+      line-height: 1.5;
+      margin: 0 0 4px;
+    }
+    .transcript-view .moment .ctx {
+      font-size: 13px;
+      color: var(--ink-light);
+      margin: 0;
+    }
+    .transcript-view .pending {
+      padding: 18px;
+      border: 1px dashed var(--ink-soft);
+      border-radius: 2px;
+      color: var(--ink-light);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .transcript-view .pending strong {
+      color: var(--ink-soft);
+    }
+    .transcript-view a {
+      color: var(--sepia);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--sepia);
+    }
+
     /* Sources */
     .sources {
       margin: 36px 0 0;
@@ -1213,6 +1326,68 @@
       </div>
     </div>
     <p class="metrics-footnote">Preview values pending automated EIA scrape. Weekly petroleum data refresh Wednesdays; monthly electricity data refresh mid-month.</p>
+  </section>
+
+  <section class="transcript">
+    <div class="transcript-header">
+      <h3 class="section-label">Trump&ndash;Xi Summit &middot; Great Hall of the People</h3>
+      <p class="transcript-meta">May 14, 2026 &middot; Beijing</p>
+    </div>
+
+    <nav class="transcript-views" role="tablist">
+      <button class="active" data-tview="summary" role="tab" aria-selected="true">Summary</button>
+      <button data-tview="key-moments" role="tab" aria-selected="false">Key Moments</button>
+      <button data-tview="full" role="tab" aria-selected="false">Full Transcript</button>
+    </nav>
+
+    <div class="transcript-view tview-summary active">
+      <p>Trump and Xi opened their May 14 bilateral meeting at the Great Hall of the People with conciliatory framing. Xi described the world as having reached &ldquo;a new crossroads&rdquo; and told Trump that the two countries should be &ldquo;partners rather than opponents&rdquo; &mdash; pointedly invoking the &ldquo;Thucydides Trap&rdquo; question. Trump replied that the relationship &ldquo;will be better than ever&rdquo; and that the two countries share &ldquo;a fantastic future together.&rdquo; Substantive talks on tariffs, Taiwan, AI, rare earths, and the Iran war are ongoing. No joint statement has been issued. State banquet to follow.</p>
+    </div>
+
+    <div class="transcript-view tview-key-moments">
+      <div class="moment">
+        <div class="speaker">Xi</div>
+        <p class="quote">&ldquo;We should be partners rather than opponents, achieve success for one another, prosper together, and forge a correct way for major countries of the new era to get along with each other.&rdquo;</p>
+        <p class="ctx">Opening remarks at the Great Hall of the People, sitting beside Trump.</p>
+      </div>
+      <div class="moment">
+        <div class="speaker">Xi</div>
+        <p class="quote">The world has &ldquo;arrived at a new crossroads.&rdquo; 2026 could be &ldquo;a historic landmark year that opens up a new chapter in U.S.&ndash;China relations.&rdquo;</p>
+        <p class="ctx">Framing of the moment.</p>
+      </div>
+      <div class="moment">
+        <div class="speaker">Xi</div>
+        <p class="quote">Posed the question of whether the two countries could avoid the &ldquo;Thucydides Trap.&rdquo;</p>
+        <p class="ctx">Direct invocation of the rising-vs-established power framing &mdash; rare for a leader to name aloud.</p>
+      </div>
+      <div class="moment">
+        <div class="speaker">Trump</div>
+        <p class="quote">The U.S.&ndash;China relationship &ldquo;will be better than ever.&rdquo; The two countries have &ldquo;a fantastic future together.&rdquo;</p>
+        <p class="ctx">Reciprocating Xi's warmth.</p>
+      </div>
+      <div class="moment">
+        <div class="speaker">Trump</div>
+        <p class="quote">The U.S. has Iran &ldquo;very much under control&rdquo; &mdash; cited as a topic of discussion.</p>
+        <p class="ctx">Iran war is the major external pressure on the meeting.</p>
+      </div>
+      <div class="moment">
+        <div class="speaker">MFA (paraphrased)</div>
+        <p class="quote">&ldquo;The two leaders will have an in-depth exchange of views on major issues concerning bilateral relations and world peace and development.&rdquo;</p>
+        <p class="ctx">Standard pre-meeting framing from the Chinese Foreign Ministry; no specifics.</p>
+      </div>
+    </div>
+
+    <div class="transcript-view tview-full">
+      <div class="pending">
+        <p><strong>Full official transcripts pending publication.</strong></p>
+        <p>The complete prepared remarks are not yet on the public record. Typical lag:</p>
+        <p>&middot; <strong>White House</strong> publishes Trump's prepared text on whitehouse.gov within 24&ndash;48 hours of delivery.<br>
+        &middot; <strong>Xinhua / Foreign Ministry / People's Daily</strong> publish Xi's prepared text within 12&ndash;24 hours, often as the first headline on english.news.cn.<br>
+        &middot; Joint statements (if issued) appear on both whitehouse.gov and fmprc.gov.cn within 24 hours of the second day's talks.<br>
+        &middot; Closed-door bilateral talks are not customarily transcribed.</p>
+        <p>This section will be updated as official text is released. Currently available: video of the opening remarks (<a href="https://www.youtube.com/watch?v=nk1tRJrODvE" target="_blank" rel="noopener">opening remarks</a>) and the state dinner livestream (<a href="https://www.youtube.com/watch?v=MHAQ9r5CLQ4" target="_blank" rel="noopener">state dinner</a>).</p>
+      </div>
+    </div>
   </section>
 
   <section class="sources">
