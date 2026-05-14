@@ -846,19 +846,45 @@
     }
 
     /* Sources */
-    .sources {
+    /* Sources — collapsed by default, expand via <details>/<summary> */
+    .sources-details {
       margin: 36px 0 0;
       padding: 22px 0 0;
       border-top: 1px solid var(--ink-light);
     }
-    .sources h2 {
+    .sources-summary {
+      cursor: pointer;
+      list-style: none;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 12px;
       font-weight: 600;
       letter-spacing: 0.2em;
       text-transform: uppercase;
       color: var(--ink);
-      margin: 0 0 18px;
+      padding: 6px 0;
+      user-select: none;
+      transition: color 0.15s ease;
+    }
+    .sources-summary::-webkit-details-marker { display: none; }
+    .sources-summary::before {
+      content: "\25B8";
+      display: inline-block;
+      margin-right: 10px;
+      color: var(--sepia);
+      transition: transform 0.18s ease;
+    }
+    .sources-details[open] .sources-summary::before {
+      transform: rotate(90deg);
+    }
+    .sources-summary:hover { color: var(--sepia); }
+    .sources {
+      margin: 14px 0 0;
+      padding: 0;
+      border-top: none;
+    }
+    .sources h2 {
+      /* Legacy heading hidden — summary now provides the label */
+      display: none;
     }
     .sources ol {
       list-style: none;
@@ -1625,8 +1651,9 @@
     </div>
   </section>
 
-  <section class="sources">
-    <h2>Sources</h2>
+  <details class="sources-details">
+    <summary class="sources-summary">Sources</summary>
+    <section class="sources">
     <ol>
       <li><span class="pub">Federal Register</span>, &ldquo;Imposing Sanctions on Those Responsible for Repression in Cuba&rdquo; (Executive Order 14404 of May 1, 2026), published May 7, 2026.
         <a href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states">federalregister.gov/&hellip;/eo-14404-cuba-sanctions</a></li>
@@ -1647,7 +1674,8 @@
       <li><span class="pub">White House</span>, &ldquo;Savings from Most-Favored-Nation Drug Pricing Policy,&rdquo; May 2026.
         <a href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/">whitehouse.gov/research/&hellip;/mfn-drug-pricing</a></li>
     </ol>
-  </section>
+    </section>
+  </details>
 
 </main>
 

@@ -434,7 +434,7 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <ul class="items">...</ul> with exactly 9 <li> elements
 - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
 - The Strategic Backdrop block (everything from <h3 class="section-label">Strategic Backdrop</h3> through </div>) with 2-3 fresh strategy cards per today's items
-- <section class="sources">...</section> with numbered <ol>
+- The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details"><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section is collapsed by default via native <details>; the synth must not remove the wrapper or the summary text.
 
 **Preserve unchanged:** the Five-Year Plan section (<h3 class="section-label">Five-Year Plan</h3> and the <article class="fyp">…</article> block immediately following it). This is a static long-arc anchor; do not edit its title, status, body, themes, or predecessor note. It sits between Strategic Backdrop and Sources.
 

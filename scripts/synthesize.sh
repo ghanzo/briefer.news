@@ -344,7 +344,7 @@ Your job:
   - <div class="voices">...</div> — 3 voices as <blockquote class="pull">
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
   - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
-  - <section class="sources">...</section> — numbered <ol> with publisher, title, date, link, shortened display URL
+  - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details"><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section is collapsed by default via native <details>; the synth must not remove the wrapper or the summary text.
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it to the file.
 EOF
