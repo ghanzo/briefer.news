@@ -1031,6 +1031,40 @@
       /* Legacy heading hidden — summary now provides the label */
       display: none;
     }
+
+    /* Generic collapsible — used for Five-Year Plan and Strategic Backdrop.
+       Reuses the visual identity of h3.section-label but as a clickable
+       <summary>. Native <details>/<summary> — no JS. */
+    .collapsible-details {
+      margin: 0;
+    }
+    .collapsible-details > .collapsible-summary {
+      cursor: pointer;
+      list-style: none;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--ink);
+      padding: 8px 0 8px;
+      margin: 36px 0 0;
+      border-bottom: 1px solid var(--ink-soft);
+      user-select: none;
+      transition: color 0.15s ease;
+    }
+    .collapsible-details > .collapsible-summary::-webkit-details-marker { display: none; }
+    .collapsible-details > .collapsible-summary::before {
+      content: "\25B8";
+      display: inline-block;
+      margin-right: 10px;
+      color: var(--sepia);
+      transition: transform 0.18s ease;
+    }
+    .collapsible-details[open] > .collapsible-summary::before {
+      transform: rotate(90deg);
+    }
+    .collapsible-details > .collapsible-summary:hover { color: var(--sepia); }
     .sources ol {
       list-style: none;
       padding: 0;
@@ -1691,24 +1725,27 @@
 
   <p class="weekly-link"><a href="/china/weekly/">&#8599; This week's digest</a></p>
 
-  <h3 class="section-label">Strategic Backdrop</h3>
-  <div class="backdrop">
-    <article>
-      <h4 class="strategy-title">15th Five-Year Plan</h4>      <p class="strategy-status">Drafting &middot; 2026&ndash;2030</p>
-      <p class="strategy-blurb">Today's AI rulebook and 2026 lawmaking plan are direct 15FYP groundwork &mdash; the State Council's 14 priority bills explicitly prepare the conditions for the next plan.</p>
-    </article>
-    <article>
-      <h4 class="strategy-title">New Quality Productive Forces</h4>      <p class="strategy-status">Active &middot; 2023&ndash;present</p>
-      <p class="strategy-blurb">Xi's current economic doctrine elevates AI + advanced manufacturing as growth driver replacing real estate; today's NDRC AI lab tour and export numbers are flagship examples.</p>
-    </article>
-    <article>
-      <h4 class="strategy-title">Common Prosperity</h4>      <p class="strategy-status">Active &middot; 2021&ndash;present</p>
-      <p class="strategy-blurb">Platform-algorithm regulation is the operational arm of common prosperity; today's CAC negative list driving Meituan and Didi changes is its current expression.</p>
-    </article>
-  </div>
+  <details class="collapsible-details">
+    <summary class="collapsible-summary">Strategic Backdrop</summary>
+    <div class="backdrop">
+      <article>
+        <h4 class="strategy-title">15th Five-Year Plan</h4>      <p class="strategy-status">Drafting &middot; 2026&ndash;2030</p>
+        <p class="strategy-blurb">Today's AI rulebook and 2026 lawmaking plan are direct 15FYP groundwork &mdash; the State Council's 14 priority bills explicitly prepare the conditions for the next plan.</p>
+      </article>
+      <article>
+        <h4 class="strategy-title">New Quality Productive Forces</h4>      <p class="strategy-status">Active &middot; 2023&ndash;present</p>
+        <p class="strategy-blurb">Xi's current economic doctrine elevates AI + advanced manufacturing as growth driver replacing real estate; today's NDRC AI lab tour and export numbers are flagship examples.</p>
+      </article>
+      <article>
+        <h4 class="strategy-title">Common Prosperity</h4>      <p class="strategy-status">Active &middot; 2021&ndash;present</p>
+        <p class="strategy-blurb">Platform-algorithm regulation is the operational arm of common prosperity; today's CAC negative list driving Meituan and Didi changes is its current expression.</p>
+      </article>
+    </div>
+  </details>
 
-  <h3 class="section-label">Five-Year Plan</h3>
-  <article class="fyp">
+  <details class="collapsible-details">
+    <summary class="collapsible-summary">Five-Year Plan</summary>
+    <article class="fyp">
     <header class="fyp-header">
       <div class="fyp-title-row">
         <h4 class="fyp-title">Fifteenth Five-Year Plan</h4>
@@ -1726,7 +1763,8 @@
     </ul>
 
     <p class="fyp-predecessor">The closing <strong>14th Five-Year Plan</strong> (2021&ndash;2025) is in its final operational year. Its themes &mdash; dual circulation, common prosperity, and the "30/60" carbon-peak / carbon-neutrality targets &mdash; carry into the 15th plan rather than restart.</p>
-  </article>
+    </article>
+  </details>
 
 
   <h3 class="section-label">By the Numbers</h3>

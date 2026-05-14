@@ -433,8 +433,9 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <div class="voices">...</div> with 3 bilingual blockquotes
 - <ul class="items">...</ul> with exactly 9 <li> elements
 - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
-- The Strategic Backdrop block (everything from <h3 class="section-label">Strategic Backdrop</h3> through </div>) with 2-3 fresh strategy cards per today's items
+- The inner <div class="backdrop">...</div> of the Strategic Backdrop block (PRESERVE the wrapping <details class="collapsible-details"><summary class="collapsible-summary">Strategic Backdrop</summary> and the closing </details>; only the inner backdrop div is replaced with 2-3 fresh strategy cards per today's items). The Strategic Backdrop is collapsed by default via native <details>; the synth must not remove the wrapper or the summary text.
 - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details"><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section is collapsed by default via native <details>; the synth must not remove the wrapper or the summary text.
+- The Five-Year Plan section is wrapped in <details class="collapsible-details"><summary class="collapsible-summary">Five-Year Plan</summary>...</details>. The synth must PRESERVE this wrapper and the summary text. The inner <article class="fyp"> content is unchanged — see the existing preserve rule for the Five-Year Plan section.
 
 **Preserve unchanged:** the Five-Year Plan section (<h3 class="section-label">Five-Year Plan</h3> and the <article class="fyp">…</article> block immediately following it). This is a static long-arc anchor; do not edit its title, status, body, themes, or predecessor note. It sits between Strategic Backdrop and Sources.
 
