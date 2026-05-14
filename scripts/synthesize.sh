@@ -279,8 +279,10 @@ Required reading (in order):
 3. @${REPO}/research/prototype_us_2026-05-12.html — the visual template you must mirror
 4. @${FULL} — full text of the articles the picker selected
 
-Optional ambient signal (read if present, treat as background not directive):
-@${REPO}/.run/world_context.md — what global outlets consider today's biggest stories. Use this to frame your bullets in their wider narrative arc when natural (e.g., anchoring a CENTCOM-sourced bullet to "the deteriorating April 8 ceasefire" if that is the global frame). Every claim and citation must still come from the gov articles in the candidates list — the world context informs framing, not facts. Do NOT cite the world context.
+Ambient signal + Outside the Gate source:
+@${REPO}/.run/world_context.md if it exists. This file has TWO uses:
+- **Upper sections (Dominant narrative arcs / Secondary threads / Calendar):** ambient framing ONLY. Use to frame your bullets in their wider narrative arc when natural (e.g., anchoring a CENTCOM-sourced bullet to "the deteriorating April 8 ceasefire" if that is the global frame). Every claim and citation in the bullets must still come from the US-gov articles in the candidates list — the world context informs framing, not facts. **Do NOT cite the upper sections in the bullets.**
+- **"Outside the Gate candidates" subsection:** this IS citable. Each candidate has a publication + date + URL and is intended to be rendered directly in the new Outside the Gate page section (see Output requirements below). Pick 3-5 of the candidates that best illustrate "what the world is doing in response to / parallel to US action this week."
 
 Today is ${TODAY}.
 
@@ -291,6 +293,27 @@ Your job:
 - DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p> connecting today's bullets into the day's macro story. **30-45 words. Two short sentences max. Prose flow, not enumeration.** Use connecting clauses ("Today threads through…", "Beneath the policy moves…", "Iran sits behind…") to set the scene rather than em-dash-then-list constructions. Avoid the "X, Y, and Z [verb] W" enumeration — pick a stance and let the items support it.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
 - Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are shown in the page's default "Selected" view; the next 3 appear when readers click "Expanded." Both sets follow the same rules (no repeat speakers, mix of registers).
+- OUTSIDE THE GATE: After the 9 bullets and before By the Numbers, render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/world_context.md.
+
+  Selection rules:
+  - Pick the candidates that best illustrate "what the world is doing in response to / parallel to US action this week" — concrete ACTIONS or PRIMARY STATEMENTS by named actors (allied gov positions, coalition deployments, adversary primary statements, operational events the US-gov feed undercovers).
+  - Prefer freshness (≤7 days) and concrete actors. Skip pure punditry.
+  - Each item must come WITH its citable source and URL from the world-context file. If a candidate lacks a working URL, do not render it.
+  - Items must be RECENT (date within last 14 days). Do not surface items older than 14 days even if the candidate file lists them.
+  - Maintain editorial neutrality. State the action; do not editorialize about US reaction.
+
+  Outside the Gate HTML template (use this structure):
+  <div class="outside-gate-wrap">
+    <h3 class="section-label">Outside the Gate</h3>
+    <p class="og-subtitle">Inbound signals &middot; non-US-gov sources</p>
+    <ul class="outside-gate">
+      <li><b>[Lead actor + action, ≤8 words].</b> [One-clause explanation, ≤20 words.]<sup><a class="cite" href="[URL]" title="[Source] &mdash; [short title], [date]" target="_blank" rel="noopener">[letter]</a></sup><span class="when">[Date short] &middot; [Source]</span></li>
+      ...
+    </ul>
+  </div>
+
+  Use lowercase letters (a, b, c, d, e) for Outside the Gate cite markers — keep them visually distinct from the numbered (1-9) bullet cites that point to US-gov sources. The visual cue helps readers parse "this section is the non-US-gov exception."
+
 - Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <head>, <header>, <footer>, and <script> blocks unchanged. Only replace:
   - <title>...</title> to "Briefer News — <human date>"
   - <div class="stamp">...</div> to today's date in CAPS (e.g. "MAY 13, 2026", not "May 13, 2026")
@@ -298,6 +321,7 @@ Your job:
   - Insert <p class="dek">…</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per rules above
   - <div class="voices">...</div> — 3 voices as <blockquote class="pull">
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
+  - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
   - <section class="sources">...</section> — numbered <ol> with publisher, title, date, link, shortened display URL
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it to the file.
@@ -313,6 +337,9 @@ fi
 if ! grep -q 'class="headline"' "$OUT" || ! grep -q 'class="items"' "$OUT" || ! grep -q 'class="sources"' "$OUT"; then
   echo "ERROR: $OUT missing required structural classes — leaving yesterday's brief in place"
   exit 0
+fi
+if ! grep -q 'class="outside-gate"' "$OUT"; then
+  echo "WARN: $OUT missing Outside the Gate section — publishing anyway, but flag for review"
 fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 

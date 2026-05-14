@@ -397,7 +397,7 @@ sources:
     weight: medium
     extractor: trafilatura
     active: false
-    notes: "Returned HTTP 521 (Cloudflare origin error) on initial probe. Re-test later."
+    notes: "Probed 2026-05-14: HTTP 521 (Cloudflare origin unreachable) across 4 listing URLs (/, /xwfb/, /xwfbh/, /m/xwfb/), 4 retries each. Origin appears genuinely down from CF's edge. HTTPS variants fail with self-signed-cert errors. Not a header / fingerprint issue — server-side. Re-probe weekly; if/when CF returns 2xx, flip active: true."
 
   - name: "NFRA (Banking/Insurance Regulator)"
     domain: nfra.gov.cn
@@ -419,4 +419,4 @@ sources:
     weight: high
     extractor: trafilatura
     active: false
-    notes: "Returned HTTP 412 (Precondition Failed). Needs specific header set — investigate."
+    notes: "Probed 2026-05-14: HTTP 412 IS a JS bot-detection challenge (cookies AV7KYchI7HHaS / __jsluid_h; obfuscated $_ts script + /Qy6J...c7790ff.js validator — Akamai Bot Manager family). Playwright + stealth SOLVES the challenge (cookies set on visit 1), but subsequent article-URL requests return HTTP 400 / empty bodies — bot-detection appears to have a second layer fingerprinting headless Chrome, OR YAML listing URL is stale. English mirror english.customs.gov.cn works fine with plain curl_cffi but publishes only ~2-4 narrative items/year (mostly trade-data tables, not press releases). Trade-data signal we wanted from Customs is already covered editorially by Stats Bureau + NDRC + State Council Yaowen. Decision 2026-05-14: park indefinitely. Not worth the engineering."
