@@ -176,17 +176,21 @@ Shanghai, Beijing, Guangdong, Zhejiang
 
 ---
 
-## Active editorial direction (forward-looking)
+## Editorial direction — landed 2026-05-14
 
-Captured 2026-05-12 evening; to address in upcoming sessions.
+The four direction items captured 2026-05-12 are now implemented:
 
-1. **Voice ordering — Xi at top.** When Xi is in the picks, he should lead the voices section rather than appearing in slot #2 or #3. Synth prompt's "three registers, different speaker" rule produces good diversity but doesn't enforce hierarchy. Fix: add explicit Xi-leads rule to synth prompt.
+1. **Voice ordering — Xi at top.** *Landed.* Synth prompt has a HARD ORDERING RULE: if any picked article carries a Xi speech/statement/quotation (and is usable per the recency rule), Xi is voice #1 in Selected view. Never demoted below MFA / regulator / commentator. Falls back to editorial importance only when no usable Xi material is in the picks.
 
-2. **Quote freshness.** v3 brief used a Xi quote from Feb 4 phone call to Trump (~3 months old). Looks misleading in a "daily brief" context. Add a recency rule: voice quotes ≤30 days unless explicitly anchoring a structural arc, with the date in the cite either way.
+2. **Quote freshness.** *Landed.* Synth prompt has a HARD RECENCY RULE: voice quote dates within 30 days of synth date, measured by the date in `<cite>`. Exception: a quote older than 30 days is allowed ONLY if it anchors a long-arc doctrine from the strategy library being invoked by today's bullets — and the bullet must name the anchored doctrine. Routine MFA / regulator slots cannot use the exception.
 
-3. **Structural anchor docs.** Beyond daily output, brief should draw on long-arc strategy: 15th Five-Year Plan (15FYP), Common Prosperity, Belt and Road, Made in China 2025/2035, etc. **Pending build:** `china_structural_arcs.md` (8-12 themes) + Stage 0 `china_world_context.sh` analogous to the US side.
+3. **Structural anchors — strategy library.** *Built.* Eleven strategy docs in `pipeline/config/strategy/` (14fyp, 15fyp, bri, carbon_dual_control_30_60, civil_military_fusion, common_prosperity, dual_circulation, energy_security_internal_transition, gdi_gsi, made_in_china_2025, new_quality_productive_forces). Each has a "Today's coverage triggers" section. The picker uses them as a tie-breaker; the synthesizer uses them to populate the Strategic Backdrop cards (2-3 fresh per day). The originally-planned single `china_structural_arcs.md` was superseded by the per-doctrine library.
 
-4. **Dashboard framing — "from and to China".** Page should function as a two-way information dashboard: signals FROM China (current — their official output) AND signals TO China (sanctions / trade actions / diplomatic moves / allied responses). Implementation TBD; likely needs a separate ingestion layer for the "to China" side. Clarify next session.
+4. **Dashboard framing — "from and to China".** *Landed.* Implementation chosen 2026-05-14: a dedicated **Outside the Gate** section between the 9 bullets (and summit transcript, if present) and Strategic Backdrop. 3-5 short items per day, labeled "Inbound signals · non-PRC sources" with sepia left-rule and lowercase (a, b, c) cite markers to visually distinguish from the .gov.cn (1-9) bullet cites. Data flow: `china_world_context.sh` now emits an "Outside the Gate candidates" subsection — each candidate carries actor, action, date, publication, and a working URL. The synth picks 3-5 of these to render. The rest of `china_world_context.md` remains reference-only (never cited).
+
+### Trust posture (post-change)
+
+The brief's spine remains Chinese government primary sources — 9 bullets, voices, Strategic Backdrop, Five-Year Plan, Sources are all .gov.cn-cited. Outside the Gate is the single labeled exception, explicitly flagged as non-PRC source material. The "Chinese government sources" tagline in the header remains accurate as a description of the brief's main editorial spine.
 
 ---
 

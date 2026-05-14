@@ -58,7 +58,7 @@ Use the WebSearch tool to identify what is being reported about China today by n
 5. Politically-vital Chinese-domestic stories that Chinese state media won't lead with — senior-cadre purges, military-corruption sentencings (Wei Fenghe / Li Shangfu-style), Hong Kong NSL prosecutions, Taiwan diplomatic moves, Tibet / Xinjiang
 6. Western analyst / think-tank coverage worth flagging — CSIS / RUSI / IISS / MERICS / East Asia Forum / Sinocism style commentary
 
-Then write a compact markdown briefing in this exact structure (keep total ≤300 words):
+Then write a compact markdown briefing in this exact structure (keep total ≤450 words):
 
 # China world-context — ${TODAY_HUMAN}
 
@@ -74,12 +74,30 @@ Then write a compact markdown briefing in this exact structure (keep total ≤30
 ## Calendar to watch (next 7-14 days, China-relevant)
 - (2-4 lines, named events with dates. Bilateral summits, sanctions deadlines, court rulings, Party plenums, anniversaries, scheduled diplomatic visits.)
 
+## Outside the Gate candidates (CITABLE — for direct rendering in brief)
+**This subsection is different from the others.** It will be RENDERED on the public brief page in a section labeled "Outside the Gate · non-PRC sources." Each item must be citable: a named publication, an exact-or-near-exact publish date within the last 7 days, and a working URL. Pick 5-8 candidates; the synthesizer will choose 3-5 to render.
+
+Selection criteria — pick the inbound signals that BEST illustrate "what the world is sending toward China this week":
+- Sanctions / export controls / entity-list adds (US Treasury, BIS, EU)
+- Allied military activity (exercises, FONOPs, deployments)
+- Major diplomatic moves China-directed (G7 / G20 statements, allied summits)
+- Concrete trade actions (tariffs, tech restrictions, deals)
+- Skip pure analyst commentary; the items must be ACTIONS by named actors
+
+Format each as a single line in this exact structure (one bullet per line, no sub-bullets):
+- **[Lead actor + action verb, ≤8 words].** [One-clause explanation, ≤20 words.] | source: [publication name] | date: YYYY-MM-DD | url: [full URL]
+
+Example:
+- **US Treasury sanctions 3 PRC chip firms.** New Entity List additions cover advanced-node lithography and HBM packaging suppliers. | source: Reuters | date: 2026-05-12 | url: https://www.reuters.com/...
+
+The URL must be the actual article URL, not a generic site root. Use WebSearch / WebFetch as needed to confirm URLs. If you cannot find a citable URL for a candidate, drop it from this list (you can still mention it in the upper sections).
+
 Style notes:
 - Bias toward STRUCTURAL importance, not breaking-news churn
 - Concrete: named actors, events, dates. Not abstractions.
-- This is editorial signal for the China-brief synthesizer, NOT public-facing content
+- The non-"Outside the Gate" sections remain editorial signal for the synthesizer, NOT public-facing — synth never quotes them.
+- The "Outside the Gate candidates" section is the SINGLE exception: it IS published-source material, used to populate the new page section.
 - Do NOT recommend or instruct — just describe
-- The synthesizer will use this to (a) decide framing emphasis on bullets, (b) potentially mention key inbound signals in an "outside the gate" line, (c) calibrate Strategic Backdrop card selection. It will NOT cite or quote from this file.
 
 Save the briefing to ${OUT}. Do not output to stdout — write to the file.
 EOF

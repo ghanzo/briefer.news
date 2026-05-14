@@ -281,7 +281,9 @@ Required reading (in order):
 4. @${REPO}/research/prototype_china_2026-05-12.html — visual template; preserve all CSS, header, footer, script
 5. @${FULL} — full text of the articles the picker selected
 6. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, new quality productive forces, common prosperity, dual circulation, civil-military fusion, BRI, GDI/GSI, energy 30/60, energy security, etc.) with a "Today's coverage triggers" section. You'll use these to populate the Strategic Backdrop section.
-7. **World-context (ambient signal, NOT publishable):** @${REPO}/.run/china_world_context.md if it exists. This is what non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. Use it ONLY to (a) calibrate which bullets to emphasize and how, (b) inform the Day's Narrative dek's macro framing, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce content from this file in the brief.** The brief still publishes only from Chinese-language primary sources.
+7. **World-context (ambient signal):** @${REPO}/.run/china_world_context.md if it exists. This is what non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. The file has TWO uses:
+   - **Upper sections (Inbound signals / Western framing / Politically-vital / Calendar):** ambient framing ONLY. Use to (a) calibrate which bullets to emphasize and how, (b) inform the Day's Narrative dek's macro framing, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce these sections in the brief.**
+   - **"Outside the Gate candidates" subsection:** this IS citable. Each candidate has a publication + date + URL and is intended to be rendered directly in the new Outside the Gate page section (see Output requirements). Pick 3-5 of the candidates that best illustrate "what the world is sending toward China this week."
 
 Today is ${TODAY}.
 
@@ -311,6 +313,10 @@ Three registers, drawn from different source types. **HARD RULE: each voice must
 - One MFA spokesperson (Lin Jian / Mao Ning / Guo Jiakun) — attribute by English name + role. With 25 MFA articles in the candidate pool you should always have material here.
 - One State Council / Xi speech / Party theory voice — anchor to the policy / speech
 - One regulator / Party body / judicial voice — anchor to the regulation
+
+**HARD ORDERING RULE — Xi leads when present.** If any picked article carries a Xi Jinping speech, statement, or direct quotation (and the quote is usable per the recency rule below), the Xi voice MUST be voice #1 in the Selected view. Never demote Xi below an MFA spokesperson, regulator, or any other voice. Xi is the ultimate signal source in PRC governance; placing him below subordinates understates where authority sits. If no usable Xi material is in the picks, fall back to editorial importance for #1.
+
+**HARD RECENCY RULE — quote dates.** Voice quote dates must be within 30 days of today (${TODAY}). The date in the <cite> tag is the dispositive check — count back from today. Exception: a quote older than 30 days is allowed ONLY if it directly anchors a long-arc strategic doctrine from the strategy library (e.g., a Xi 14th/15th Five-Year Plan speech, a NQPF / Common Prosperity programmatic statement) that is actively being invoked by today's bullets. When you use this exception, you MUST also name the anchored doctrine in the bullet that connects to it, not just rely on the cite. Do NOT use older quotes for routine MFA / regulator / commentary slots — there is always fresh material there.
 
 Voice HTML template (use this structure):
 <blockquote class="pull">
@@ -345,7 +351,28 @@ Bullet caps:
 - ≤3 provincial items
 - ≤3 items focused on China-US relations (we don't want this to become a US-China brief — internal-evolution framing means most bullets are about what China is doing internally)
 
-STRATEGIC BACKDROP: After the 9 bullets, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
+OUTSIDE THE GATE: After the 9 bullets (and after the summit transcript section, if present), render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/china_world_context.md.
+
+Selection rules:
+- Pick the candidates that best illustrate "what the world is sending toward China this week" — concrete ACTIONS by named actors (sanctions / export controls / military exercises / G7-G20 statements / tariffs / deals).
+- Prefer freshness (≤7 days) and concrete actors. Skip pure analyst commentary.
+- Each item must come WITH its citable source and URL from the world-context file. If a candidate lacks a working URL, do not render it.
+- Items must be RECENT (date within last 14 days). Do not surface items older than 14 days even if the candidate file lists them.
+- Maintain editorial neutrality. State the action; do not editorialize about Chinese reaction.
+
+Outside the Gate HTML template (use this structure):
+<div class="outside-gate-wrap">
+  <h3 class="section-label">Outside the Gate</h3>
+  <p class="og-subtitle">Inbound signals &middot; non-PRC sources</p>
+  <ul class="outside-gate">
+    <li><b>[Lead actor + action, ≤8 words].</b> [One-clause explanation, ≤20 words.]<sup><a class="cite" href="[URL]" title="[Source] &mdash; [short title], [date]" target="_blank" rel="noopener">[letter]</a></sup><span class="when">[Date short] &middot; [Source]</span></li>
+    ...
+  </ul>
+</div>
+
+Use lowercase letters (a, b, c, d, e) for Outside the Gate cite markers — keep them visually distinct from the numbered (1-9) bullet cites that point to .gov.cn sources. The visual cue helps readers parse "this section is the non-PRC exception."
+
+STRATEGIC BACKDROP: After the Outside the Gate section, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
 
 Pick rules:
 - Each card connects to AT LEAST 2 of today's bullets via the strategy's themes.
@@ -372,6 +399,7 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - Insert <p class="dek">...</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative single-sentence macro arc per the rules above
 - <div class="voices">...</div> with 3 bilingual blockquotes
 - <ul class="items">...</ul> with exactly 9 <li> elements
+- The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
 - The Strategic Backdrop block (everything from <h3 class="section-label">Strategic Backdrop</h3> through </div>) with 2-3 fresh strategy cards per today's items
 - <section class="sources">...</section> with numbered <ol>
 
@@ -393,6 +421,9 @@ if ! grep -q 'class="headline"' "$OUT" || ! grep -q 'class="items"' "$OUT" || ! 
 fi
 if ! grep -q 'class="backdrop"' "$OUT"; then
   echo "WARN: $OUT missing Strategic Backdrop section — publishing anyway, but flag for review"
+fi
+if ! grep -q 'class="outside-gate"' "$OUT"; then
+  echo "WARN: $OUT missing Outside the Gate section — publishing anyway, but flag for review"
 fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 
