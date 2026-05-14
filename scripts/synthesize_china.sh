@@ -110,6 +110,14 @@ NOISE_FILTER="
 echo "--- Stage 0: china world-context (Claude WebSearch) ---"
 "$REPO/scripts/china_world_context.sh"
 
+# ── Stage 0b: continuity threads (resolve threads.yaml → today's chips) ─────
+# Reads pipeline/config/threads.yaml and writes pre-rendered chip strings
+# to .run/threads_china.txt. Synth renders these in a <p class="thread-strip">
+# immediately after the dek. Failure non-fatal — synth skips the strip if
+# the file is empty.
+echo "--- Stage 0b: continuity threads ---"
+"$REPO/scripts/threads_today.sh"
+
 # ── Stage 1: SQL pre-filter ────────────────────────────────────────────────
 # Two-pool design: 175 internal-evolution slots (priority-ordered, excluding MFA)
 # + 25 reserved MFA slots (most recent across both MFA sources). Without the reserved
@@ -315,6 +323,13 @@ Count your headline words. If over 12, cut.
 
 DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p>. **Read @${REPO}/DEK.md before drafting.** It is short and binding — covers required properties, banned openers (including "Beijing meets…posture of internal consolidation" which was reused verbatim across multiple recent days), the doctrine-name-drop prohibition (NQPF / 15FYP / dual circulation / common prosperity / 30/60 / MIC2025 do NOT belong in the dek — they go in Strategic Backdrop cards), hard-rule prohibitions, worked examples of what we've shipped vs. what we should ship, and a short pre-draft checklist. Follow every rule. The dek is the one line the brief is willing to be wrong about; it names the day's *shape*, not its contents.
 
+CONTINUITY STRIP: Immediately after the dek (before the Voices section), render a <p class="thread-strip">…</p> with the active long-running threads.
+- Read @${REPO}/.run/threads_china.txt. Each non-empty line is a pre-rendered chip string like "Day 76 · Iran war" or "Day 1 · Trump–Xi summit".
+- For each line, render one chip: <span class="thread-chip"><b>[part before " · "]</b> &middot; [part after " · "]</span>. The bold-wrapped portion is everything up to and not including the " · " separator (e.g., "Day 76", "Day 1"). The trailing part is the thread name. Use &ndash; for en-dashes in names ("Trump–Xi summit" → "Trump&ndash;Xi summit").
+- If threads_china.txt is empty or missing, omit the entire <p class="thread-strip"> block entirely. Do not render an empty strip.
+- The strip is data; do not invent threads. Use only the chips in the file.
+- DEK.md notes "anchor a thread that returns tomorrow" is one of the five qualities a good dek can have. These threads are the menu — when natural, the dek can reference "Day 76 of the Iran war" or similar to anchor a thread.
+
 VOICES: **6 voices total** as <blockquote class="pull">. **ENGLISH-ONLY FORMAT** — each voice is a faithful English translation of the original Chinese quote. The translation MUST reflect the calibrated diplomatic vocabulary (see below) — translate the gradation, not the literal word. Each 12-30 words. Order by editorial importance: the first 3 are shown in the page's default "Selected" view; the next 3 appear when readers click "Expanded." Both sets follow the same hard rules below (no repeat speakers, mix of registers).
 
 Three registers, drawn from different source types. **HARD RULE: each voice must be from a DIFFERENT speaker AND a DIFFERENT source category.** Never quote the same person twice. If only 2 distinct categories are available in your picks, output 2 voices, not 3 with a repeat.
@@ -407,7 +422,8 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <title>...</title> to "Briefer News — China — May 12, 2026" format (use today's human date)
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
 - <h2 class="headline">...</h2> per rules above
-- Insert <p class="dek">...</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative single-sentence macro arc per the rules above
+- Insert <p class="dek">...</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per the rules above
+- Insert <p class="thread-strip">...</p> IMMEDIATELY after </p> closing the dek — the continuity strip per rules above. Omit entirely if .run/threads_china.txt is empty.
 - <div class="voices">...</div> with 3 bilingual blockquotes
 - <ul class="items">...</ul> with exactly 9 <li> elements
 - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list

@@ -1,0 +1,45 @@
+# Active long-running threads displayed in the continuity strip
+# immediately below the dek of each daily brief.
+#
+# Editor-curated. Add a new entry when an arc begins; set end_date
+# when it concludes (the chip then drops off). No auto-detection.
+#
+# Fields:
+#   id              — slug (used internally, not displayed)
+#   name            — display name on the chip
+#   start_date      — YYYY-MM-DD when the arc began
+#   end_date        — YYYY-MM-DD when arc ended (null = ongoing)
+#   editions        — [us], [china], or [us, china]
+#   display_format  — one of:
+#                       day    → "Day N · Name"
+#                       month  → "Month N · Name"
+#                       year   → "Year N · Name"
+#                       event  → just "Name" (no count)
+#
+# The continuity-strip script `scripts/threads_today.py` reads this file,
+# filters by today's date and edition, computes day counts, and writes
+# pre-rendered chip strings to .run/threads_us.txt and .run/threads_china.txt
+# for the synthesizers to render in HTML.
+
+threads:
+
+  - id: iran-war
+    name: Iran war
+    start_date: 2026-02-28
+    end_date: null
+    editions: [us, china]
+    display_format: day
+
+  - id: trump-xi-summit-2026
+    name: Trump–Xi summit
+    start_date: 2026-05-14
+    end_date: null
+    editions: [us, china]
+    display_format: day
+
+  - id: ukraine-war
+    name: Ukraine war
+    start_date: 2022-02-24
+    end_date: null
+    editions: [us]
+    display_format: year

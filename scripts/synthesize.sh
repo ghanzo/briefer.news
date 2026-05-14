@@ -54,6 +54,14 @@ echo ""
 echo "--- Stage 0: world context ---"
 "$REPO/scripts/world_context.sh"
 
+# ── Stage 0b: continuity threads (resolve threads.yaml → today's chips) ─────
+# Reads pipeline/config/threads.yaml and writes pre-rendered chip strings
+# to .run/threads_us.txt. Synth renders these in a <p class="thread-strip">
+# immediately after the dek. Failure non-fatal — synth skips the strip if
+# the file is empty.
+echo "--- Stage 0b: continuity threads ---"
+"$REPO/scripts/threads_today.sh"
+
 # Shared SQL fragment for the source allowlist + noise blacklist.
 ALLOWLIST_SQL="
   WITH allowlist(name, priority) AS (VALUES
@@ -291,6 +299,13 @@ Your job:
 - Apply BRIEF_STYLE.md rules: at most 2 DOJ items, at most 3 purely-domestic items, mix of registers in the voices.
 - HEADLINE — read BRIEF_STYLE.md "Accessibility rule" carefully. Punchy, plain, fact-based. ONE OR TWO CLEAR ACTIONS MAX. Readable by a smart friend who reads the New York Times but does NOT follow the Federal Register. Replace acronyms and institutional shortcuts with plain descriptors: GAESA → "Cuba's military business arm"; DFARS/FOCI → "foreign-ownership rule"; FY27 → "2027 budget"; "designated" → "sanctioned" or "blacklisted"; bare place names need a one-word anchor ("Hormuz" → "Strait of Hormuz"). Avoid compound jargon ("oil-graft network", "launch sites"). If a term in the headline would need explaining at a dinner party, rewrite it.
 - DAY'S NARRATIVE: Right below the headline, render a <p class="dek">…</p>. **Read @${REPO}/DEK.md before drafting.** It is short and binding — covers required properties, banned openers, the doctrine-name-drop prohibition, hard-rule prohibitions, worked examples of what we've shipped vs. what we should ship, and a short pre-draft checklist. Follow every rule. The dek is the one line the brief is willing to be wrong about; it names the day's *shape*, not its contents.
+
+- CONTINUITY STRIP: Immediately after the dek (before the Voices section), render a <p class="thread-strip">…</p> with the active long-running threads.
+  - Read @${REPO}/.run/threads_us.txt. Each non-empty line is a pre-rendered chip string like "Day 76 · Iran war" or "Year 5 · Ukraine war".
+  - For each line, render one chip: <span class="thread-chip"><b>[part before " · "]</b> &middot; [part after " · "]</span>. The bold-wrapped portion is everything up to and not including the " · " separator (e.g., "Day 76", "Year 5"). The trailing part is the thread name (e.g., "Iran war"). Use &ndash; for en-dashes in names ("Trump–Xi summit" → "Trump&ndash;Xi summit").
+  - If threads_us.txt is empty or missing, omit the entire <p class="thread-strip"> block entirely. Do not render an empty strip.
+  - The strip is data; do not invent threads. Use only the chips in the file.
+  - DEK.md notes that "anchor a thread that returns tomorrow" is one of the five qualities a good dek can have. The threads here are the menu — when natural, the dek can reference "Day 76 of the Iran war" or similar to anchor a thread.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
 - Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are shown in the page's default "Selected" view; the next 3 appear when readers click "Expanded." Both sets follow the same rules (no repeat speakers, mix of registers).
 - OUTSIDE THE GATE: After the 9 bullets and before By the Numbers, render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/world_context.md.
@@ -319,6 +334,7 @@ Your job:
   - <div class="stamp">...</div> to today's date in CAPS (e.g. "MAY 13, 2026", not "May 13, 2026")
   - <h2 class="headline">...</h2> — 12 to 16 words, plain English, accessible to a non-specialist (see Accessibility rule above)
   - Insert <p class="dek">…</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per rules above
+  - Insert <p class="thread-strip">…</p> IMMEDIATELY after </p> closing the dek — the continuity strip per rules above. Omit entirely if .run/threads_us.txt is empty.
   - <div class="voices">...</div> — 3 voices as <blockquote class="pull">
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
   - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list

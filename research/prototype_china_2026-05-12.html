@@ -349,6 +349,28 @@
       letter-spacing: 0.06em;
     }
 
+    /* Continuity strip — running threads, just below the dek */
+    .thread-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 22px;
+      margin: -4px 0 22px;
+      padding: 10px 0 0;
+      border-top: 1px solid var(--ink-soft);
+    }
+    .thread-chip {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sepia);
+      white-space: nowrap;
+    }
+    .thread-chip b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
     /* Outside the Gate — inbound signals from non-PRC sources */
     .outside-gate-wrap {
       margin: 22px 0 0;
@@ -1441,6 +1463,11 @@
   <h2 class="headline">
     Cuba sanctions framework lands; Iran-China oil network targeted; DOJ opens UCLA admissions probe.
   </h2>
+
+  <p class="thread-strip">
+    <span class="thread-chip"><b>Day 1</b> &middot; Trump&ndash;Xi summit</span>
+    <span class="thread-chip"><b>Day 76</b> &middot; Iran war</span>
+  </p>
 
   <h3 class="section-label">Voices</h3>
   <nav class="voices-views" role="tablist">
