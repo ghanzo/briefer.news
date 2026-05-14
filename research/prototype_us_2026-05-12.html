@@ -1517,5 +1517,25 @@
   });
 </script>
 
+
+<script>
+  // Trump-Xi transcript section view-switcher
+  document.querySelectorAll('nav.transcript-views button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var target = btn.dataset.tview;
+      var section = btn.closest('section.transcript');
+      if (!section) return;
+      section.querySelectorAll('nav.transcript-views button').forEach(function(b) {
+        var on = (b === btn);
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      section.querySelectorAll('.transcript-view').forEach(function(v) {
+        v.classList.toggle('active', v.classList.contains('tview-' + target));
+      });
+    });
+  });
+</script>
+
 </body>
 </html>
