@@ -500,7 +500,7 @@
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid var(--ink-soft);
       border-radius: 2px;
-      margin: 10px 0 28px;
+      margin: 10px 0 42px;
     }
     .spr-fill {
       position: absolute;
@@ -530,6 +530,13 @@
       text-transform: uppercase;
       color: var(--ink-light);
       white-space: nowrap;
+    }
+    /* Stagger the cap label below the peak label so they don't overlap
+       on narrower viewports (both labels are right-anchored to their
+       tick; close tick positions cause the wider label to ride over
+       the rightmost one). */
+    .spr-tick-max .spr-tick-label {
+      margin-top: 18px;
     }
     .spr-readout {
       display: flex;
