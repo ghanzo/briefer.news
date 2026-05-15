@@ -370,26 +370,47 @@
       letter-spacing: 0.06em;
     }
 
-    /* Continuity strip — running threads, just below the dek */
+    /* Continuity strip — running threads, just below the dek.
+       Centered band between two sepia rules, with a "Running" label on
+       the left of the chip row. Each chip is a small pill (border +
+       padding) so the strip reads as a bounded element. */
     .thread-strip {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px 22px;
-      margin: -4px 0 22px;
-      padding: 10px 0 0;
+      align-items: center;
+      justify-content: center;
+      gap: 8px 12px;
+      margin: -4px 0 16px;
+      padding: 12px 0;
       border-top: 1px solid var(--ink-soft);
+      border-bottom: 1px solid var(--ink-soft);
+    }
+    .thread-strip::before {
+      content: "Running";
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      padding-right: 12px;
+      border-right: 1px solid var(--ink-soft);
+      white-space: nowrap;
     }
     .thread-chip {
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 10px;
-      letter-spacing: 0.18em;
+      letter-spacing: 0.14em;
       text-transform: uppercase;
       color: var(--sepia);
+      padding: 4px 10px;
+      border: 1px solid var(--ink-soft);
+      border-radius: 2px;
       white-space: nowrap;
     }
     .thread-chip b {
       color: var(--ink);
       font-weight: 600;
+      margin-right: 2px;
     }
 
     /* "This week" section — section-label header + summary block linking
