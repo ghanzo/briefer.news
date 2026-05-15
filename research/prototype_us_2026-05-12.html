@@ -836,40 +836,51 @@
     }
 
 /* Voices view-switcher (Selected / Expanded) */
-    nav.voices-views {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin: 0 0 14px;
+    /* Voices "show 3 more" — native <details> replacing the old
+       Selected/Expanded button toggle. First 3 voices always visible;
+       summary acts as the click target for the additional 3. */
+    details.voices-extras {
+      margin: 14px 0 0;
     }
-    nav.voices-views button {
+    details.voices-extras > summary.voices-extras-summary {
+      cursor: pointer;
+      list-style: none;
+      display: inline-block;
+      padding: 8px 14px;
       background: transparent;
       border: 1px solid var(--ink-soft);
-      color: var(--ink-soft);
-      padding: 8px 14px;
+      border-radius: 2px;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 10px;
       letter-spacing: 0.16em;
       text-transform: uppercase;
       font-weight: 500;
-      cursor: pointer;
-      border-radius: 2px;
+      color: var(--ink-soft);
+      user-select: none;
       transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
     }
-    nav.voices-views button:hover {
-      color: var(--ink);
-      border-color: var(--ink-light);
+    details.voices-extras > summary.voices-extras-summary::-webkit-details-marker { display: none; }
+    details.voices-extras > summary.voices-extras-summary::before {
+      content: "+ ";
+      font-weight: 600;
     }
-    nav.voices-views button.active {
+    details.voices-extras[open] > summary.voices-extras-summary {
+      margin-bottom: 14px;
       color: var(--paper);
       background: var(--sepia);
       border-color: var(--sepia);
     }
-    .voices.default-view blockquote.pull:nth-of-type(n+4) {
-      display: none;
+    details.voices-extras[open] > summary.voices-extras-summary::before {
+      content: "\2212 ";
     }
-    .voices.default-view .voices-pending {
-      display: none;
+    details.voices-extras > summary.voices-extras-summary:hover {
+      color: var(--ink);
+      border-color: var(--ink-light);
+    }
+    details.voices-extras[open] > summary.voices-extras-summary:hover {
+      background: var(--sepia);
+      color: var(--paper);
+      border-color: var(--sepia);
     }
     .voices-pending {
       margin: 14px 0 0;
@@ -1421,11 +1432,7 @@
   </p>
 
   <h3 class="section-label">Voices</h3>
-  <nav class="voices-views" role="tablist">
-    <button class="active" data-vview="default" role="tab" aria-selected="true">Selected</button>
-    <button data-vview="expanded" role="tab" aria-selected="false">Expanded</button>
-  </nav>
-  <div class="voices default-view">
+  <div class="voices">
     <blockquote class="pull">
       <p>&ldquo;[The Cuban government's policies] are repugnant to the moral and political values of free and democratic societies.&rdquo;</p>
       <cite>Executive Order 14404 &middot; May 1<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404, Sanctions on Cuba, May 7, 2026" target="_blank" rel="noopener">1</a></sup></cite>
@@ -1440,9 +1447,11 @@
       <p>&ldquo;America is producing as much natural gas as Russia, China and Iran combined.&rdquo;</p>
       <cite>Energy Sec. Chris Wright, Three Seas Initiative Summit, Dubrovnik &middot; April 28<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup></cite>
     </blockquote>
-  <div class="voices-pending">
-    <p><strong>Expanded view pending.</strong> The synthesizer currently produces 3 voices per brief; the next autonomous synth (07:00 PDT for US, 07:30 PDT for China) will produce 6 voices total — 3 priority + 3 supplementary — and the additional speakers will appear here.</p>
-  </div>
+    <details class="voices-extras">
+      <summary class="voices-extras-summary">Show 3 more voices</summary>
+      <!-- The synthesizer fills 3 additional <blockquote class="pull"> elements here.
+           In the prototype, these are placeholder until a live synth runs. -->
+    </details>
   </div>
 
   <h3 class="section-label">Significant items</h3>
@@ -1842,24 +1851,6 @@
   });
 </script>
 
-
-<script>
-  // Voices section view-switcher
-  document.querySelectorAll('nav.voices-views button').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      var target = btn.dataset.vview;
-      var nav = btn.parentElement;
-      var voices = nav.parentElement.querySelector('div.voices');
-      if (!voices) return;
-      nav.querySelectorAll('button').forEach(function(b) {
-        var on = (b === btn);
-        b.classList.toggle('active', on);
-        b.setAttribute('aria-selected', on ? 'true' : 'false');
-      });
-      voices.classList.toggle('default-view', target === 'default');
-    });
-  });
-</script>
 
 </body>
 </html>

@@ -307,7 +307,7 @@ Your job:
   - The strip is data; do not invent threads. Use only the chips in the file.
   - DEK.md notes that "anchor a thread that returns tomorrow" is one of the five qualities a good dek can have. The threads here are the menu — when natural, the dek can reference "Day 76 of the Iran war" or similar to anchor a thread.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
-- Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are shown in the page's default "Selected" view; the next 3 appear when readers click "Expanded." Both sets follow the same rules (no repeat speakers, mix of registers).
+- Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are the priority selection (always visible). Wrap the additional 3 in `<details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> ... 3 more <blockquote class="pull"> ... </details>` — native HTML expander, no JS. Both groups follow the same rules (no repeat speakers, mix of registers).
 - OUTSIDE THE GATE: After the 9 bullets and before By the Numbers, render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/world_context.md.
 
   Selection rules:
@@ -341,7 +341,7 @@ Your job:
   - <h2 class="headline">...</h2> — 12 to 16 words, plain English, accessible to a non-specialist (see Accessibility rule above)
   - Insert <p class="dek">…</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per rules above
   - Insert <p class="thread-strip">…</p> IMMEDIATELY after </p> closing the dek — the continuity strip per rules above. Omit entirely if .run/threads_us.txt is empty.
-  - <div class="voices">...</div> — 3 voices as <blockquote class="pull">
+  - <div class="voices">...</div> — first 3 voices as <blockquote class="pull"> directly inside, then a <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> with the additional 3 <blockquote class="pull"> elements inside. No `open` attribute on this details — extras default to hidden (preserving the original "Selected" view as default).
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
   - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
   - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section uses native <details> with the `open` attribute, so it renders expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the `open` attribute.
