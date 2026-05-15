@@ -10,13 +10,17 @@
 # the past seven days of archived dailies.
 #
 # Sequence:
-#   1. og_weekly.sh    — aggregates the week's Outside the Gate items
-#                         (cheap, ~30s, no Claude calls)
-#   2. weekly.sh       — full weekly digest with Claude synthesis per
-#                         edition (~3-5 min total)
-#   3. archive_index   — rebuild the per-edition archive index pages
-#                         so any new brief published this morning is
-#                         listed there (~5s, no Claude calls)
+#   1. og_weekly.sh           — aggregates the week's Outside the Gate
+#                                items (cheap, ~30s, no Claude calls)
+#   2. weekly.sh              — full weekly digest with Claude synthesis
+#                                per edition (~3-5 min total)
+#   3. archive_index          — rebuild the per-edition archive index
+#                                pages so any new brief published this
+#                                morning is listed (~5s, no Claude)
+#   4. inject_weekly_preview  — read each edition's just-written weekly
+#                                headline and patch today's daily brief
+#                                with a "This week" callout below the
+#                                thread strip (~5s, no Claude)
 #
 # Failure mode: each child script logs its own failures; this wrapper
 # continues to the next stage either way.
@@ -45,7 +49,7 @@ echo "── Stage 2/3: weekly.sh ──"
 "$REPO/scripts/weekly.sh"
 
 echo ""
-echo "── Stage 3/3: archive_index ──"
+echo "── Stage 3/4: archive_index ──"
 DOCKER=/usr/local/bin/docker
 AWS=/Users/maxgoshay/.local/bin/aws
 RUN_DIR="$REPO/.run"
@@ -74,6 +78,10 @@ if [ -s "$RUN_DIR/archive_index_usa.html" ] && [ -s "$RUN_DIR/archive_index_chin
 else
   echo "archive_index.py produced no output — skipping deploy"
 fi
+
+echo ""
+echo "── Stage 4/4: inject_weekly_preview ──"
+python3 "$REPO/scripts/inject_weekly_preview.py"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"

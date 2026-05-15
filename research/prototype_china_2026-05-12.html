@@ -380,6 +380,45 @@
       font-weight: 600;
     }
 
+    /* This-week preview — a one-line callout below the thread strip
+       linking to the rolling 7-day digest at /china/weekly/ */
+    .weekly-preview {
+      margin: -12px 0 22px;
+      padding: 0;
+    }
+    .weekly-preview a {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--sepia);
+      text-decoration: none;
+      padding-bottom: 4px;
+      border-bottom: 1px dotted transparent;
+    }
+    .weekly-preview a:hover { border-bottom-color: var(--sepia); }
+    .weekly-preview-label {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 600;
+      white-space: nowrap;
+      color: var(--sepia);
+    }
+    .weekly-preview-headline {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-style: italic;
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--ink);
+      font-weight: 400;
+    }
+    .weekly-preview-arrow {
+      color: var(--sepia);
+      font-weight: 500;
+    }
+
     /* Outside the Gate — inbound signals from non-PRC sources */
     .outside-gate-wrap {
       margin: 22px 0 0;
