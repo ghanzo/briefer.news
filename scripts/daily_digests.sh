@@ -24,6 +24,11 @@
 #   5. build_sitemap          — regenerate sitemap.xml so search engines
 #                                pick up today's new archive entry
 #                                (~3s, no Claude)
+#   6. threads_propose        — scan past 14 days of bullets, ask Claude
+#                                for candidate new threads not yet in
+#                                threads.yaml. Output is editor-review
+#                                only — never auto-merged (~30s, 1 Claude
+#                                call). Review at .run/threads_proposed.md.
 #
 # Failure mode: each child script logs its own failures; this wrapper
 # continues to the next stage either way.
