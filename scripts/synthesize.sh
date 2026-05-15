@@ -330,7 +330,7 @@ Your job:
   Use lowercase letters (a, b, c, d, e) for Outside the Gate cite markers — keep them visually distinct from the numbered (1-9) bullet cites that point to US-gov sources. The visual cue helps readers parse "this section is the non-US-gov exception."
 
 - Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <header>, <footer>, and <script> blocks unchanged. Preserve the <p class="weekly-link">...</p> nav element immediately after the Outside the Gate block — do not remove it. Only replace:
-  - <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand. Format: `[KEY PHRASES] · [Month Day] · Briefer News`. Example: `Trump-Xi summit, Hormuz coalition · May 14 · Briefer News`. Goal: ≤65 total chars. Avoid acronyms; use plain-English noun phrases that match what a reader would Google ("Hormuz coalition" not "CENTCOM patrol", "Trump-Xi summit" not "bilateral meeting").
+  - <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand. Format pattern is "[KEY PHRASES] · [Month Day] · Briefer News". Concrete example: "Trump-Xi summit, Hormuz coalition · May 14 · Briefer News". Goal: ≤65 total chars. Avoid acronyms; use plain-English noun phrases that match what a reader would Google ("Hormuz coalition" not "CENTCOM patrol", "Trump-Xi summit" not "bilateral meeting").
   - <meta name="description" content="..."> — paste TODAY's full dek text (verbatim, including punctuation). The dek is already 30-55 words, ideal length for search snippets and social previews.
   - <meta property="og:title" content="..."> — same string as the <title> tag.
   - <meta property="og:description" content="..."> — same as the meta description (today's dek).
@@ -344,7 +344,7 @@ Your job:
   - <div class="voices">...</div> — 3 voices as <blockquote class="pull">
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
   - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
-  - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details"><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section is collapsed by default via native <details>; the synth must not remove the wrapper or the summary text.
+  - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section uses native <details> with the `open` attribute, so it renders expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the `open` attribute.
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it to the file.
 EOF
