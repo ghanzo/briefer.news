@@ -4,8 +4,8 @@ weekly_aggregate.py — Read the past 7 days of archived daily briefs for
 one edition and emit a structured JSON document with every section the
 weekly synth needs.
 
-Reuses the same nginx-volume-via-docker-exec pattern as
-og_weekly_aggregate.py. Pulls:
+Reuses the same nginx-volume-via-docker-exec pattern as the rest of
+the pipeline. Pulls:
   - headline
   - dek (if present — older briefs lacked one)
   - thread chips (if present — landed 2026-05-15)

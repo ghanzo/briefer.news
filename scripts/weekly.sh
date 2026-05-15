@@ -8,9 +8,9 @@
 #
 # Cadence: daily-rolling. Fires every morning at 08:00 PDT via
 # ~/Library/LaunchAgents/news.briefer.digests.plist (wrapped by
-# daily_digests.sh, which runs og_weekly.sh first). The aggregator
-# uses a "today − 6 days" window, so the /weekly/ page slides forward
-# one day per run and is always current — never stale-for-a-week.
+# daily_digests.sh). The aggregator uses a "today − 6 days" window,
+# so the /weekly/ page slides forward one day per run and is always
+# current — never stale-for-a-week.
 #
 # Failure mode: any stage fails → log, exit 0, leave previous weekly live.
 

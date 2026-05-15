@@ -3,9 +3,10 @@
 archive_index.py — Build a chronological index page of past daily briefs
 for each edition.
 
-Reads from the nginx docker volume (same pattern as og_weekly_aggregate.py).
-For each archived HTML file, extracts the headline and dek (if present),
-then renders a single index page per edition.
+Reads from the nginx docker volume (same docker-exec pattern as
+weekly_aggregate.py). For each archived HTML file, extracts the
+headline and dek (if present), then renders a single index page
+per edition.
 
 US edition pulls from BOTH /archive/ (legacy, pre-2026-05-12 single-edition)
 AND /usa/archive/ (multi-edition era). China edition pulls only from

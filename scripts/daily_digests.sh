@@ -4,10 +4,10 @@
 # Runs every day at 08:00 PDT via ~/Library/LaunchAgents/news.briefer.digests.plist,
 # after both daily synths complete (US 07:10 PDT, China 07:43 PDT).
 #
-# Both digest scripts use a "today − 6 days" rolling window, so each
-# daily run slides the window forward by one day. The /weekly/ and
-# /og-week/ URLs are always fresh — never stale — and always reflect
-# the past seven days of archived dailies.
+# The weekly digest uses a "today − 6 days" rolling window, so each
+# daily run slides the window forward by one day. The /weekly/ URL
+# is always fresh — never stale — and always reflects the past seven
+# days of archived dailies.
 #
 # Sequence:
 #   1. weekly.sh              — full weekly digest with Claude synthesis

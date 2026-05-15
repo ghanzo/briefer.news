@@ -44,6 +44,23 @@ function handler(event) {
         };
     }
 
+    // Legacy /og-week/ → /weekly/ — Outside the Gate was removed 2026-05-14.
+    // Permanent redirect protects any external links or bookmarks.
+    if (uri === '/usa/og-week/' || uri === '/usa/og-week' || uri === '/usa/og-week/index.html') {
+        return {
+            statusCode: 301,
+            statusDescription: 'Moved Permanently',
+            headers: { 'location': { value: '/usa/weekly/' } }
+        };
+    }
+    if (uri === '/china/og-week/' || uri === '/china/og-week' || uri === '/china/og-week/index.html') {
+        return {
+            statusCode: 301,
+            statusDescription: 'Moved Permanently',
+            headers: { 'location': { value: '/china/weekly/' } }
+        };
+    }
+
     // Non-root: trailing-slash + extensionless rewrites
     if (uri.endsWith('/')) {
         request.uri = uri + 'index.html';
