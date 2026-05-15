@@ -18,6 +18,18 @@ Three working properties:
 
 ---
 
+## Present-tense / today voice
+
+The dek is the day's lead — it should read as *happening now*, not as recap. The "This week" section sitting right below the dek covers the past 7 days in retrospective voice; the dek's job is the opposite — to put the reader *inside* today.
+
+- **Prefer present-tense verbs.** "Washington flies to Beijing" not "Washington flew to Beijing." "Beijing arranges the room" not "Beijing arranged the room." "The coalition convenes" not "The coalition convened."
+- **Time markers, when used, point to now.** "Today," "now," "this morning," "by this afternoon." Avoid past-leaning markers ("yesterday," "earlier today," "the day's") in the dek's opening clause.
+- **Distinguish from the weekly's "this week" lead.** The "This week" section that sits below the dek uses retrospective voice — "this week," "by Friday," "the week's." The dek should *not* use that voice. The two should read as complementary: dek = today's lens, weekly = the week's lens.
+
+This is voice, not a template. "Today" does not have to be the literal first word — in fact, "Today threads through…" is already a banned opener. Just write so the reader feels they are inside the day, not looking back on it.
+
+---
+
 ## Hard rules
 
 - **Length: 30–55 words. Two sentences maximum.** A dek over 55 words is hiding indecision. A single sentence is allowed if it carries.

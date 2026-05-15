@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
 """
-inject_weekly_preview.py — Read each edition's weekly digest headline
-from the nginx volume and patch it into today's deployed daily brief
-as a small "This week" callout immediately below the thread strip.
+inject_weekly_preview.py — Build the "This week" section for each daily
+brief from the just-written weekly digest, then patch it into the live
+daily HTML.
 
-Intended to run from daily_digests.sh AFTER weekly.sh, so the callout
-reflects the just-synthesized weekly. Also handles backfill scenarios
-where the daily was rendered before the weekly-preview CSS / HTML was
-introduced — the script injects the CSS too if missing.
+The "This week" section follows the same visual identity as Voices /
+Events: a section-label header followed by a summary block (weekly's
+headline + lead paragraph) and an optional drop-down listing the top
+events of the week, plus a link to the full digest.
 
-Usage:
-  python3 scripts/inject_weekly_preview.py
+Output ends up at /usa/index.html and /china/index.html on the public
+site. The script is idempotent — strips any previous .weekly-preview
+block before injecting.
+
+Cadence: runs from daily_digests.sh after weekly.sh, so each morning's
+daily reflects the just-synthesized weekly.
 """
 
 from __future__ import annotations
@@ -26,25 +30,56 @@ RUN_DIR = REPO / ".run"
 NGINX_CONTAINER = "briefer_nginx"
 
 WEEKLY_PREVIEW_CSS = """
-    /* This-week preview — backfill 2026-05-14 evening */
-    .weekly-preview { margin: -12px 0 22px; padding: 0; }
-    .weekly-preview a {
-      display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
-      color: var(--sepia); text-decoration: none; padding-bottom: 4px;
-      border-bottom: 1px dotted transparent;
-    }
-    .weekly-preview a:hover { border-bottom-color: var(--sepia); }
-    .weekly-preview-label {
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
-      font-weight: 600; white-space: nowrap; color: var(--sepia);
-    }
+    /* This week section backfill 2026-05-14 evening */
     .weekly-preview-headline {
       font-family: 'EB Garamond', Garamond, Georgia, serif;
-      font-style: italic; font-size: 16px; line-height: 1.4;
-      color: var(--ink); font-weight: 400;
+      font-size: 22px; line-height: 1.3; font-weight: 500;
+      color: var(--ink); margin: 0 0 12px; max-width: 64ch;
     }
-    .weekly-preview-arrow { color: var(--sepia); font-weight: 500; }
+    .weekly-preview-lead {
+      font-size: 17px; line-height: 1.55;
+      color: var(--ink); margin: 0 0 16px; max-width: 64ch;
+    }
+    details.weekly-preview-events { margin: 0 0 16px; }
+    details.weekly-preview-events > summary.weekly-preview-events-summary {
+      cursor: pointer; list-style: none; display: inline-block;
+      padding: 6px 12px; background: transparent;
+      border: 1px solid var(--ink-soft); border-radius: 2px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+      font-weight: 500; color: var(--ink-soft); user-select: none;
+      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+    details.weekly-preview-events > summary.weekly-preview-events-summary::-webkit-details-marker { display: none; }
+    details.weekly-preview-events > summary.weekly-preview-events-summary::before { content: "+ "; font-weight: 600; }
+    details.weekly-preview-events[open] > summary.weekly-preview-events-summary {
+      margin-bottom: 10px; color: var(--paper);
+      background: var(--sepia); border-color: var(--sepia);
+    }
+    details.weekly-preview-events[open] > summary.weekly-preview-events-summary::before { content: "\\2212 "; }
+    details.weekly-preview-events > summary.weekly-preview-events-summary:hover {
+      color: var(--ink); border-color: var(--ink-light);
+    }
+    details.weekly-preview-events[open] > summary.weekly-preview-events-summary:hover {
+      background: var(--sepia); color: var(--paper); border-color: var(--sepia);
+    }
+    .weekly-preview-events-list { list-style: none; padding: 0; margin: 8px 0 0; }
+    .weekly-preview-events-list li {
+      padding: 6px 0 6px 18px; position: relative; font-size: 15px;
+      color: var(--ink); border-top: 1px solid var(--ink-soft);
+    }
+    .weekly-preview-events-list li:first-child { border-top: none; }
+    .weekly-preview-events-list li::before {
+      content: "·"; position: absolute; left: 4px;
+      color: var(--sepia); font-weight: 600;
+    }
+    .weekly-preview-link {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--sepia); text-decoration: none;
+      border-bottom: 1px dotted var(--sepia); padding-bottom: 2px;
+    }
+    .weekly-preview-link:hover { border-bottom-style: solid; }
 """
 
 
@@ -59,15 +94,6 @@ def _docker_read(path: str) -> str:
 
 
 def _docker_write(local_path: Path, dst_path: str) -> bool:
-    """Push local_path into the nginx-shared docker volume via an alpine
-    one-shot container. The nginx container mounts the volume read-only
-    so `docker cp` into it fails; using alpine with the volume mounted
-    RW matches the pattern used by synth/og_weekly/weekly scripts.
-
-    dst_path: path inside the volume, e.g. /usr/share/nginx/html/usa/index.html
-    (we map this to /dst/usa/index.html since the alpine container mounts
-    briefernewsapp_site_output at /dst).
-    """
     rel = dst_path.replace("/usr/share/nginx/html/", "", 1)
     src_dir = local_path.parent
     src_name = local_path.name
@@ -105,51 +131,88 @@ def _s3_put(local_path: Path, s3_path: str) -> bool:
         return False
 
 
-def extract_weekly_headline(html: str) -> str | None:
-    """Pull the <h2 class=\"headline\"> text from a weekly digest page."""
+def extract_weekly(html: str) -> dict:
+    """Pull headline + lead paragraph + top bullet-lead phrases from a weekly."""
+    result = {"headline": "", "lead": "", "events": []}
+
     m = re.search(r'<h2 class="headline">\s*(.+?)\s*</h2>', html, re.DOTALL)
-    if not m:
-        return None
-    text = re.sub(r"\s+", " ", m.group(1)).strip()
-    return text
+    if m:
+        result["headline"] = re.sub(r"\s+", " ", m.group(1)).strip()
+
+    m = re.search(r'<p class="week-read">\s*(.+?)\s*</p>', html, re.DOTALL)
+    if m:
+        result["lead"] = re.sub(r"\s+", " ", m.group(1)).strip()
+
+    # Extract top 5 event lead phrases from <ul class="week-bullets">
+    bullets_m = re.search(r'<ul class="week-bullets">(.+?)</ul>', html, re.DOTALL)
+    if bullets_m:
+        for li_m in re.finditer(r'<li>\s*<b>([^<]+)</b>', bullets_m.group(1)):
+            lead_phrase = re.sub(r"\s+", " ", li_m.group(1)).strip().rstrip(".")
+            if lead_phrase:
+                result["events"].append(lead_phrase)
+            if len(result["events"]) >= 5:
+                break
+
+    return result
 
 
-def inject(daily_html: str, weekly_headline: str, edition_path: str) -> str:
-    """Patch daily HTML with .weekly-preview block + CSS (if missing)."""
-    # Decode entity references so the headline reads cleanly inside <span>
-    headline_text = html_lib.unescape(weekly_headline)
-    # Re-escape for safe insertion
-    safe_headline = html_lib.escape(headline_text, quote=False)
+def render_preview(weekly: dict, edition_path: str) -> str:
+    headline = html_lib.escape(weekly["headline"]) if weekly["headline"] else "Read this week's digest"
+    lead = weekly["lead"]  # already entity-encoded in source HTML; leave as-is
 
-    preview_html = (
-        f'\n  <p class="weekly-preview">\n'
-        f'    <a href="/{edition_path}/weekly/">\n'
-        f'      <span class="weekly-preview-label">&#8599; This week</span>\n'
-        f'      <span class="weekly-preview-headline">&ldquo;{safe_headline}&rdquo;</span>\n'
-        f'      <span class="weekly-preview-arrow">&rarr;</span>\n'
-        f'    </a>\n'
-        f'  </p>\n'
+    events_html = ""
+    if weekly["events"]:
+        items = "\n".join(
+            f'        <li>{html_lib.escape(e)}</li>' for e in weekly["events"]
+        )
+        events_html = (
+            '\n    <details class="weekly-preview-events">\n'
+            '      <summary class="weekly-preview-events-summary">This week\'s events</summary>\n'
+            '      <ul class="weekly-preview-events-list">\n'
+            f"{items}\n"
+            "      </ul>\n"
+            "    </details>"
+        )
+
+    return (
+        '\n  <h3 class="section-label">This week</h3>\n'
+        '  <div class="weekly-preview">\n'
+        f'    <p class="weekly-preview-headline">{headline}</p>\n'
+        + (f'    <p class="weekly-preview-lead">{lead}</p>\n' if lead else "")
+        + events_html + "\n"
+        f'    <a class="weekly-preview-link" href="/{edition_path}/weekly/">Read the full digest &rarr;</a>\n'
+        '  </div>\n'
     )
 
-    # Remove any previously-injected preview (idempotent)
+
+def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
+    # Remove any previously-injected preview (legacy <p class="weekly-preview">
+    # OR new <div class="weekly-preview"> block)
     daily_html = re.sub(
         r'\n\s*<p class="weekly-preview">.*?</p>\n',
         "\n",
         daily_html, flags=re.DOTALL,
     )
+    daily_html = re.sub(
+        r'\n\s*<h3 class="section-label">This week</h3>\s*<div class="weekly-preview">.*?</div>\n',
+        "\n",
+        daily_html, flags=re.DOTALL,
+    )
 
     # Inject CSS if not already present
-    if ".weekly-preview" not in daily_html:
+    if ".weekly-preview-headline" not in daily_html:
         daily_html = daily_html.replace("</style>", WEEKLY_PREVIEW_CSS + "\n  </style>", 1)
 
-    # Insert preview after the thread strip's closing </p>
+    preview_html = render_preview(weekly, edition_path)
+
+    # Insert after the thread-strip's closing </p>
     new_html, n = re.subn(
         r'(<p class="thread-strip">.*?</p>)',
         lambda m: m.group(1) + preview_html.rstrip("\n"),
         daily_html, count=1, flags=re.DOTALL,
     )
     if n == 0:
-        # Fallback: insert after the dek if thread-strip not present
+        # Fallback: insert after the dek
         new_html, n = re.subn(
             r'(<p class="dek">.*?</p>)',
             lambda m: m.group(1) + preview_html.rstrip("\n"),
@@ -159,7 +222,6 @@ def inject(daily_html: str, weekly_headline: str, edition_path: str) -> str:
 
 
 def process_edition(edition: str) -> bool:
-    """edition in {'us', 'china'}"""
     edition_path = "usa" if edition == "us" else "china"
 
     weekly_path = f"/usr/share/nginx/html/{edition_path}/weekly/index.html"
@@ -167,23 +229,24 @@ def process_edition(edition: str) -> bool:
 
     weekly_html = _docker_read(weekly_path)
     if not weekly_html:
-        print(f"  [{edition}] no weekly digest found at {weekly_path} — skipping")
+        print(f"  [{edition}] no weekly digest at {weekly_path} — skipping")
         return False
 
-    headline = extract_weekly_headline(weekly_html)
-    if not headline:
+    weekly = extract_weekly(weekly_html)
+    if not weekly["headline"]:
         print(f"  [{edition}] could not parse weekly headline — skipping")
         return False
-    print(f"  [{edition}] weekly headline: {headline[:80]}...")
+    print(f"  [{edition}] headline: {weekly['headline'][:60]}...")
+    print(f"  [{edition}] lead:     {len(weekly['lead'])} chars")
+    print(f"  [{edition}] events:   {len(weekly['events'])}")
 
     daily_html = _docker_read(daily_path)
     if not daily_html:
         print(f"  [{edition}] daily not in nginx volume; falling back to S3")
         daily_html = _s3_get(f"s3://briefer-news-site/{edition_path}/index.html")
 
-    patched = inject(daily_html, headline, edition_path)
+    patched = inject(daily_html, weekly, edition_path)
 
-    # Write patched HTML to .run + push to nginx volume + push to S3
     out_path = RUN_DIR / f"daily_with_weekly_{edition}.html"
     out_path.write_text(patched, encoding="utf-8")
 
@@ -201,7 +264,6 @@ def main() -> int:
             any_changed = True
 
     if any_changed:
-        # CloudFront invalidation for both daily roots
         subprocess.run(
             ["/Users/maxgoshay/.local/bin/aws", "cloudfront", "create-invalidation",
              "--distribution-id", "EMV1VIFYTSI3U",

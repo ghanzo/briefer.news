@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root, body.theme-kraft {
+    body.theme-kraft {
       --paper: #F5EFE2;
       --ink: #1A1614;
       --ink-soft: #3D332C;
@@ -17,6 +17,16 @@
       --black: #14110F;
       --cream: #F2EBD9;
       --tagline: #C9BFA7;
+    }
+    :root, body.theme-ink {
+      --paper: #16151A;
+      --ink: #EFE9DD;
+      --ink-soft: #B0AA9E;
+      --ink-light: #6A6660;
+      --sepia: #C45842;
+      --black: #0A090E;
+      --cream: #EFE9DD;
+      --tagline: #807A70;
     }
     * { box-sizing: border-box; }
     /* Reading-progress bar — fixed thin strip at top, fills sepia as scrolled */
@@ -362,7 +372,7 @@
     footer.site-foot a:hover { border-bottom-style: solid; }
   </style>
 </head>
-<body class="theme-kraft">
+<body class="theme-ink">
 
   <div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
 
