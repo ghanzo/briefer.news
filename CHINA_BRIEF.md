@@ -39,9 +39,11 @@ MFA daily press conferences stay valuable — they're the **best voice source** 
 
 ---
 
-## Voice format — English-only
+## Voice format — English-only, 6 voices with progressive disclosure
 
 Per design decision 2026-05-13 (revising the prior 2026-05-10 bilingual design): **voices are English translations only**. The verbatim Chinese was visually heavy and the English translations are already faithful (per the calibration table below), so the Chinese block was redundant on a page meant to be read.
+
+**6 voices total per brief.** The first 3 are the priority selection (always visible). The remaining 3 are wrapped in a `<details class="voices-extras">` with a "Show 3 more voices" pill — native HTML expander, no JS, defaults closed so the editor's first-3 selection holds at first paint.
 
 ```html
 <blockquote class="pull">
@@ -57,7 +59,9 @@ Trust posture is preserved by:
 
 **Hard rules** (in synth prompt):
 - Translation must be faithful, not interpretive. Translate the gradation (see calibration table), not the literal word.
-- Three voices, **different speaker AND different source category** for each — synth must drop to 2 voices rather than repeat a speaker.
+- 6 voices, **different speaker AND different source category** for each across all 6 — synth must drop a slot rather than repeat a speaker.
+- **Xi-first ordering rule (HARD).** If any picked article carries a Xi speech / statement / quotation usable per the recency rule, Xi is voice #1 in the visible-3. Never demoted below MFA / regulator / commentator.
+- **Recency rule (HARD).** Voice quote dates ≤30 days. Exception only when the quote anchors a long-arc strategy-library doctrine actively invoked by today's bullets, AND the bullet names the anchored doctrine. Routine MFA / regulator slots cannot use the exception.
 
 ### Diplomatic vocabulary calibration
 
@@ -81,11 +85,14 @@ Verified working in v3 brief — May 12 Guo Jiakun quote correctly rendered 坚�
 | Element | Cap | Notes |
 |---|---|---|
 | Headline | **12 words max** | Single action only, no semicolons, plain English (CAC → "internet regulator", NDRC → "central planners", etc.) |
+| Dek (Day's Narrative) | 30–55 words, ≤2 sentences | Stance over scope; see `DEK.md` for the full voice spec |
 | Bullet body | **25 words max** | Bold lead + one clear sentence + cite. No clause-stacking with em-dashes. No comma-chain enumeration of every measure in a policy |
-| Voices | 3 (occasionally 2 if categories don't allow 3 distinct speakers) | Bilingual Chinese + English |
+| Voices | **6** (3 visible + 3 in `<details class="voices-extras">`) | English-only; Xi-first rule; ≤30-day recency rule with strategy-anchor exception |
 | MFA spokesperson bullets | ≤2 routine denials | Picker quota guarantees MFA candidates exist |
+| Routine CCDI bullets | **≤1** | Tier-leadership CCDI bypasses this cap (Politburo / CMC / minister / senior PLA / 双开 / 开除党籍 — see SQL keyword promotion below) |
 | Provincial bullets | ≤3 | |
 | China-US relations bullets | ≤3 | Don't let it become a US-China brief — internal-evolution framing prioritizes internal items |
+| Qiushi-sourced bullets | must anchor | Bullet text must say "in a Qiushi speech [date]" / "Xi's [date] speech republished in Qiushi" / "Qiushi commentary [date]" — prevents long-arc doctrinal framing from reading as breaking news |
 
 These caps are stricter than the US side; baked into the synth prompt in `scripts/synthesize_china.sh`.
 
@@ -97,7 +104,7 @@ Source-of-truth: **`pipeline/config/china_sources.yaml`**.
 Scraper: **`pipeline/scraper/china_scrape.py`**.
 Invoked via: `docker compose run --rm pipeline python main.py --china-only` (or as part of daily.sh's parallel scrape stage).
 
-**27 active sources** as of 2026-05-12, organized by editorial weight:
+**29 active sources** as of 2026-05-14, organized by editorial weight:
 
 ### Tier 1 — internal-policy core (priority 1)
 | Source | Domain |
@@ -118,33 +125,44 @@ Invoked via: `docker compose run --rm pipeline python main.py --china-only` (or 
 | MIIT News | miit.gov.cn |
 | CAC Notices | cac.gov.cn |
 | Stats Bureau | stats.gov.cn |
+| NEA (国家能源局) | nea.gov.cn |
 
-### Tier 3 — political / judicial (priority 3)
+### Tier 3 — political + military signal (priority 3)
 | Source | Domain |
 |---|---|
 | CCDI News | ccdi.gov.cn |
 | NPC News | npc.gov.cn |
 | Supreme People's Court | court.gov.cn |
 | Supreme People's Procuracy | spp.gov.cn |
+| MND (国防部) | mod.gov.cn |
+| China Military Online | 81.cn |
 
-### Tier 4 — financial regulators (priority 4)
-CSRC, SAFE, SASAC
+### Tier 4 — financial regulators + commercial press (priority 4)
+| Source | Domain |
+|---|---|
+| SAFE (Foreign Exchange) | safe.gov.cn |
+| SASAC (SOE Regulator) | sasac.gov.cn |
+| Caixin (财新) | caixin.com |
+| China Electricity Council | cec.org.cn |
 
 ### Tier 5 — MFA voices (priority 5, with reserved 25-slot pool)
 MFA Daily Press Conference (林剑 Lin Jian / 毛宁 Mao Ning / 郭嘉昆 Guo Jiakun), MFA News (Foreign Minister Activities)
 
-### Tier 6 — Xinhua aggregation (priority 6)
-Xinhua News (homepage discovery), Xinhua Politics — Leaders
+### Tier 6 — Xinhua aggregation + Yicai (priority 5–6)
+Xinhua News (homepage discovery), Xinhua Politics — Leaders, Yicai (第一财经)
 
 ### Tier 7 — provincial (priority 7)
-Shanghai, Beijing, Guangdong, Zhejiang
+Shanghai, Guangdong
 
 ### Held / blocked (`active: false`)
 | Source | Issue |
 |---|---|
-| SCIO Press Conferences | HTTP 521 (Cloudflare origin error) |
+| SCIO Press Conferences | HTTP 521 (Cloudflare origin unreachable) — re-probe weekly |
 | NFRA (banking/insurance regulator) | Returns 215-byte stub — needs correct sub-path |
-| Customs (海关总署) | HTTP 412 — needs specific header set |
+| Customs (海关总署) | Akamai-family JS bot challenge. Playwright solves the challenge but content paths still return 400; English mirror works but publishes ~2-4 narrative items/year. Parked indefinitely — trade data already covered by Stats Bureau + NDRC + State Council. See `memory/project_china_sourcing_probes.md` |
+| Beijing Government | Flaky timeouts; covered by Shanghai/Guangdong |
+| Zhejiang Government | Same as Beijing |
+| CSRC | Pruned 2026-05-12 — 0 articles, mirrors gov.cn; covered by PBOC + SAFE |
 
 ---
 
@@ -152,27 +170,58 @@ Shanghai, Beijing, Guangdong, Zhejiang
 
 ```
 04:00 PDT  daily.sh — parallel scrape (rss + akamai + china) via `&` / `wait`
-              └─ china_scrape.py runs 27 sources sequentially within itself
+              └─ china_scrape.py runs 29 sources sequentially within itself
                  (per-source extraction, retries with exponential backoff)
 
 07:30 PDT  synthesize_china.sh — autonomous daily synth
-              ├─ Stage 1: SQL pre-filter
+              ├─ Stage 0: china_world_context.sh — Claude WebSearch gathers
+              │           ambient non-PRC framing (Reuters/AP/FT etc.). NEVER
+              │           published; informs synth's framing only.
+              ├─ Stage 0b: threads_today.sh — resolves threads.yaml to today's
+              │            Day-N chip strings (Iran war, Trump-Xi summit, etc.)
+              ├─ Stage 1: SQL pre-filter (two-pool design)
               │     ├─ internal_pool: 175 slots, priority-ordered, MFA excluded
+              │     │     └─ CCDI tier-leadership keyword promotion: titles
+              │     │        matching 政治局 / 中央军委 / 中央委员 / 上将 / 中将 /
+              │     │        省委书记 / 副国级 / 副部级 / 部长 / 双开 (or full-text
+              │     │        matching 开除党籍) auto-promote from priority 3 → 1.
               │     └─ voices_pool: 25 reserved MFA slots
               │           ├─ 15 MFA Daily Press Conference (most recent)
               │           └─ 10 MFA News (Foreign Minister Activities, most recent)
               ├─ Stage 2: Claude picker (~50 picks, ≥6 MFA required for voices)
               ├─ Stage 3: SQL fetch full text (5000 char LEFT)
               ├─ Stage 4: Claude synthesizer
-              │     ├─ Bilingual voices (Chinese verbatim + English translation)
-              │     ├─ Hard 12-word headline cap, 25-word bullet cap
-              │     ├─ Diplomatic-glossary calibration table inline
+              │     ├─ Headline ≤12 words; dek per DEK.md (present-tense voice)
+              │     ├─ Thread strip (chips from .run/threads_china.txt)
+              │     ├─ "This week" preview (weekly's headline + lead + events)
+              │     ├─ 6 voices (English-only); Xi-first; ≤30-day recency
+              │     │   • First 3 visible
+              │     │   • 3 more in <details class="voices-extras">
+              │     ├─ 9 bullets (25-word cap); CCDI cadence rule; Qiushi anchor
+              │     ├─ Strategic Backdrop (2-3 doctrines, collapsible-open)
+              │     ├─ Five-Year Plan static anchor (collapsible-open)
+              │     ├─ Sources block (collapsible-open)
+              │     ├─ Footer nav (Archive / Weekly / About / Sources)
               │     └─ Render into research/prototype_china_2026-05-12.html
               ├─ Stage 5: deploy to local nginx /china/
               └─ Stage 6: deploy to S3 /china/ + CloudFront invalidate
+
+08:00 PDT  daily_digests.sh — refresh secondary surfaces
+              ├─ weekly.sh — full weekly digest at /china/weekly/
+              ├─ archive_index.py — rebuilds /china/archive/ listing
+              ├─ inject_weekly_preview.py — patches "This week" section
+              │                              on today's daily with the
+              │                              fresh weekly's headline+lead+events
+              ├─ build_sitemap.py — refreshes sitemap.xml
+              └─ threads_propose.sh — Claude analyzer surfaces candidate
+                                       new threads from past 14 days (editor-
+                                       review only, never auto-merged)
 ```
 
-**Output URL:** `https://briefer.news/china/`
+**Output URLs:**
+- Daily: `https://briefer.news/china/`
+- Weekly: `https://briefer.news/china/weekly/` (daily-rolling 7-day window)
+- Archive: `https://briefer.news/china/archive/`
 
 ---
 
@@ -218,4 +267,20 @@ Resolved 2026-05-14:
 - **2026-05-10** — sources scaffolded (23 active), first scrape captured 499 articles across 11 sources, manual trial synth showed strong output
 - **2026-05-12 morning** — 4 new sources added (MFA News, People's Daily Politics, People's Daily Opinion, CPC News), pattern fixes applied, fresh scrape recovered 12 zero-result sources
 - **2026-05-12 afternoon** — `synthesize_china.sh` built end-to-end; v1 trial → v2 (China red theme + tighter word caps) → v3 (MFA quota + hard diverse-speaker rule) all run against fresh corpus
-- **2026-05-12 evening** — multi-edition site shipped (selector at `/`, US at `/usa/`, China at `/china/`); China LaunchAgent at 07:30 PDT loaded; commit `bc68be1` pushed to ghanzo/briefer.news
+- **2026-05-12 evening** — multi-edition site shipped (selector at `/`, US at `/usa/`, China at `/china/`); China LaunchAgent at 07:30 PDT loaded
+- **2026-05-13** — Voices switched bilingual → English-only; design tightening (P1/P2/P3 commits for headline/dek/typography)
+- **2026-05-14 morning** — Trump-Xi summit transcript section + summit content
+- **2026-05-14 afternoon** — Major editorial-improvement sweep:
+  - `DEK.md` voice spec landed; both synths now route through it
+  - Xi-first voice ordering (HARD), ≤30-day quote recency, Qiushi anchor rule
+  - CCDI tier-leadership SQL keyword promotion + picker + bullet caps
+  - `threads.yaml` + thread strip with daily-rolling Day-N counters
+  - Weekly digest pipeline at `/china/weekly/` (daily-rolling)
+  - "This week" preview section on the daily, drop-down for events
+  - Voices grew 3 → 6 with `<details class="voices-extras">` for extras
+  - Strategic Backdrop, Five-Year Plan, Sources all wrapped in collapsibles
+  - PLA / military sources added: MND (mod.gov.cn) + China Military Online (81.cn) at tier 3 — closes the Taiwan-frame's largest source gap
+  - About / Sources / Archive index pages built; unified footer nav
+  - Reading-progress bar, SEO meta tags, sitemap.xml + robots.txt
+  - Auto-thread proposer (`threads_propose.sh`) runs nightly, editor-review only
+- **2026-05-14 evening** — Outside the Gate concept (briefly added that morning) reverted everywhere; gov-sources-only brand promise restored end-to-end. World-context still informs framing; nothing non-gov gets published or cited.
