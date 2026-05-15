@@ -3,22 +3,51 @@
 // Runtime: cloudfront-js-2.0
 // Event type: viewer-request
 //
-// Job: rewrite directory-style URLs to their index.html (no redirect dance,
-// just rewrite at the edge). Previously this also handled root-path 302
-// redirects to /usa/ or /china/ based on cookie + geo; that logic was
-// removed 2026-05-14 so visitors to briefer.news/ actually see the
-// selector page (which fetches both editions' headlines live).
+// Two jobs:
+//   1. Root-path smart edition routing — cookie-based memory (return
+//      visitor to their last edition) with a geo-based default fallback
+//      (Asia → /china/, else → /usa/). Briefly removed 2026-05-14 to
+//      surface the selector; restored later that day per user preference
+//      for zero-friction landing.
+//   2. URL rewriting for non-root paths — trailing-slash → index.html,
+//      extensionless → /index.html.
 
 function handler(event) {
     var request = event.request;
     var uri = request.uri;
+    var headers = request.headers;
+    var cookies = request.cookies;
 
-    // Trailing-slash → index.html  (e.g., /usa/  → /usa/index.html)
+    // Root path: smart edition routing
+    if (uri === '/' || uri === '/index.html') {
+        // Cookie override wins (last-edition memory)
+        var editionCookie = (cookies['briefer-edition'] && cookies['briefer-edition'].value) || '';
+        if (editionCookie === 'usa' || editionCookie === 'china') {
+            return {
+                statusCode: 302,
+                statusDescription: 'Found',
+                headers: { 'location': { value: '/' + editionCookie + '/' } }
+            };
+        }
+
+        // Geo-based default
+        var country = (headers['cloudfront-viewer-country'] && headers['cloudfront-viewer-country'].value) || '';
+        var edition = 'usa';
+        if (country === 'CN' || country === 'HK' || country === 'TW' ||
+            country === 'SG' || country === 'JP' || country === 'KR') {
+            edition = 'china';
+        }
+        return {
+            statusCode: 302,
+            statusDescription: 'Found',
+            headers: { 'location': { value: '/' + edition + '/' } }
+        };
+    }
+
+    // Non-root: trailing-slash + extensionless rewrites
     if (uri.endsWith('/')) {
         request.uri = uri + 'index.html';
-    }
-    // Extension-less paths → /index.html  (e.g., /about → /about/index.html)
-    else if (!uri.includes('.')) {
+    } else if (!uri.includes('.')) {
         request.uri = uri + '/index.html';
     }
 
