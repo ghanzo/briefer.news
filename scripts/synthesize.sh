@@ -45,6 +45,17 @@ if ! "$DOCKER" ps --format '{{.Names}}' | grep -q briefer_postgres; then
   exit 0
 fi
 
+# ── Preflight: abort before the expensive synth if the pipeline is broken ───
+# Catches the failure classes that have burned a full turn budget for nothing
+# (heredoc backticks, syntax errors, missing spec files, dead corpus). Cheap,
+# no Claude calls. A hard failure skips the synth and leaves yesterday's brief.
+echo ""
+echo "--- Preflight ---"
+if ! bash "$REPO/scripts/preflight.sh"; then
+  echo "ERROR: preflight failed — skipping synth, leaving yesterday's brief in place"
+  exit 0
+fi
+
 # ── Stage 0: world-context generation (ambient signal for picker + synth) ───
 # Runs Claude with WebSearch to assemble what global outlets consider today's
 # biggest stories. Saved to .run/world_context.md and referenced (optionally)

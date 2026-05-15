@@ -41,6 +41,17 @@ if ! "$DOCKER" ps --format '{{.Names}}' | grep -q briefer_postgres; then
   exit 0
 fi
 
+# ── Preflight: abort before the expensive synth if the pipeline is broken ───
+# Catches the failure classes that have burned a full turn budget for nothing
+# (heredoc backticks, syntax errors, missing spec files, dead corpus). Cheap,
+# no Claude calls. A hard failure skips the synth and leaves yesterday's brief.
+echo ""
+echo "--- Preflight ---"
+if ! bash "$REPO/scripts/preflight.sh"; then
+  echo "ERROR: preflight failed — skipping synth, leaving yesterday's brief in place"
+  exit 0
+fi
+
 # China source allowlist + priority. Internal-evolution weighting per CHINA_BRIEF.md.
 ALLOWLIST_SQL="
   WITH allowlist(name, priority) AS (VALUES
@@ -130,7 +141,7 @@ META="$RUN_DIR/china_candidates_meta.json"
 echo "--- Stage 1: SQL pre-filter to candidate metadata ---"
 "$DOCKER" exec briefer_postgres psql -U briefer -d briefer -tA -c "
   ${ALLOWLIST_SQL},
-  internal_pool AS (
+  internal_scored AS (
     -- CCDI tier-leadership promotion: routine anti-corruption notices flood CCDI daily
     -- (deputy bureau chiefs under investigation). Tier-leadership falls (Politburo / CMC /
     -- minister / provincial party secretary / senior PLA general) are editorially huge but
@@ -141,6 +152,8 @@ echo "--- Stage 1: SQL pre-filter to candidate metadata ---"
       a.title,
       a.publish_date::date AS pub_date,
       a.url,
+      a.scraped_at,
+      LENGTH(a.full_text) AS tlen,
       CASE
         WHEN s.name = 'CCDI News' AND (
              a.title ILIKE '%政治局%'         -- Politburo
@@ -166,7 +179,25 @@ echo "--- Stage 1: SQL pre-filter to candidate metadata ---"
       AND a.scraped_at >= NOW() - INTERVAL '7 days'
       AND s.name NOT LIKE 'MFA%'
       ${NOISE_FILTER}
-    ORDER BY priority ASC, pub_date DESC NULLS LAST, LENGTH(a.full_text) DESC
+  ),
+  internal_capped AS (
+    -- Per-source cap: no single source contributes more than 12 candidates,
+    -- so a first-run back-catalogue dump (e.g. China Military Online's
+    -- 269-article archive) cannot crowd the internal pool. The partition
+    -- is ordered priority-first, so a promoted CCDI tier-leadership fall
+    -- ranks ahead of routine CCDI volume and survives the cap.
+    SELECT id, source, title, pub_date, url, priority,
+      ROW_NUMBER() OVER (
+        PARTITION BY source
+        ORDER BY priority ASC, pub_date DESC NULLS LAST, scraped_at DESC, tlen DESC
+      ) AS rn
+    FROM internal_scored
+  ),
+  internal_pool AS (
+    SELECT id, source, title, pub_date, url, priority
+    FROM internal_capped
+    WHERE rn <= 12
+    ORDER BY priority ASC, pub_date DESC NULLS LAST
     LIMIT 175
   ),
   voices_pool AS (
