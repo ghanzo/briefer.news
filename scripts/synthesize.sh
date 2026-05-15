@@ -168,22 +168,38 @@ META="$RUN_DIR/candidates_meta.json"
 echo "--- Stage 1: SQL pre-filter to candidate metadata ---"
 "$DOCKER" exec briefer_postgres psql -U briefer -d briefer -tA -c "
   ${ALLOWLIST_SQL},
-  ranked AS (
+  capped AS (
+    -- Per-source cap: no single source may contribute more than 12 candidates.
+    -- Without this, a source with a large back-catalogue scraped in one run
+    -- (e.g. a first-run allied-gov archive dump, or GovInfo Bills' routine
+    -- daily volume) floods the 200-slot pool and starves every other desk.
     SELECT
       a.id,
       s.name AS source,
       a.title,
       a.publish_date::date AS pub_date,
       a.url,
-      al.priority
+      al.priority,
+      ROW_NUMBER() OVER (
+        PARTITION BY s.name
+        ORDER BY a.publish_date DESC NULLS LAST, a.scraped_at DESC, LENGTH(a.full_text) DESC
+      ) AS rn
     FROM articles a
     JOIN sources s ON a.source_id = s.id
     JOIN allowlist al ON al.name = s.name
     WHERE a.full_text IS NOT NULL
       AND LENGTH(a.full_text) >= 500
-      AND (a.publish_date >= CURRENT_DATE - INTERVAL '2 days' OR a.scraped_at >= NOW() - INTERVAL '36 hours')
+      AND (
+        a.publish_date >= CURRENT_DATE - INTERVAL '2 days'
+        OR (a.publish_date IS NULL AND a.scraped_at >= NOW() - INTERVAL '36 hours')
+      )
       ${NOISE_FILTER}
-    ORDER BY al.priority ASC, pub_date DESC NULLS LAST
+  ),
+  ranked AS (
+    SELECT id, source, title, pub_date, url, priority
+    FROM capped
+    WHERE rn <= 12
+    ORDER BY priority ASC, pub_date DESC NULLS LAST
     LIMIT 200
   )
   SELECT json_agg(json_build_object(
@@ -309,7 +325,7 @@ Your job:
   - The strip is data; do not invent threads. Use only the chips in the file.
   - DEK.md notes that "anchor a thread that returns tomorrow" is one of the five qualities a good dek can have. The threads here are the menu — when natural, the dek can reference "Day 76 of the Iran war" or similar to anchor a thread.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
-- Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are the priority selection (always visible). Wrap the additional 3 in `<details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> ... 3 more <blockquote class="pull"> ... </details>` — native HTML expander, no JS. Both groups follow the same rules (no repeat speakers, mix of registers).
+- Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are the priority selection (always visible). Wrap the additional 3 in a details block of this exact shape: <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> then the 3 more <blockquote class="pull"> elements then </details> — native HTML expander, no JS. Both groups follow the same rules (no repeat speakers, mix of registers).
 - Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <header>, <footer>, and <script> blocks unchanged. Preserve the <p class="weekly-link">...</p> nav element below the 9 bullets — do not remove it. Only replace:
   - <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand. Format pattern is "[KEY PHRASES] · [Month Day] · Briefer News". Concrete example: "Trump-Xi summit, Hormuz coalition · May 14 · Briefer News". Goal: ≤65 total chars. Avoid acronyms; use plain-English noun phrases that match what a reader would Google ("Hormuz coalition" not "CENTCOM patrol", "Trump-Xi summit" not "bilateral meeting").
   - <meta name="description" content="..."> — paste TODAY's full dek text (verbatim, including punctuation). The dek is already 30-55 words, ideal length for search snippets and social previews.
@@ -322,15 +338,15 @@ Your job:
   - <h2 class="headline">...</h2> — 12 to 16 words, plain English, accessible to a non-specialist (see Accessibility rule above)
   - Insert <p class="dek">…</p> IMMEDIATELY after </h2> (closing tag of headline) — the Day's Narrative per rules above
   - Insert <p class="thread-strip">…</p> IMMEDIATELY after </p> closing the dek — the continuity strip per rules above. Omit entirely if .run/threads_us.txt is empty.
-  - <div class="voices">...</div> — first 3 voices as <blockquote class="pull"> directly inside, then a <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> with the additional 3 <blockquote class="pull"> elements inside. No `open` attribute on this details — extras default to hidden (preserving the original "Selected" view as default).
+  - <div class="voices">...</div> — first 3 voices as <blockquote class="pull"> directly inside, then a <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> with the additional 3 <blockquote class="pull"> elements inside. No "open" attribute on this details — extras default to hidden (preserving the original "Selected" view as default).
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
-  - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section uses native <details> with the `open` attribute, so it renders expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the `open` attribute.
+  - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section uses native <details> with the "open" attribute, so it renders expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the "open" attribute.
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it to the file.
 EOF
 
 echo "--- Stage 4: Claude synthesizes the brief ---"
-"$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --max-turns 80 --permission-mode acceptEdits
+"$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --max-turns 100 --permission-mode acceptEdits
 
 if [ ! -s "$OUT" ]; then
   echo "ERROR: claude did not write HTML to $OUT — bailing, leaving yesterday's brief in place"
