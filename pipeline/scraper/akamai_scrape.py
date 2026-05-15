@@ -25,10 +25,15 @@ import argparse
 import hashlib
 import logging
 import os
+import re
 import sys
 from datetime import datetime, date
 from pathlib import Path
 from typing import Optional
+
+# /YYYY/MM/DD/ embedded in URL path — used by NATO and several CMS sources
+# whose pages don't expose a date meta tag. Last-resort publish_date fallback.
+_URL_DATE_RE = re.compile(r"/(\d{4})/(\d{2})/(\d{2})/")
 
 import yaml
 import feedparser
@@ -219,7 +224,7 @@ def scrape_one_source(cfg: dict, session, run: ScrapeRun, dry_run: bool, limit: 
             continue
 
         # Extract
-        text, method = akamai_extract(url)
+        text, extracted_title, extracted_pd, method = akamai_extract(url)
         if not text:
             stats["failed"] += 1
             consecutive_blocks += 1
@@ -233,11 +238,17 @@ def scrape_one_source(cfg: dict, session, run: ScrapeRun, dry_run: bool, limit: 
         consecutive_blocks = 0  # reset on success
 
         if dry_run:
-            logger.info(f"  [dry-run] would save: {card.get('title', '')[:80]} ({len(text)} chars)")
+            logger.info(f"  [dry-run] would save: {(card.get('title') or extracted_title or '')[:80]} ({len(text)} chars)")
             stats["extracted"] += 1
             continue
 
-        # Persist
+        # Title fallback chain: discovery-card title → extracted <title> → URL.
+        # The URL fallback exists so the NOT NULL constraint never fails, but
+        # it should never be the surfaced title for a healthy source.
+        title = (card.get("title") or "").strip() or (extracted_title or "").strip() or url
+        title = title[:500]
+
+        # Publish-date fallback chain: discovery-card date → extracted meta date.
         publish_date = None
         raw_pd = card.get("publish_date")
         if raw_pd:
@@ -247,10 +258,19 @@ def scrape_one_source(cfg: dict, session, run: ScrapeRun, dry_run: bool, limit: 
                     break
                 except (ValueError, TypeError):
                     continue
+        if publish_date is None:
+            publish_date = extracted_pd
+        if publish_date is None:
+            url_m = _URL_DATE_RE.search(url)
+            if url_m:
+                try:
+                    publish_date = datetime(int(url_m.group(1)), int(url_m.group(2)), int(url_m.group(3)))
+                except ValueError:
+                    pass
 
         article = Article(
             source_id=source_id,
-            title=card.get("title", "")[:500] or url[:500],
+            title=title,
             url=url,
             url_hash=url_h,
             full_text=text,
@@ -269,7 +289,7 @@ def scrape_one_source(cfg: dict, session, run: ScrapeRun, dry_run: bool, limit: 
             stats["extracted"] += 1
             run.articles_extracted += 1
             session.commit()
-            logger.info(f"  [{stats['extracted']}] saved: {card.get('title', url)[:80]} ({len(text)} chars, {method})")
+            logger.info(f"  [{stats['extracted']}] saved: {title[:80]} ({len(text)} chars, {method})")
         except IntegrityError:
             session.rollback()
             stats["skipped_existing"] += 1

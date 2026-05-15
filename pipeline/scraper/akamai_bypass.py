@@ -20,6 +20,7 @@ import logging
 import random
 import re
 import time
+from datetime import datetime
 from typing import Optional
 
 try:
@@ -107,27 +108,124 @@ def akamai_fetch(url: str, impersonate: str = "chrome120", timeout: int = 30) ->
     return body
 
 
+# ── Article metadata extraction ──────────────────────────────────────────────
+
+_TITLE_SUFFIX_SEPARATORS = (" | ", " - ", " — ", " – ", " :: ")
+
+_META_DATE_KEYS = (
+    ("property", "article:published_time"),
+    ("name", "article:published_time"),
+    ("name", "DC.date.issued"),
+    ("name", "DC.Date"),
+    ("name", "pubdate"),
+    ("name", "publish-date"),
+    ("name", "publish_date"),
+    ("itemprop", "datePublished"),
+)
+
+_DATE_FORMATS = (
+    "%Y-%m-%dT%H:%M:%S%z",
+    "%Y-%m-%dT%H:%M:%SZ",
+    "%Y-%m-%dT%H:%M:%S",
+    "%Y-%m-%d",
+    "%a, %d %b %Y %H:%M:%S %Z",
+    "%a, %d %b %Y %H:%M:%S %z",
+)
+
+
+def _extract_meta_from_html(html: str) -> tuple[Optional[str], Optional[datetime]]:
+    """Pull a cleaned <title> and a publish-date meta from a rendered HTML page.
+
+    Title: prefers <title>, strips trailing site-name suffix delimited by
+    " | " / " - " / " — " etc. Returns None when empty.
+
+    Date: scans well-known publish-date meta tags (article:published_time,
+    DC.date.issued, itemprop=datePublished, etc.) against a short list of
+    ISO/RFC formats. Returns None on miss — caller decides whether to fall
+    back to a card-provided date.
+    """
+    title: Optional[str] = None
+    publish_date: Optional[datetime] = None
+    try:
+        soup = BeautifulSoup(html, "lxml")
+        title_tag = soup.find("title")
+        if title_tag:
+            raw = title_tag.get_text(strip=True)
+            for sep in _TITLE_SUFFIX_SEPARATORS:
+                if sep in raw:
+                    raw = raw.split(sep)[0].strip()
+                    break
+            title = raw or None
+
+        date_candidates: list[str] = []
+        for attr, value in _META_DATE_KEYS:
+            tag = soup.find("meta", attrs={attr: value})
+            if not tag:
+                continue
+            content = (tag.get("content") or "").strip()
+            if content:
+                date_candidates.append(content)
+
+        # <time datetime="..."> — used by DFAT and many CMS-driven sites
+        time_tag = soup.find("time", attrs={"datetime": True})
+        if time_tag and time_tag.get("datetime"):
+            date_candidates.append(time_tag["datetime"].strip())
+
+        # JSON-LD datePublished (schema.org Article)
+        for script in soup.find_all("script", attrs={"type": "application/ld+json"}):
+            raw = script.get_text() or ""
+            m = re.search(r'"datePublished"\s*:\s*"([^"]+)"', raw)
+            if m:
+                date_candidates.append(m.group(1).strip())
+                break
+
+        for content in date_candidates:
+            for fmt in _DATE_FORMATS:
+                try:
+                    publish_date = datetime.strptime(content, fmt)
+                    break
+                except ValueError:
+                    continue
+            if publish_date is None:
+                try:
+                    publish_date = datetime.strptime(content[:19], "%Y-%m-%dT%H:%M:%S")
+                except ValueError:
+                    pass
+            if publish_date:
+                break
+    except Exception as e:
+        logger.debug(f"meta extraction warning: {e}")
+
+    return title, publish_date
+
+
 # ── Article extraction ───────────────────────────────────────────────────────
 
-def akamai_extract(url: str) -> tuple[Optional[str], str]:
+def akamai_extract(url: str) -> tuple[Optional[str], Optional[str], Optional[datetime], str]:
     """
-    Fetch an Akamai-protected URL and extract article body text.
+    Fetch an Akamai-protected URL and extract article body text + metadata.
 
-    Returns (text, method) where method is one of:
+    Returns (text, title, publish_date, method) where method is one of:
         'curl_cffi_trafilatura' — extracted via trafilatura
         'curl_cffi_dod_news'    — extracted via DoD-specific BS4 path
         'curl_cffi_bs4'         — generic BS4 paragraph fallback
         'failed'                — fetch or extraction failed
+
+    title and publish_date come from the rendered HTML's <title> and
+    article-published-time meta tags. Either may be None when the page
+    doesn't expose that signal.
     """
     html = akamai_fetch(url)
     if not html:
-        return None, "failed"
+        return None, None, None, "failed"
+
+    title, publish_date = _extract_meta_from_html(html)
 
     # 1) Try trafilatura first — works for many simpler DoD pages.
     try:
         text = trafilatura.extract(html, include_comments=False, no_fallback=False)
         if text and len(text) > 500:
-            return text, "curl_cffi_trafilatura"
+            return text, title, publish_date, "curl_cffi_trafilatura"
     except Exception as e:
         logger.warning(f"trafilatura failed on {url}: {e}")
 
@@ -139,7 +237,7 @@ def akamai_extract(url: str) -> tuple[Optional[str], str]:
         if content_div:
             # Title + dateline + body
             title_tag = content_div.find("h1", class_="maintitle")
-            title = title_tag.get_text(strip=True) if title_tag else ""
+            dod_title = title_tag.get_text(strip=True) if title_tag else ""
 
             # Body paragraphs
             body_paragraphs = []
@@ -155,9 +253,10 @@ def akamai_extract(url: str) -> tuple[Optional[str], str]:
                 body_paragraphs.append(txt)
 
             if body_paragraphs:
-                full = (title + "\n\n" if title else "") + "\n\n".join(body_paragraphs)
+                full = (dod_title + "\n\n" if dod_title else "") + "\n\n".join(body_paragraphs)
                 if len(full) > 500:
-                    return full, "curl_cffi_dod_news"
+                    # DoD path: prefer the page-specific h1.maintitle over the generic <title> tag
+                    return full, (dod_title or title), publish_date, "curl_cffi_dod_news"
     except Exception as e:
         logger.warning(f"DoD-specific extraction failed on {url}: {e}")
 
@@ -167,11 +266,11 @@ def akamai_extract(url: str) -> tuple[Optional[str], str]:
         paragraphs = [p.get_text(strip=True) for p in soup.find_all("p")]
         body = "\n\n".join(p for p in paragraphs if p and len(p) > 50)
         if len(body) > 500:
-            return body, "curl_cffi_bs4"
+            return body, title, publish_date, "curl_cffi_bs4"
     except Exception as e:
         logger.warning(f"bs4 fallback failed on {url}: {e}")
 
-    return None, "failed"
+    return None, None, None, "failed"
 
 
 # ── Discovery: find article URLs from a listing page ─────────────────────────
