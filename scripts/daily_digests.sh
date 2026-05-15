@@ -87,7 +87,7 @@ echo "── Stage 4/5: inject_weekly_preview ──"
 python3 "$REPO/scripts/inject_weekly_preview.py"
 
 echo ""
-echo "── Stage 5/5: build_sitemap ──"
+echo "── Stage 5/6: build_sitemap ──"
 AWS=/Users/maxgoshay/.local/bin/aws
 python3 "$REPO/scripts/build_sitemap.py"
 if [ -s "$RUN_DIR/sitemap.xml" ]; then
@@ -109,6 +109,10 @@ if [ -s "$RUN_DIR/sitemap.xml" ]; then
 else
   echo "sitemap.xml not produced — skipping deploy"
 fi
+
+echo ""
+echo "── Stage 6/6: threads_propose ──"
+"$REPO/scripts/threads_propose.sh"
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
