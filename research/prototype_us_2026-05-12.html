@@ -131,6 +131,18 @@
 
     * { box-sizing: border-box; }
 
+    /* Reading-progress bar — fixed thin strip at top, fills sepia as scrolled */
+    .reading-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0;
+      background: var(--sepia);
+      z-index: 100;
+      transition: width 0.08s linear;
+      pointer-events: none;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
@@ -1397,6 +1409,8 @@
 </head>
 <body class="theme-ink">
 
+<div class="reading-progress" id="reading-progress" aria-hidden="true"></div>
+
 <header class="masthead">
   <svg class="flag-mark" viewBox="0 0 48 28" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
     <rect x="0" y="0" width="48" height="2"/>
@@ -1851,6 +1865,23 @@
   });
 </script>
 
+
+<script>
+  // Reading-progress bar — fills sepia as the reader scrolls through the page
+  (function() {
+    var bar = document.getElementById('reading-progress');
+    if (!bar) return;
+    function update() {
+      var h = document.documentElement;
+      var max = h.scrollHeight - h.clientHeight;
+      var pct = max > 0 ? (h.scrollTop / max) * 100 : 0;
+      bar.style.width = pct + '%';
+    }
+    document.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    update();
+  })();
+</script>
 
 </body>
 </html>
