@@ -58,6 +58,9 @@ ALLOWLIST_SQL="
     ('MIIT News', 2),
     ('CAC Notices', 2),
     ('Stats Bureau', 2),
+    -- B2: military signal sources (added 2026-05-14; Taiwan-frame editorial center)
+    ('MND (国防部)', 3),
+    ('China Military Online (81.cn)', 3),
     -- C: political signals
     ('CCDI News', 3),
     ('NPC News', 3),
@@ -237,6 +240,7 @@ Editorial framing (per CHINA_BRIEF.md):
 - De-prioritize routine procedural items (operational notices, sub-provincial bureaucratic items, repeat publications).
 - **CCDI tier-leadership rule (HARD).** Most CCDI items are routine — a deputy bureau chief at a provincial agency under investigation. Cap routine CCDI at 1 in your 50-pick set. But when a CCDI item touches the senior leadership tier — Politburo members, CMC members, full ministers, provincial Party secretaries, senior PLA generals (上将/中将), "双开" (double-expulsion / 开除党籍) cases, or vice-state/vice-ministerial figures — it is editorially HUGE and must always be picked. The SQL pre-filter has already promoted these to priority 1; treat them as candidates equal to State Council policy releases. Use your political knowledge of named officials to discriminate beyond just keyword matching: if a name appears in the picks and you recognize it as senior-tier even without the keyword match, treat it as tier-leadership.
 - Aim for diversity in the picks: at least one Xi-speech / Party-theory piece (≥3 with Xi), multiple economic/industrial regulators, at least one CCDI political-signal item, ≥6 MFA daily press conferences (REQUIRED for voices), some provincial/Xinhua aggregation, recent economic-data drops (CPI/PPI/GDP/PMI) if present.
+- **Military signal source picks (NEW 2026-05-14):** MND (国防部) and China Military Online (81.cn) are the PLA-side primary feeds. Pick 1-2 military items when material exists — MND spokesperson statements (Taiwan / cross-Strait / US-China military / sanctions / exercises) are editorially central for the Taiwan-frame; 81.cn carries broader PLA doctrine, exercise readouts, and readiness signals. These weight equal to other political-signal sources, NOT below MFA. If a Taiwan-related MND statement is in the picks, treat it on par with Xi-speech material for headline priority.
 - **Energy preference: include 1-2 energy-policy or energy-data items when material exists** (NEA capacity announcements, NDRC energy planning, State Council energy-related notices, EV/battery/solar industrial policy, carbon-market regulation). Editorial framing is **internal transition + capacity buildout** — what China is building (renewable + nuclear + EV + grid + battery industrial base), not import-source diplomacy.
 
 Today is ${TODAY}.

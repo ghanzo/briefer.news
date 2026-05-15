@@ -198,6 +198,35 @@ sources:
     active: true
     notes: "Central Party news network. 27+ mentions of 习近平 per fetch. Complements Qiushi."
 
+  # ── E0. Military signal sources (high-weight) ──────────────────────────────
+  # Added 2026-05-14. Editorially central for the Taiwan-frame and Indo-
+  # Pacific posture; the China brief had no PLA primary source before this.
+  # MND = Ministry of National Defense (国防部) — official press conferences
+  # and policy statements. 81.cn = China Military Online — PLA-side daily
+  # news across politics/exercises/tech/culture sections.
+
+  - name: "MND (国防部)"
+    domain: mod.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.mod.gov.cn/gfbw/xwfyr/index.html"
+    link_pattern: "/gfbw/[a-z0-9_/]+/16\\d{6}\\.html"
+    category: military
+    weight: high                  # spokesperson statements, defense policy, Taiwan / PLA-exercise framing
+    extractor: trafilatura
+    active: true
+    notes: "Ministry of National Defense spokesperson page (xwfyr — 新闻发言人). URL pattern: /gfbw/<subsection>/16NNNNNN.html. Probed 2026-05-14: ~80 unique article URLs across subsections."
+
+  - name: "China Military Online (81.cn)"
+    domain: 81.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.81.cn/"
+    link_pattern: "81\\.cn/[a-z]+(?:_\\d+)?/(?:[a-z]+_\\d+/)?16\\d{6}\\.html"
+    category: military
+    weight: high                  # PLA daily news; doctrine + exercises + readiness signals
+    extractor: trafilatura
+    active: true
+    notes: "China Military Online — PLA-side daily news. Sections: yw (top news), fyr (spokesperson), wj (military affairs), js (tech), ss (sea services), wh (culture). Probed 2026-05-14: 138KB, ~60 article URLs."
+
   # ── E. Political signal sources (high-weight) ──────────────────────────────
   - name: "CCDI News"
     domain: ccdi.gov.cn
