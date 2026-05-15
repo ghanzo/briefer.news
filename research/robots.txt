@@ -1,0 +1,8 @@
+# https://briefer.news/robots.txt
+# Allow all crawlers full access. The brief is public-source-only;
+# nothing here is paywalled, gated, or user-specific.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://briefer.news/sitemap.xml

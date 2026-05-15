@@ -21,6 +21,9 @@
 #                                headline and patch today's daily brief
 #                                with a "This week" callout below the
 #                                thread strip (~5s, no Claude)
+#   5. build_sitemap          — regenerate sitemap.xml so search engines
+#                                pick up today's new archive entry
+#                                (~3s, no Claude)
 #
 # Failure mode: each child script logs its own failures; this wrapper
 # continues to the next stage either way.
@@ -80,8 +83,32 @@ else
 fi
 
 echo ""
-echo "── Stage 4/4: inject_weekly_preview ──"
+echo "── Stage 4/5: inject_weekly_preview ──"
 python3 "$REPO/scripts/inject_weekly_preview.py"
+
+echo ""
+echo "── Stage 5/5: build_sitemap ──"
+AWS=/Users/maxgoshay/.local/bin/aws
+python3 "$REPO/scripts/build_sitemap.py"
+if [ -s "$RUN_DIR/sitemap.xml" ]; then
+  if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
+    "$AWS" s3 cp "$RUN_DIR/sitemap.xml" s3://briefer-news-site/sitemap.xml \
+      --content-type "application/xml" \
+      --cache-control "public, max-age=3600" >/dev/null \
+      && echo "S3: sitemap.xml uploaded" \
+      || echo "S3: sitemap.xml upload FAILED (non-fatal)"
+    "$AWS" cloudfront create-invalidation \
+      --distribution-id EMV1VIFYTSI3U \
+      --paths "/sitemap.xml" \
+      --query 'Invalidation.Id' --output text \
+      && echo "CloudFront: sitemap invalidation created" \
+      || echo "CloudFront: sitemap invalidation FAILED (non-fatal)"
+  else
+    echo "AWS CLI unavailable — sitemap built but not deployed"
+  fi
+else
+  echo "sitemap.xml not produced — skipping deploy"
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
