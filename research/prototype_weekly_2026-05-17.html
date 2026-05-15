@@ -296,13 +296,13 @@
       line-height: 1.5;
     }
 
-    /* Day-by-day footer — links back to each daily brief */
-    footer.daily-foot {
+    /* Day-by-day section — links back to each daily brief this week */
+    .daily-foot {
       margin-top: 48px;
       padding-top: 18px;
       border-top: 1px solid var(--ink-soft);
     }
-    footer.daily-foot .foot-label {
+    .daily-foot .foot-label {
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 10px;
       font-weight: 600;
@@ -311,14 +311,14 @@
       color: var(--sepia);
       margin: 0 0 12px;
     }
-    footer.daily-foot ul {
+    .daily-foot ul {
       list-style: none;
       padding: 0; margin: 0;
       display: flex;
       flex-wrap: wrap;
       gap: 8px 18px;
     }
-    footer.daily-foot a {
+    .daily-foot a {
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 11px;
       letter-spacing: 0.14em;
@@ -327,7 +327,28 @@
       text-decoration: none;
       border-bottom: 1px dotted var(--sepia);
     }
-    footer.daily-foot a:hover { border-bottom-style: solid; }
+    .daily-foot a:hover { border-bottom-style: solid; }
+
+    /* Footer (unified .site-foot across pages) */
+    footer.site-foot {
+      margin-top: 32px;
+      padding-top: 18px;
+      border-top: 1px solid var(--ink-soft);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 22px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    footer.site-foot a {
+      color: var(--sepia);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--sepia);
+      padding-bottom: 2px;
+    }
+    footer.site-foot a:hover { border-bottom-style: solid; }
   </style>
 </head>
 <body class="theme-kraft">
@@ -382,7 +403,7 @@
     <p class="og-subtitle">Non-U.S.-gov signals across the past seven days</p>
     <div class="og-empty">No Outside the Gate items archived this week yet. The section came online 2026-05-15; weekly aggregations fill in as daily briefs publish.</div>
 
-    <footer class="daily-foot">
+    <section class="daily-foot">
       <p class="foot-label">Daily briefs this week</p>
       <ul>
         <li><a href="/usa/archive/2026-05-14.html">Thu · May 14</a></li>
@@ -393,6 +414,15 @@
         <li><a href="/archive/2026-05-09.html">Sat · May 9</a></li>
         <li><a href="/archive/2026-05-08.html">Fri · May 8</a></li>
       </ul>
+    </section>
+
+    <footer class="site-foot">
+      <a href="/usa/">← U.S. daily</a>
+      <a href="/china/">China daily</a>
+      <a href="/usa/archive/">Archive</a>
+      <a href="/about/">About</a>
+      <a href="/sources/">Sources</a>
+      <a href="https://github.com/ghanzo/briefer.news" target="_blank" rel="noopener">GitHub</a>
     </footer>
 
   </main>

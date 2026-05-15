@@ -164,25 +164,26 @@ PAGE_TPL = Template(r"""<!doctype html>
       line-height: 1.5;
     }
 
-    /* Footer */
-    footer.weekly-foot {
-      margin-top: 44px;
+    /* Footer (unified .site-foot across pages) */
+    footer.site-foot {
+      margin-top: 48px;
       padding-top: 18px;
       border-top: 1px solid var(--ink-soft);
       display: flex;
       flex-wrap: wrap;
-      gap: 18px;
+      gap: 8px 22px;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 11px;
-      letter-spacing: 0.14em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
     }
-    footer.weekly-foot a {
+    footer.site-foot a {
       color: var(--sepia);
       text-decoration: none;
       border-bottom: 1px dotted var(--sepia);
+      padding-bottom: 2px;
     }
-    footer.weekly-foot a:hover { border-bottom-style: solid; }
+    footer.site-foot a:hover { border-bottom-style: solid; }
   </style>
 </head>
 <body class="theme-kraft">
@@ -199,9 +200,13 @@ PAGE_TPL = Template(r"""<!doctype html>
 
     $ITEMS_HTML
 
-    <footer class="weekly-foot">
+    <footer class="site-foot">
       <a href="/$EDITION_PATH/">← $EDITION_LABEL daily brief</a>
-      <a href="/">↗ Briefer News home</a>
+      <a href="/$EDITION_PATH/weekly/">Weekly digest</a>
+      <a href="/$EDITION_PATH/archive/">Archive</a>
+      <a href="/about/">About</a>
+      <a href="/sources/">Sources</a>
+      <a href="https://github.com/ghanzo/briefer.news" target="_blank" rel="noopener">GitHub</a>
     </footer>
   </main>
 </body>

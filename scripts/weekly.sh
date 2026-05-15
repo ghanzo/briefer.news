@@ -123,7 +123,7 @@ fi)
 OUTSIDE THE GATE WEEKLY — Aggregate all OG items across the past 7 days from the JSON. Group by date with day-divider headers ("MAY 14, 2026 · THURSDAY"). Render in <ul class="outside-gate"> matching the daily brief's OG section. Use lowercase letter cite markers (a, b, c, ...) and the same <span class="when"> pattern as dailies. If the JSON contains zero OG items (rollout phase — pre-2026-05-15 archives don't have OG), render the empty-state inside <div class="og-empty">:
   <div class="og-empty">No Outside the Gate items archived this week yet. The section came online 2026-05-15; weekly aggregations fill in as daily briefs publish.</div>
 
-DAY-BY-DAY FOOTER — preserve the footer.daily-foot section with one <li><a> per day of the week, linking to that day's archive. For days that came from the legacy /archive/ (pre-2026-05-12 for both editions), use href="/archive/YYYY-MM-DD.html". For days from /usa/archive/ or /china/archive/, use href="/usa/archive/YYYY-MM-DD.html" or href="/china/archive/YYYY-MM-DD.html". The JSON includes the date for each day; for missing days within the 7-day window, omit them from the footer.
+DAY-BY-DAY SECTION + SITE FOOTER — preserve the section.daily-foot with one <li><a> per day of the week, linking to that day's archive. For days that came from the legacy /archive/ (pre-2026-05-12 for both editions), use href="/archive/YYYY-MM-DD.html". For days from /usa/archive/ or /china/archive/, use href="/usa/archive/YYYY-MM-DD.html" or href="/china/archive/YYYY-MM-DD.html". The JSON includes the date for each day; for missing days within the 7-day window, omit them from the section. PRESERVE the <footer class="site-foot"> with cross-site nav (← daily, archive, about, sources, GitHub) UNCHANGED — only the section.daily-foot content is replaced.
 
 Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_weekly_2026-05-17.html. Preserve all CSS, <head>, masthead, and overall structure. Only replace:
   - <title>...</title> to "Briefer News — Weekly · Week of <human range> · $edition_label"
@@ -136,7 +136,7 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_weekly_2026-0
   - 6 <blockquote class="pull">...</blockquote> blocks per rules above
 $([ "$edition" = "china" ] && echo "  - <div class=\"backdrop\">...</div> with 2-3 strategy cards" || echo "  - REMOVE the Strategic Backdrop section entirely (H3 + div.backdrop) — U.S. edition does not include it")
   - <div class="og-empty"> OR <ul class="outside-gate">...</ul> per rules above
-  - <footer class="daily-foot">...</footer> with day-by-day links per rules above
+  - <section class="daily-foot">...</section> with day-by-day links per rules above (NOTE: this is now a <section>, not a <footer>; the <footer class="site-foot"> below it is PRESERVED unchanged)
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it to the file.
 EOF

@@ -1118,18 +1118,21 @@
       line-height: 1.5;
     }
     footer.site .footer-nav {
-      margin: 24px 0 28px;
+      margin: 24px 0 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 22px;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 12px;
-      letter-spacing: 0.22em;
+      font-size: 11px;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
     }
     footer.site .footer-nav a {
-      color: var(--ink);
+      color: var(--sepia);
       text-decoration: none;
-      margin: 0 10px;
-      border-bottom: 1px dotted var(--ink-light);
-      padding-bottom: 1px;
+      border-bottom: 1px dotted var(--sepia);
+      padding-bottom: 2px;
     }
     footer.site .footer-nav a:hover {
       border-bottom-style: solid;
