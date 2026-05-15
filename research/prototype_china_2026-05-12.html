@@ -383,10 +383,10 @@
       align-items: center;
       justify-content: center;
       gap: 8px 12px;
-      margin: -4px 0 16px;
+      margin: -4px 0 0;
       padding: 12px 0;
-      border-top: 1px solid var(--ink-soft);
-      border-bottom: 1px solid var(--ink-soft);
+      border-top: 1px solid var(--ink-light);
+      border-bottom: 1px solid var(--ink-light);
     }
     .thread-strip::before {
       content: "Running";
@@ -396,8 +396,15 @@
       text-transform: uppercase;
       color: var(--ink-light);
       padding-right: 12px;
-      border-right: 1px solid var(--ink-soft);
+      border-right: 1px solid var(--ink-light);
       white-space: nowrap;
+    }
+    /* When a section-label immediately follows the thread strip, suppress
+       its own top border so we don't get a redundant double-rule. */
+    .thread-strip + h3.section-label {
+      border-top: none;
+      padding-top: 0;
+      margin-top: 28px;
     }
     .thread-chip {
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
