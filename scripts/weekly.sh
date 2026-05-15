@@ -87,7 +87,7 @@ Required reading (in order):
 3. @${REPO}/BRIEF_STYLE.md — general style rules.
 4. @${REPO}/lens.md — interpretive framework.
 5. @${REPO}/research/prototype_weekly_2026-05-17.html — visual template. Preserve all CSS, head, masthead, footer structure; replace the editorial content per the rules below.
-6. @${JSON} — full week's aggregated material for this edition (7 days of briefs with headlines, deks, threads, bullets, voices, OG items, and strategy cards).
+6. @${JSON} — full week's aggregated material for this edition (up to 7 days of briefs with headlines, deks, threads, bullets, voices, and strategy cards). The voices array has been pre-filtered to in-week dates only — use only voices from this JSON; never reach beyond it.
 
 Today is ${TODAY}. The week covered runs from ${TODAY} − 6 days to ${TODAY}.
 
@@ -108,9 +108,11 @@ THREADS AT WEEK'S END — 60-150 words of PROSE (not bullets). Where the long ar
 THE WEEK'S BULLETS — 5 to 7 items, 40-80 words EACH. These are NOT daily-bullet compression — they explain WHY each item mattered more than the other 40+ items from the week. Each bullet must answer: what happened, and what does it tell us in retrospect? Cap: ≤2 bullets from a single thread (don't make the week 100% Iran or 100% summit). Format inside <ul class="week-bullets">:
   <li><b>Lead phrase.</b> Editorial sentence on what happened, with date and source. Then the editorial read: why this item, why now, what it reveals or anchors. Cross-reference the daily where this first appeared.<sup><a class="cite" href="[URL]" title="[Source title]">N</a></sup><span class="week-tag">[Date] · [Agency]</span></li>
 
-VOICES OF THE WEEK — 6 voices. 3 in Selected view + 3 in Expanded. Same speaker-diversity rule as daily (each voice from a different speaker AND a different source category). For the China edition, Xi-first rule applies: if Xi spoke this week and the quote is usable, Xi is voice #1.
+VOICES OF THE WEEK — render up to 6 voices, with 3 visible and the remainder in the <details class="voices-extras"> drop-down. Same speaker-diversity rule as daily (each voice from a different speaker AND a different source category). For the China edition, Xi-first rule applies: if Xi spoke this week and the quote is usable, Xi is voice #1.
 
-Hard quote-recency: every voice quote must be from within the week. No exception. The weekly is about the week.
+If the pre-filtered in-week voices array in the JSON has fewer than 6 distinct usable voices, render exactly as many as exist (minimum 3 — if the pool is shorter than 3, name the absence in the Week's Read rather than padding). Never reach beyond the JSON for voices; never fabricate. The pool is the spec.
+
+Hard quote-recency: every voice quote must be from within the week. The aggregator enforces this — any voice that reaches your prompt is already in-window — but double-check the date in each cite line before rendering, and drop any that fail.
 
 Voice format: <blockquote class="pull"><p>&ldquo;[quote]&rdquo;</p><cite>[Speaker name + role] &middot; [Date]<sup><a class="cite" href="[URL]" title="[Source]" target="_blank" rel="noopener">[N]</a></sup></cite></blockquote>
 

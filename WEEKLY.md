@@ -15,7 +15,6 @@ A reader who skims only the weekly should walk away with:
 - A handful of items that *clarified* something — not the loudest, the most revealing
 - A sense of which long-arc threads advanced and how
 - A few voices worth remembering
-- A list of moves that came from outside the gate (sanctions, deployments, allied positions, adversary statements)
 
 The weekly is **longer-form than the daily** — total editorial content 800–1500 words. It's expected to take 8–12 minutes to read, not 3–5.
 
@@ -133,7 +132,7 @@ This is NOT a guess at which doctrines might be relevant. It's a count: which st
 
 ## Hard rules
 
-- **Total editorial word count: 800–1500 words** for sections 2–6 (headline, lead, threads, bullets, voices). Strategic Backdrop and OG weekly are auto-shaped.
+- **Total editorial word count: 800–1500 words** for sections 2–6 (headline, lead, threads, bullets, voices). Strategic Backdrop (China edition) is auto-shaped.
 - **Headline ≤14 words.** Stance, not topic. (See banned patterns above.)
 - **Lead paragraph 80–120 words, ≤3 sentences.**
 - **Bullets 40–80 words each.** Compressing this week's daily output, with editorial explanation.

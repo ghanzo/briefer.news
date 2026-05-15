@@ -180,7 +180,41 @@ def extract_bullets(html: str) -> list[dict]:
     return bullets
 
 
-def extract_voices(html: str) -> list[dict]:
+_VOICE_DATE_FORMATS = ("%B %d", "%b %d", "%b. %d")
+
+
+def _parse_voice_date(date_label: str, today: date) -> Optional[date]:
+    """Parse a voice cite's date label ('May 14' / 'Apr 24' / 'Apr. 24')
+    against today's year. Returns None if unparseable.
+
+    If parsed-date is in the future relative to today, assume the date
+    rolled over from the previous year (Dec 31 vs Jan 1 case).
+    """
+    if not date_label:
+        return None
+    cleaned = date_label.strip().rstrip(".")
+    for fmt in _VOICE_DATE_FORMATS:
+        try:
+            parsed = datetime.strptime(cleaned, fmt).date().replace(year=today.year)
+            if parsed > today:
+                parsed = parsed.replace(year=today.year - 1)
+            return parsed
+        except ValueError:
+            continue
+    return None
+
+
+def extract_voices(html: str, today: Optional[date] = None,
+                   week_start: Optional[date] = None) -> list[dict]:
+    """Extract voices from a daily brief's HTML.
+
+    When today + week_start are provided, voices whose cite date falls
+    outside [week_start, today] are dropped — enforces WEEKLY.md's hard
+    quote-recency rule before the synth ever sees them.
+
+    Voices with unparseable date labels are kept (better to surface a
+    candidate the synth can verify than to silently drop signal).
+    """
     voices: list[dict] = []
     for pull_m in PULL_BLOCK_RE.finditer(html):
         block = pull_m.group(1)
@@ -199,6 +233,12 @@ def extract_voices(html: str) -> list[dict]:
         else:
             speaker = attribution_clean
             date_label = ""
+
+        if today and week_start and date_label:
+            parsed = _parse_voice_date(date_label, today)
+            if parsed and (parsed < week_start or parsed > today):
+                continue  # outside the week — drop before synth picks
+
         voices.append({
             "quote": quote,
             "speaker": speaker,
@@ -226,14 +266,16 @@ def extract_strategy_cards(html: str) -> list[dict]:
 
 # ── Per-day orchestrator ────────────────────────────────────────────────────
 
-def extract_day(html: str, brief_date: str, edition: str) -> dict:
+def extract_day(html: str, brief_date: str, edition: str,
+                today: Optional[date] = None,
+                week_start: Optional[date] = None) -> dict:
     return {
         "date": brief_date,
         "headline": extract_headline(html),
         "dek": extract_dek(html),
         "threads": extract_threads(html),
         "bullets": extract_bullets(html),
-        "voices": extract_voices(html),
+        "voices": extract_voices(html, today=today, week_start=week_start),
         "strategy_cards": extract_strategy_cards(html) if edition == "china" else [],
     }
 
@@ -254,7 +296,8 @@ def collect_week(edition: str, today: date) -> dict:
         html = _read_archive_file(edition_path, fname)
         if not html:
             continue
-        days.append(extract_day(html, brief_date.isoformat(), edition))
+        days.append(extract_day(html, brief_date.isoformat(), edition,
+                                today=today, week_start=cutoff))
 
     days.sort(key=lambda d: d["date"], reverse=True)
 
