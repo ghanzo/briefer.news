@@ -59,29 +59,10 @@ Then write a compact markdown briefing in this exact structure (keep total ≤45
 ## Calendar to watch (next 7-14 days)
 - (2-4 lines, named upcoming events with dates)
 
-## Outside the Gate candidates (CITABLE — for direct rendering in brief)
-**This subsection is different from the others.** It will be RENDERED on the public brief page in a section labeled "Outside the Gate · non-US-gov sources." Each item must be citable: a named publication, an exact-or-near-exact publish date within the last 7 days, and a working URL. Pick 5-8 candidates; the synthesizer will choose 3-5 to render.
-
-Selection criteria — pick the signals that BEST illustrate "what the world is doing in response to / parallel to US action this week":
-- Allied gov positions and coalition responses (UK / EU / NATO / Japan / Australia / Five Eyes / G7 statements and deployments)
-- Adversary primary statements and moves (China MFA, Kremlin, IRNA, North Korea KCNA — when reacting to US action)
-- Major operational events the US-gov feed undercovers (shipping attacks, casualties, allied ship/troop movements, coalition fractures)
-- Analyst-grade operational detail from authoritative outlets (Reuters / AP / Bloomberg / FT / ISW / CSIS / Critical Threats Project)
-- Skip pure punditry; the items must be ACTIONS or PRIMARY STATEMENTS, not opinion
-
-Format each as a single line in this exact structure (one bullet per line, no sub-bullets):
-- **[Lead actor + action verb, ≤8 words].** [One-clause explanation, ≤20 words.] | source: [publication name] | date: YYYY-MM-DD | url: [full URL]
-
-Example:
-- **UK PM rules out Hormuz blockade role.** Starmer tells Commons UK ships will not enforce US blockade despite Gulf-area deployments. | source: Reuters | date: 2026-05-13 | url: https://www.reuters.com/...
-
-The URL must be the actual article URL, not a generic site root. Use WebSearch / WebFetch as needed to confirm URLs. If you cannot find a citable URL for a candidate, drop it from this list (you can still mention it in the upper sections).
-
 Style notes:
 - Bias toward structural importance, not breaking-news churn
 - Concrete (named actors, events, dates) — not abstractions
-- The non-"Outside the Gate" sections remain editorial signal for the synthesizer, NOT public-facing — synth never quotes them.
-- The "Outside the Gate candidates" section is the SINGLE exception: it IS published-source material, used to populate the new page section.
+- This is editorial signal for the synthesizer, NEVER public-facing — synth uses it to calibrate framing emphasis on bullets, but the brief publishes only US-gov primary sources. Do NOT propose citations for the brief.
 - Do NOT recommend or instruct — just describe what the world is focused on
 
 Save the briefing to ${OUT}. Do not output to stdout — write to the file.

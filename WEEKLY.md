@@ -32,8 +32,7 @@ The page has these sections, in this order:
 5. **The Week's Bullets** — 5–7 items, each 40–80 words. The clarifying items, with explanatory text.
 6. **Voices of the Week** — 6 voices. 3 in Selected view + 3 in Expanded, same as daily.
 7. **Strategic Backdrop weekly** (China edition only) — 2–3 doctrines that recurred across the week.
-8. **Outside the Gate weekly** — 5–7 inbound signals from the week, sourced from non-gov outlets. (This section is auto-populated from the OG weekly aggregation — synth doesn't re-author it, it includes it.)
-9. **Footer** — small links to each of the past 7 daily briefs by date.
+8. **Footer** — small links to each of the past 7 daily briefs by date.
 
 ---
 
@@ -129,14 +128,6 @@ Each voice is the same shape as in the daily: 12–30 word verbatim quote, attri
 2–3 cards, same format as daily. Pick the doctrines from `pipeline/config/strategy/` that were **named or operatively-invoked most often** across the week's bullets. The card's blurb (~30 words) should connect the doctrine to specific items from the week.
 
 This is NOT a guess at which doctrines might be relevant. It's a count: which strategy themes did the week's actual content invoke?
-
----
-
-## Outside the Gate weekly
-
-This section is **auto-populated** from the OG weekly aggregator (`scripts/og_weekly_aggregate.py`). The synth does not re-author it. The synth's job here is just to include the rendered OG weekly content in the right place on the page.
-
-If the OG weekly aggregator returns 0 items (e.g., during rollout when post-change daily archives haven't accumulated yet), render the empty-state placeholder.
 
 ---
 

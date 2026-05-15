@@ -10,21 +10,19 @@
 # the past seven days of archived dailies.
 #
 # Sequence:
-#   1. og_weekly.sh           — aggregates the week's Outside the Gate
-#                                items (cheap, ~30s, no Claude calls)
-#   2. weekly.sh              — full weekly digest with Claude synthesis
+#   1. weekly.sh              — full weekly digest with Claude synthesis
 #                                per edition (~3-5 min total)
-#   3. archive_index          — rebuild the per-edition archive index
+#   2. archive_index          — rebuild the per-edition archive index
 #                                pages so any new brief published this
 #                                morning is listed (~5s, no Claude)
-#   4. inject_weekly_preview  — read each edition's just-written weekly
+#   3. inject_weekly_preview  — read each edition's just-written weekly
 #                                headline and patch today's daily brief
 #                                with a "This week" callout below the
 #                                thread strip (~5s, no Claude)
-#   5. build_sitemap          — regenerate sitemap.xml so search engines
+#   4. build_sitemap          — regenerate sitemap.xml so search engines
 #                                pick up today's new archive entry
 #                                (~3s, no Claude)
-#   6. threads_propose        — scan past 14 days of bullets, ask Claude
+#   5. threads_propose        — scan past 14 days of bullets, ask Claude
 #                                for candidate new threads not yet in
 #                                threads.yaml. Output is editor-review
 #                                only — never auto-merged (~30s, 1 Claude
@@ -49,15 +47,11 @@ echo "Daily digests refresh starting at $(date)"
 echo "═══════════════════════════════════════════════════════════════"
 
 echo ""
-echo "── Stage 1/2: og_weekly.sh ──"
-"$REPO/scripts/og_weekly.sh"
-
-echo ""
-echo "── Stage 2/3: weekly.sh ──"
+echo "── Stage 1/5: weekly.sh ──"
 "$REPO/scripts/weekly.sh"
 
 echo ""
-echo "── Stage 3/4: archive_index ──"
+echo "── Stage 2/5: archive_index ──"
 DOCKER=/usr/local/bin/docker
 AWS=/Users/maxgoshay/.local/bin/aws
 RUN_DIR="$REPO/.run"
@@ -88,11 +82,11 @@ else
 fi
 
 echo ""
-echo "── Stage 4/5: inject_weekly_preview ──"
+echo "── Stage 3/5: inject_weekly_preview ──"
 python3 "$REPO/scripts/inject_weekly_preview.py"
 
 echo ""
-echo "── Stage 5/6: build_sitemap ──"
+echo "── Stage 4/5: build_sitemap ──"
 AWS=/Users/maxgoshay/.local/bin/aws
 python3 "$REPO/scripts/build_sitemap.py"
 if [ -s "$RUN_DIR/sitemap.xml" ]; then
@@ -116,7 +110,7 @@ else
 fi
 
 echo ""
-echo "── Stage 6/6: threads_propose ──"
+echo "── Stage 5/5: threads_propose ──"
 "$REPO/scripts/threads_propose.sh"
 
 echo ""

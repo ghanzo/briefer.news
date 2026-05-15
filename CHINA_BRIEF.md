@@ -186,11 +186,11 @@ The four direction items captured 2026-05-12 are now implemented:
 
 3. **Structural anchors — strategy library.** *Built.* Eleven strategy docs in `pipeline/config/strategy/` (14fyp, 15fyp, bri, carbon_dual_control_30_60, civil_military_fusion, common_prosperity, dual_circulation, energy_security_internal_transition, gdi_gsi, made_in_china_2025, new_quality_productive_forces). Each has a "Today's coverage triggers" section. The picker uses them as a tie-breaker; the synthesizer uses them to populate the Strategic Backdrop cards (2-3 fresh per day). The originally-planned single `china_structural_arcs.md` was superseded by the per-doctrine library.
 
-4. **Dashboard framing — "from and to China".** *Landed.* Implementation chosen 2026-05-14: a dedicated **Outside the Gate** section between the 9 bullets (and summit transcript, if present) and Strategic Backdrop. 3-5 short items per day, labeled "Inbound signals · non-PRC sources" with sepia left-rule and lowercase (a, b, c) cite markers to visually distinguish from the .gov.cn (1-9) bullet cites. Data flow: `china_world_context.sh` now emits an "Outside the Gate candidates" subsection — each candidate carries actor, action, date, publication, and a working URL. The synth picks 3-5 of these to render. The rest of `china_world_context.md` remains reference-only (never cited).
+4. **Dashboard framing — "from and to China".** *Reverted 2026-05-14 evening.* The Outside the Gate section briefly added a labeled exception for non-PRC sources but broke the brand's primary-source-only promise. Removed everywhere on the page. The synth still reads ambient world-context (Reuters/AP/etc.) for FRAMING — to know what the world is saying about today's PRC output — but never publishes or cites non-PRC content. Every cite in the brief points to .gov.cn or another Chinese-government primary source.
 
-### Trust posture (post-change)
+### Trust posture
 
-The brief's spine remains Chinese government primary sources — 9 bullets, voices, Strategic Backdrop, Five-Year Plan, Sources are all .gov.cn-cited. Outside the Gate is the single labeled exception, explicitly flagged as non-PRC source material. The "Chinese government sources" tagline in the header remains accurate as a description of the brief's main editorial spine.
+Every bullet, voice, Strategic Backdrop card, Five-Year Plan reference, and Source entry cites a Chinese-government primary URL. The "Chinese government sources" tagline in the header describes the entire spine — no exceptions.
 
 ---
 
@@ -198,7 +198,7 @@ The brief's spine remains Chinese government primary sources — 9 bullets, voic
 
 Resolved 2026-05-14:
 
-- **Naming.** *Decided: keep unified — "Briefer News — China".* Parent brand is "daily intelligence brief on government sources" and scales across editions. Strategic Backdrop, Outside the Gate, and Five-Year Plan sections are explicitly cross-cutting frameworks; distinct branding would imply editorial independence we don't actually want. Distinct names also break the `briefer.news/china/` domain story.
+- **Naming.** *Decided: keep unified — "Briefer News — China".* Parent brand is "daily intelligence brief on government sources" and scales across editions. Strategic Backdrop and Five-Year Plan sections are explicitly cross-cutting frameworks; distinct branding would imply editorial independence we don't actually want. Distinct names also break the `briefer.news/china/` domain story.
 
 - **Provincial coverage volume cap.** *Stable at ≤3/day.* Not a binding cap in practice (most days have 0 provincial bullets). Revisit only if Shanghai/Guangdong start producing higher-volume usable items.
 
@@ -209,7 +209,7 @@ Resolved 2026-05-14:
 
 - **Qiushi treatment.** *Decided 2026-05-14: anchor rule landed.* Synth prompt now requires bullets sourced from Qiushi to anchor explicitly to the speech / piece ("in a Qiushi speech [date]", "Xi's [date] speech republished in Qiushi", "Qiushi commentary [date]"). Prevents long-arc doctrinal framing from reading as breaking news.
 
-- **The "to China" layer.** *Decided 2026-05-14 — Outside the Gate section live.* See direction item #4 above.
+- **The "to China" layer.** *Reverted 2026-05-14 evening — non-PRC-source content removed from the published page.* See direction item #4 above for the revert reasoning.
 
 ---
 

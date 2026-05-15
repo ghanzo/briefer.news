@@ -12,7 +12,6 @@ og_weekly_aggregate.py. Pulls:
   - voices (with attribution, cite url, cite title, date label)
   - bullets (lead, desc, cite url, cite title, source, date label)
   - strategy_cards (China edition only — Strategic Backdrop section)
-  - outside_gate (if present — landed 2026-05-15)
 
 Missing sections are returned as null / empty list — the synth tolerates.
 
@@ -76,19 +75,6 @@ PULL_QUOTE_RE = re.compile(
 PULL_CITE_RE = re.compile(
     r'<cite>(?P<attribution>.+?)<sup>\s*<a[^>]*\bclass="cite"[^>]*\bhref="(?P<url>[^"]+)"'
     r'[^>]*\btitle="(?P<src_title>[^"]+)"[^>]*>(?P<marker>[^<]+)</a>\s*</sup>\s*</cite>',
-    re.DOTALL,
-)
-OG_BLOCK_RE = re.compile(
-    r'<ul class="outside-gate">(.+?)</ul>', re.DOTALL
-)
-OG_LI_RE = re.compile(
-    r'<li>\s*'
-    r'<b>(?P<lead>[^<]+)</b>\s*'
-    r'(?P<desc>.*?)'
-    r'<sup>\s*<a[^>]*\bclass="cite"[^>]*\bhref="(?P<url>[^"]+)"'
-    r'[^>]*\btitle="(?P<src_title>[^"]+)"[^>]*>(?P<letter>[a-z])</a>\s*</sup>'
-    r'\s*<span class="when">(?P<when>[^<]+)</span>\s*'
-    r'</li>',
     re.DOTALL,
 )
 BACKDROP_BLOCK_RE = re.compile(
@@ -224,27 +210,6 @@ def extract_voices(html: str) -> list[dict]:
     return voices
 
 
-def extract_outside_gate(html: str) -> list[dict]:
-    m = OG_BLOCK_RE.search(html)
-    if not m:
-        return []
-    items: list[dict] = []
-    for li_m in OG_LI_RE.finditer(m.group(1)):
-        when_raw = _clean_text(li_m.group("when"))
-        date_label, source = _split_when(when_raw)
-        items.append({
-            "lead": _clean_text(li_m.group("lead")),
-            "desc": _clean_text(li_m.group("desc")),
-            "letter": li_m.group("letter"),
-            "url": html_lib.unescape(li_m.group("url")),
-            "src_title": _clean_text(li_m.group("src_title")),
-            "when_raw": when_raw,
-            "date_label": date_label,
-            "source": source,
-        })
-    return items
-
-
 def extract_strategy_cards(html: str) -> list[dict]:
     m = BACKDROP_BLOCK_RE.search(html)
     if not m:
@@ -269,7 +234,6 @@ def extract_day(html: str, brief_date: str, edition: str) -> dict:
         "threads": extract_threads(html),
         "bullets": extract_bullets(html),
         "voices": extract_voices(html),
-        "outside_gate": extract_outside_gate(html),
         "strategy_cards": extract_strategy_cards(html) if edition == "china" else [],
     }
 
@@ -332,11 +296,9 @@ def main() -> int:
     for d in doc["days"]:
         n_b = len(d["bullets"])
         n_v = len(d["voices"])
-        n_og = len(d["outside_gate"])
         n_sc = len(d["strategy_cards"])
         dek_state = "dek" if d["dek"] else "no-dek"
-        og_state = f"og={n_og}" if n_og else "no-og"
-        print(f"   {d['date']}: {n_b} bullets, {n_v} voices, {og_state}, sc={n_sc}, {dek_state}")
+        print(f"   {d['date']}: {n_b} bullets, {n_v} voices, sc={n_sc}, {dek_state}")
     print(f"  wrote {out_path}")
     return 0
 

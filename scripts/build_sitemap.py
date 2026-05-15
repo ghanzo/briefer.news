@@ -40,8 +40,6 @@ STATIC_PAGES = [
     ("/china/",              "daily",    "1.0"),
     ("/usa/weekly/",         "daily",    "0.8"),
     ("/china/weekly/",       "daily",    "0.8"),
-    ("/usa/og-week/",        "daily",    "0.7"),
-    ("/china/og-week/",      "daily",    "0.7"),
     ("/usa/archive/",        "daily",    "0.6"),
     ("/china/archive/",      "daily",    "0.6"),
 ]

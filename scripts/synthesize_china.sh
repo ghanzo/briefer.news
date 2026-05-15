@@ -313,9 +313,7 @@ Required reading (in order):
 4. @${REPO}/research/prototype_china_2026-05-12.html — visual template; preserve all CSS, header, footer, script
 5. @${FULL} — full text of the articles the picker selected
 6. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, new quality productive forces, common prosperity, dual circulation, civil-military fusion, BRI, GDI/GSI, energy 30/60, energy security, etc.) with a "Today's coverage triggers" section. You'll use these to populate the Strategic Backdrop section.
-7. **World-context (ambient signal):** @${REPO}/.run/china_world_context.md if it exists. This is what non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. The file has TWO uses:
-   - **Upper sections (Inbound signals / Western framing / Politically-vital / Calendar):** ambient framing ONLY. Use to (a) calibrate which bullets to emphasize and how, (b) inform the Day's Narrative dek's macro framing, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce these sections in the brief.**
-   - **"Outside the Gate candidates" subsection:** this IS citable. Each candidate has a publication + date + URL and is intended to be rendered directly in the new Outside the Gate page section (see Output requirements). Pick 3-5 of the candidates that best illustrate "what the world is sending toward China this week."
+7. **World-context (ambient signal, NEVER published):** @${REPO}/.run/china_world_context.md if it exists. What non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. Use this to (a) calibrate which bullets to emphasize and how, (b) inform the Day's Narrative dek's macro framing, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce this file in the brief.** Do NOT render any non-PRC source on the page. Every cite in the bullets must point to .gov.cn or another Chinese-government primary source. The brand promise is primary-government-sources-only.
 
 Today is ${TODAY}.
 
@@ -381,28 +379,7 @@ Bullet caps:
 
 **Qiushi anchor rule (HARD).** When a bullet sources from Qiushi (求是, Party Theoretical Journal), the bullet text MUST anchor to the speech / piece — explicitly name "in a Qiushi speech [date]", "Xi's [date] speech republished in Qiushi", or "Qiushi commentary, [date]". Otherwise the bullet reads as breaking news when the underlying material is long-arc doctrinal framing.
 
-OUTSIDE THE GATE: After the 9 bullets (and after the summit transcript section, if present), render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/china_world_context.md.
-
-Selection rules:
-- Pick the candidates that best illustrate "what the world is sending toward China this week" — concrete ACTIONS by named actors (sanctions / export controls / military exercises / G7-G20 statements / tariffs / deals).
-- Prefer freshness (≤7 days) and concrete actors. Skip pure analyst commentary.
-- Each item must come WITH its citable source and URL from the world-context file. If a candidate lacks a working URL, do not render it.
-- Items must be RECENT (date within last 14 days). Do not surface items older than 14 days even if the candidate file lists them.
-- Maintain editorial neutrality. State the action; do not editorialize about Chinese reaction.
-
-Outside the Gate HTML template (use this structure):
-<div class="outside-gate-wrap">
-  <h3 class="section-label">Outside the Gate</h3>
-  <p class="og-subtitle">Inbound signals &middot; non-PRC sources</p>
-  <ul class="outside-gate">
-    <li><b>[Lead actor + action, ≤8 words].</b> [One-clause explanation, ≤20 words.]<sup><a class="cite" href="[URL]" title="[Source] &mdash; [short title], [date]" target="_blank" rel="noopener">[letter]</a></sup><span class="when">[Date short] &middot; [Source]</span></li>
-    ...
-  </ul>
-</div>
-
-Use lowercase letters (a, b, c, d, e) for Outside the Gate cite markers — keep them visually distinct from the numbered (1-9) bullet cites that point to .gov.cn sources. The visual cue helps readers parse "this section is the non-PRC exception."
-
-STRATEGIC BACKDROP: After the Outside the Gate section, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
+STRATEGIC BACKDROP: After the 9 bullets (and after the summit transcript section, if present), identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
 
 Pick rules:
 - Each card connects to AT LEAST 2 of today's bullets via the strategy's themes.
@@ -422,7 +399,7 @@ Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .back
 
 SOURCES section: numbered <ol>, each <li> with publisher in <span class="pub">, article title, date, full URL.
 
-Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, the .backdrop CSS rules, AND the .fyp CSS rules. Preserve the <p class="weekly-link">...</p> nav element immediately after the Outside the Gate block — do not remove it. Only replace:
+Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05-12.html. Preserve all CSS, <header>, <footer>, <script> unchanged — including the China-flag SVG mark, the "Chinese government sources" tagline, the .backdrop CSS rules, AND the .fyp CSS rules. Preserve the <p class="weekly-link">...</p> nav element below the 9 bullets — do not remove it. Only replace:
 - <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand+edition. Format pattern is "[KEY PHRASES] · [Month Day] · Briefer News China". Concrete example: "Xi welcomes Trump, Taiwan red line · May 14 · Briefer News China". Goal: ≤70 total chars. Avoid acronyms in the title; use plain-English noun phrases that match what a reader would Google (no NDRC / CAC / MIIT — use "central planners," "internet regulator," "industry ministry"; no "新质生产力 NQPF" — use "AI-and-tech doctrine" or the specific policy in plain words).
 - <meta name="description" content="..."> — paste today's full dek text (verbatim, including punctuation). The dek is already 30-55 words, ideal length for search snippets and social previews.
 - <meta property="og:title" content="..."> — same string as the <title> tag.
@@ -436,7 +413,6 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - Insert <p class="thread-strip">...</p> IMMEDIATELY after </p> closing the dek — the continuity strip per rules above. Omit entirely if .run/threads_china.txt is empty.
 - <div class="voices">...</div> — first 3 voices as <blockquote class="pull"> directly inside, then a <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> with the additional 3 <blockquote class="pull"> elements inside. No `open` attribute on this details — extras default to hidden (preserving the priority-selection-first behavior).
 - <ul class="items">...</ul> with exactly 9 <li> elements
-- The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
 - The inner <div class="backdrop">...</div> of the Strategic Backdrop block (PRESERVE the wrapping <details class="collapsible-details" open><summary class="collapsible-summary">Strategic Backdrop</summary> and the closing </details>; only the inner backdrop div is replaced with 2-3 fresh strategy cards per today's items). Strategic Backdrop uses <details open> — expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the `open` attribute.
 - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). Sources uses <details open> — expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the `open` attribute.
 - The Five-Year Plan section is wrapped in <details class="collapsible-details" open><summary class="collapsible-summary">Five-Year Plan</summary>...</details>. The synth must PRESERVE this wrapper, the summary text, and the `open` attribute. The inner <article class="fyp"> content is unchanged — see the existing preserve rule for the Five-Year Plan section.
@@ -459,9 +435,6 @@ if ! grep -q 'class="headline"' "$OUT" || ! grep -q 'class="items"' "$OUT" || ! 
 fi
 if ! grep -q 'class="backdrop"' "$OUT"; then
   echo "WARN: $OUT missing Strategic Backdrop section — publishing anyway, but flag for review"
-fi
-if ! grep -q 'class="outside-gate"' "$OUT"; then
-  echo "WARN: $OUT missing Outside the Gate section — publishing anyway, but flag for review"
 fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 

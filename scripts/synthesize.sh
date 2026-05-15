@@ -291,10 +291,8 @@ Required reading (in order):
 3. @${REPO}/research/prototype_us_2026-05-12.html — the visual template you must mirror
 4. @${FULL} — full text of the articles the picker selected
 
-Ambient signal + Outside the Gate source:
-@${REPO}/.run/world_context.md if it exists. This file has TWO uses:
-- **Upper sections (Dominant narrative arcs / Secondary threads / Calendar):** ambient framing ONLY. Use to frame your bullets in their wider narrative arc when natural (e.g., anchoring a CENTCOM-sourced bullet to "the deteriorating April 8 ceasefire" if that is the global frame). Every claim and citation in the bullets must still come from the US-gov articles in the candidates list — the world context informs framing, not facts. **Do NOT cite the upper sections in the bullets.**
-- **"Outside the Gate candidates" subsection:** this IS citable. Each candidate has a publication + date + URL and is intended to be rendered directly in the new Outside the Gate page section (see Output requirements below). Pick 3-5 of the candidates that best illustrate "what the world is doing in response to / parallel to US action this week."
+Ambient signal (reference only, NEVER published):
+@${REPO}/.run/world_context.md if it exists. What non-US-gov sources (Reuters, AP, FT, Bloomberg, BBC, etc.) are reporting about today's stories. Use this to frame your bullets in their wider narrative arc when natural (e.g., anchoring a CENTCOM-sourced bullet to "the deteriorating April 8 ceasefire" if that is the global frame). **Every claim and citation in the bullets must come from the US-gov articles in the candidates list — the world context informs framing, not facts.** Do NOT cite the world context anywhere in the rendered HTML; do NOT quote it; do NOT render any non-gov source on the page. The brand promise is primary-government-sources-only.
 
 Today is ${TODAY}.
 
@@ -312,28 +310,7 @@ Your job:
   - DEK.md notes that "anchor a thread that returns tomorrow" is one of the five qualities a good dek can have. The threads here are the menu — when natural, the dek can reference "Day 76 of the Iran war" or similar to anchor a thread.
 - If many candidates are part of a single regulatory package (e.g., a coordinated set of ATF firearms rules in one Federal Register filing), combine into ONE bullet rather than spending multiple bullets on the package.
 - Voices: **6 voices total**, each 12 to 30 words, NEVER invent quotes — verbatim from the articles only, mixing registers (moral, technical, political). Order by editorial importance: the first 3 are the priority selection (always visible). Wrap the additional 3 in `<details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> ... 3 more <blockquote class="pull"> ... </details>` — native HTML expander, no JS. Both groups follow the same rules (no repeat speakers, mix of registers).
-- OUTSIDE THE GATE: After the 9 bullets and before By the Numbers, render the "Outside the Gate" section using 3-5 candidates from the "Outside the Gate candidates" subsection of @${REPO}/.run/world_context.md.
-
-  Selection rules:
-  - Pick the candidates that best illustrate "what the world is doing in response to / parallel to US action this week" — concrete ACTIONS or PRIMARY STATEMENTS by named actors (allied gov positions, coalition deployments, adversary primary statements, operational events the US-gov feed undercovers).
-  - Prefer freshness (≤7 days) and concrete actors. Skip pure punditry.
-  - Each item must come WITH its citable source and URL from the world-context file. If a candidate lacks a working URL, do not render it.
-  - Items must be RECENT (date within last 14 days). Do not surface items older than 14 days even if the candidate file lists them.
-  - Maintain editorial neutrality. State the action; do not editorialize about US reaction.
-
-  Outside the Gate HTML template (use this structure):
-  <div class="outside-gate-wrap">
-    <h3 class="section-label">Outside the Gate</h3>
-    <p class="og-subtitle">Inbound signals &middot; non-US-gov sources</p>
-    <ul class="outside-gate">
-      <li><b>[Lead actor + action, ≤8 words].</b> [One-clause explanation, ≤20 words.]<sup><a class="cite" href="[URL]" title="[Source] &mdash; [short title], [date]" target="_blank" rel="noopener">[letter]</a></sup><span class="when">[Date short] &middot; [Source]</span></li>
-      ...
-    </ul>
-  </div>
-
-  Use lowercase letters (a, b, c, d, e) for Outside the Gate cite markers — keep them visually distinct from the numbered (1-9) bullet cites that point to US-gov sources. The visual cue helps readers parse "this section is the non-US-gov exception."
-
-- Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <header>, <footer>, and <script> blocks unchanged. Preserve the <p class="weekly-link">...</p> nav element immediately after the Outside the Gate block — do not remove it. Only replace:
+- Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_us_2026-05-12.html. Preserve all CSS, the <header>, <footer>, and <script> blocks unchanged. Preserve the <p class="weekly-link">...</p> nav element below the 9 bullets — do not remove it. Only replace:
   - <title>...</title> to a SEO-discoverable format: 2-3 key noun phrases from today's content (≤50 chars combined), then date, then brand. Format pattern is "[KEY PHRASES] · [Month Day] · Briefer News". Concrete example: "Trump-Xi summit, Hormuz coalition · May 14 · Briefer News". Goal: ≤65 total chars. Avoid acronyms; use plain-English noun phrases that match what a reader would Google ("Hormuz coalition" not "CENTCOM patrol", "Trump-Xi summit" not "bilateral meeting").
   - <meta name="description" content="..."> — paste TODAY's full dek text (verbatim, including punctuation). The dek is already 30-55 words, ideal length for search snippets and social previews.
   - <meta property="og:title" content="..."> — same string as the <title> tag.
@@ -347,7 +324,6 @@ Your job:
   - Insert <p class="thread-strip">…</p> IMMEDIATELY after </p> closing the dek — the continuity strip per rules above. Omit entirely if .run/threads_us.txt is empty.
   - <div class="voices">...</div> — first 3 voices as <blockquote class="pull"> directly inside, then a <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> with the additional 3 <blockquote class="pull"> elements inside. No `open` attribute on this details — extras default to hidden (preserving the original "Selected" view as default).
   - <ul class="items">...</ul> — exactly 9 li with bold lead, tight description, citation, date+agency tag
-  - The Outside the Gate block (everything from <div class="outside-gate-wrap"> through its closing </div>) with 3-5 fresh inbound-signal items drawn from the world-context candidate list
   - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). The Sources section uses native <details> with the `open` attribute, so it renders expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the `open` attribute.
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it to the file.
@@ -363,9 +339,6 @@ fi
 if ! grep -q 'class="headline"' "$OUT" || ! grep -q 'class="items"' "$OUT" || ! grep -q 'class="sources"' "$OUT"; then
   echo "ERROR: $OUT missing required structural classes — leaving yesterday's brief in place"
   exit 0
-fi
-if ! grep -q 'class="outside-gate"' "$OUT"; then
-  echo "WARN: $OUT missing Outside the Gate section — publishing anyway, but flag for review"
 fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 
