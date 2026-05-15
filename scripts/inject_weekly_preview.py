@@ -30,7 +30,7 @@ RUN_DIR = REPO / ".run"
 NGINX_CONTAINER = "briefer_nginx"
 
 WEEKLY_PREVIEW_CSS = """
-    /* This week section backfill 2026-05-14 evening */
+    /* BEGIN-WEEKLY-PREVIEW-CSS (managed by scripts/inject_weekly_preview.py) */
     .weekly-preview-headline {
       font-family: 'EB Garamond', Garamond, Georgia, serif;
       font-size: 22px; line-height: 1.3; font-weight: 500;
@@ -80,6 +80,7 @@ WEEKLY_PREVIEW_CSS = """
       border-bottom: 1px dotted var(--sepia); padding-bottom: 2px;
     }
     .weekly-preview-link:hover { border-bottom-style: solid; }
+    /* END-WEEKLY-PREVIEW-CSS */
 """
 
 
@@ -199,9 +200,24 @@ def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
         daily_html, flags=re.DOTALL,
     )
 
-    # Inject CSS if not already present
-    if ".weekly-preview-headline" not in daily_html:
-        daily_html = daily_html.replace("</style>", WEEKLY_PREVIEW_CSS + "\n  </style>", 1)
+    # Strip the previously-managed block AND any legacy unmanaged blocks
+    # (older prototype eras carried italic + smaller weekly-preview styling
+    # under a different comment marker). Then always inject fresh — the
+    # managed CSS is the source of truth.
+    daily_html = re.sub(
+        r"\s*/\*\s*BEGIN-WEEKLY-PREVIEW-CSS.*?END-WEEKLY-PREVIEW-CSS\s*\*/\s*",
+        "\n",
+        daily_html, flags=re.DOTALL,
+    )
+    daily_html = re.sub(
+        r"\s*/\*\s*[Tt]his[- ]?week[^*]*\*/\s*"
+        r"(?:\.weekly-preview[^{]*\{[^}]*\}\s*"
+        r"|details\.weekly-preview[^{]*\{[^}]*\}\s*"
+        r"|details\.weekly-preview[^{]*::[^{]*\{[^}]*\}\s*)+",
+        "\n",
+        daily_html, flags=re.DOTALL,
+    )
+    daily_html = daily_html.replace("</style>", WEEKLY_PREVIEW_CSS + "\n  </style>", 1)
 
     preview_html = render_preview(weekly, edition_path)
 
