@@ -85,6 +85,7 @@ ALLOWLIST_SQL="
     ('UK Ministry of Defence', 2),
     ('Australia DFAT — Departmental Media Releases', 2),
     ('Japan MoFA — Press Releases (EN)', 2),
+    ('NATO News', 2),
     -- C: enforcement / cyber
     ('DOJ — Justice News (OPA)', 3),
     ('DOJ — National Security Division', 3),

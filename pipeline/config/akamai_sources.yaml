@@ -124,15 +124,15 @@ sources:
 
   # ── NATO press releases ────────────────────────────────────────────────────
 
-  - name: "NATO Press Releases"
+  - name: "NATO News"
     domain: nato.int
-    discovery_type: html_curl_cffi
-    listing_url: "https://www.nato.int/en/news-and-events/press-office"
-    link_pattern: "/en/news-and-events/articles/[a-z0-9-]+"
+    discovery_type: html_playwright
+    listing_url: "https://www.nato.int/en/news-and-events/articles/news"
+    link_pattern: "/en/news-and-events/articles/news/\\d{4}/\\d{2}/\\d{2}/[a-z0-9-]+"
     category: foreign_policy_allied
     tier: 2
-    active: false
-    notes: "Re-probed 2026-05-14: NATO has migrated from /cps/en/natohq/news.htm to /en/news-and-events/. The new listing page is JS-rendered (curl_cffi gets the chrome HTML but article URLs aren't in the initial HTML; needs Playwright). Listing URL updated; held disabled until a Playwright variant of this discovery type is wired. NATO communiqués and press releases will then surface on the US side."
+    active: true
+    notes: "NATO migrated from /cps/en/natohq/ to /en/news-and-events/. The new listing at /articles/news is JS-rendered, so we use html_playwright (renders with Playwright + stealth, then scrapes the post-render DOM). Article URL pattern: /en/news-and-events/articles/news/YYYY/MM/DD/<slug>. Probed live 2026-05-14: Playwright fetch returned 323KB and the regex caught dated articles cleanly."
 
   # EU EEAS (European External Action Service) — held back 2026-05-14: the
   # /eeas/press-material_en page is a filter index, not an article list;

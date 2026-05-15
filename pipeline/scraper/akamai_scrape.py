@@ -137,10 +137,28 @@ def _discover_html_curl_cffi(cfg: dict) -> list[dict]:
     return cards
 
 
+def _discover_html_playwright(cfg: dict) -> list[dict]:
+    """For JS-rendered listing pages (e.g. NATO post-migration). Renders the
+    listing via Playwright + stealth, then runs the standard link-discovery
+    regex against the post-render DOM."""
+    from .browser import playwright_fetch
+    listing_url = cfg["listing_url"]
+    pattern = cfg.get("link_pattern", "")
+    html = playwright_fetch(listing_url, wait_until="networkidle", timeout=45000)
+    if not html:
+        logger.warning(f"  playwright_fetch returned no HTML for {listing_url}")
+        return []
+    urls = akamai_discover_links(listing_url, pattern, html=html)
+    cards = [{"url": u, "title": "", "publish_date": None, "image_url": None} for u in urls]
+    logger.info(f"  HTML (Playwright) discovery returned {len(cards)} candidate URLs")
+    return cards
+
+
 _DISCOVERY = {
     "dnn_articlecs": _discover_dnn_articlecs,
     "rss_curl_cffi": _discover_rss_curl_cffi,
     "html_curl_cffi": _discover_html_curl_cffi,
+    "html_playwright": _discover_html_playwright,
 }
 
 

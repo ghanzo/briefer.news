@@ -176,20 +176,33 @@ def akamai_extract(url: str) -> tuple[Optional[str], str]:
 
 # ── Discovery: find article URLs from a listing page ─────────────────────────
 
-def akamai_discover_links(listing_url: str, link_pattern: str) -> list[str]:
+def akamai_discover_links(listing_url: str, link_pattern: str, html: Optional[str] = None) -> list[str]:
     """
-    Fetch a listing page and find all article URLs matching the pattern.
+    Find all article URLs on a listing page matching the pattern.
 
     Args:
-        listing_url: the news/press-release listing URL (e.g. https://www.war.gov/News/News-Stories/)
-        link_pattern: substring that must appear in article URLs
-                      (e.g. "/News/News-Stories/Article/Article/")
+        listing_url: the news/press-release listing URL
+        link_pattern: regex pattern matched via re.search against each href.
+                      Plain substrings remain valid regex (literal match) so
+                      existing pattern-as-substring configs keep working.
+                      Regex patterns enable selectors like
+                      r"/news/media-release/[a-z0-9-]+".
+        html: optional pre-fetched HTML (use this when the caller already
+              has rendered HTML, e.g., from Playwright). If None, the
+              function fetches the listing via curl_cffi.
 
     Returns: list of fully-qualified article URLs, deduplicated.
     """
-    html = akamai_fetch(listing_url)
+    if html is None:
+        html = akamai_fetch(listing_url)
     if not html:
         return []
+
+    try:
+        compiled = re.compile(link_pattern)
+    except re.error:
+        # Fall back to substring if the pattern isn't valid regex
+        compiled = None
 
     soup = BeautifulSoup(html, "lxml")
     base_match = re.match(r"(https?://[^/]+)", listing_url)
@@ -199,8 +212,12 @@ def akamai_discover_links(listing_url: str, link_pattern: str) -> list[str]:
     out = []
     for a in soup.find_all("a", href=True):
         href = a["href"]
-        if link_pattern not in href:
-            continue
+        if compiled is not None:
+            if not compiled.search(href):
+                continue
+        else:
+            if link_pattern not in href:
+                continue
         # Resolve relative URL
         if href.startswith("/"):
             href = base + href
