@@ -71,6 +71,49 @@ shouldn't be in today's brief — drop it.
 
 ---
 
+## Source hierarchy — U.S. government leads
+
+The brief's spine is **U.S. federal government primary sourcing**. That is the
+brand promise: a reader who sees a claim can click through to a U.S.-government
+document and verify it. The headline and the dek must hold to that promise.
+
+### Two tiers of source
+
+- **U.S. federal government** — White House, State, Treasury / OFAC, USTR, DOD
+  (War.gov, CENTCOM, Navy, Air Force, Joint Chiefs), DOJ, CISA, the Federal
+  Reserve, GAO, CBO, BLS, BEA, the Federal Register, GovInfo, and every other
+  U.S. federal agency. **This is the brief's spine.**
+- **Allied government** — UK Ministry of Defence, NATO, Australia DFAT, Japan
+  MoFA. Legitimate primary sources that earn body bullets, but they are **not**
+  the U.S. government. They **contextualize**; they do not anchor.
+
+### The rule
+
+1. **The headline leads with a U.S.-government item.** The headline's primary
+   clause summarizes the most consequential U.S.-federal-government-sourced
+   story of the day. A second clause *may* reference an allied-sourced story
+   for context — but the headline's verifiable spine is U.S.-gov. The brief
+   never leads with a story the reader can only trace to a foreign government.
+2. **The dek is anchored in U.S.-gov material.** The dek names the day's shape
+   from what the U.S. government did. Allied-government output and world
+   context may *frame* the dek, but its central, falsifiable claim must trace
+   to a U.S.-gov source in the bullets.
+3. **U.S.-gov bullets rank above allied-gov bullets.** In the 9-item list, all
+   U.S.-government bullets come before any allied-government bullet. Within
+   each tier, order by significance (see Item ordering). Bullet #1 therefore
+   always matches the headline's U.S.-gov anchor.
+
+### Why
+
+If the day's biggest global story is an allied move — a UK-convened coalition,
+a NATO communiqué — that story still belongs in the brief, as a body bullet
+with its own citation. But it cannot be the headline: a reader who wants to
+*understand* it has nowhere to go inside the brief's promise of U.S.-gov
+sourcing. Lead with what the U.S. government did and said; let the allied
+material give it depth.
+
+---
+
 ## Page structure (in order)
 
 1. **Masthead** — `BRIEFER NEWS` + tagline `A daily brief from U.S. government sources`. Small monochrome flag glyph above title.
@@ -87,6 +130,8 @@ shouldn't be in today's brief — drop it.
 
 ### Target
 **12–16 words**, **two clauses** (separated by colon, semicolon, or "as/while"), each clause action-led, each clause anchored to a concrete fact (named actor, number, or named event).
+
+**The first clause must anchor to a U.S.-government item** (see Source hierarchy). The second clause may carry an allied-sourced story for context, but the headline's verifiable spine is U.S.-gov — never lead with a story the reader can only trace to a foreign government.
 
 ### Good ✓
 - "On Iran: U.S. drafts UN resolution; oil release reaches 172 million barrels." *(13w, two clauses, both anchored to specifics)*
@@ -324,7 +369,7 @@ Drop the rest. False Claims Act settlements under $50M, prosecutor-policy notifi
 
 ## Item ordering
 
-Within the bullet list, order by significance:
+**First, tier by source** (see Source hierarchy): all U.S.-government bullets come before any allied-government bullet (UK MoD, NATO, Australia DFAT, Japan MoFA). **Within each tier, order by significance:**
 1. **Structural/foreign-policy moves** that shape multi-month trajectory (sanctions frameworks, treaties, summit calendars).
 2. **Enforcement actions of national significance** (precedential DOJ cases, major sanctions designations).
 3. **Cyber / national-security incidents** with active exploitation.
