@@ -4,6 +4,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Briefer News — Daily briefs from government sources</title>
+    <meta name="description" content="Daily intelligence briefs from primary government sources — U.S. and China editions. Autonomous, primary-source-only, ad-free.">
+  <meta property="og:title" content="Briefer News — Daily briefs from government sources">
+  <meta property="og:description" content="Daily intelligence briefs from primary government sources — U.S. and China editions.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://briefer.news/">
+  <meta property="og:site_name" content="Briefer News">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Briefer News">
+  <meta name="twitter:description" content="Daily intelligence briefs from primary government sources — U.S. and China editions.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -271,6 +280,27 @@
       color: var(--cream);
       border-color: var(--cream);
     }
+  
+    footer.site .footer-site-nav {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 8px 22px;
+      margin: 0 0 12px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+    footer.site .footer-site-nav a {
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-bottom: 1px dotted var(--ink-soft);
+      padding-bottom: 2px;
+    }
+    footer.site .footer-site-nav a:hover {
+      color: var(--cream);
+      border-bottom-color: var(--cream);
+    }
+
   </style>
 </head>
 <body class="theme-ink">
@@ -332,6 +362,15 @@
 </main>
 
 <footer class="site">
+  <nav class="footer-site-nav">
+    <a href="/usa/">U.S. brief</a>
+    <a href="/china/">China brief</a>
+    <a href="/usa/weekly/">U.S. weekly</a>
+    <a href="/china/weekly/">China weekly</a>
+    <a href="/about/">About</a>
+    <a href="/sources/">Sources</a>
+    <a href="https://github.com/ghanzo/briefer.news" target="_blank" rel="noopener">GitHub</a>
+  </nav>
   <div class="footer-credit">&copy; 2026 Briefer News &middot; Independent &middot; All claims linked to official publications</div>
   <div id="picker">
     <button data-theme="newsprint">Light</button>
