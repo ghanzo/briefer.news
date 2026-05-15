@@ -81,7 +81,10 @@ ALLOWLIST_SQL="
     ('Joint Chiefs of Staff', 2),
     ('Navy.mil Press Releases', 2),
     ('U.S. Air Force', 2),
+    -- B2: allied gov foreign-policy
     ('UK Ministry of Defence', 2),
+    ('Australia DFAT — Departmental Media Releases', 2),
+    ('Japan MoFA — Press Releases (EN)', 2),
     -- C: enforcement / cyber
     ('DOJ — Justice News (OPA)', 3),
     ('DOJ — National Security Division', 3),
@@ -216,7 +219,7 @@ Your job: pick approximately 50 article IDs you would want to read in full to wr
 
 Pick using the BRIEF_STYLE priority order: structural foreign-policy moves → enforcement actions of national/international significance → cyber/national-security incidents → economic/procurement rules with broad effect → energy/infrastructure → diplomatic engagements → administrative.
 
-Diversity requirement: ensure DEFENSE (CENTCOM, Navy, JCS, Air Force, War.gov, UK MoD), ENFORCEMENT (DOJ, CISA), and ECONOMIC (Federal Register Executive Orders & Rules, Treasury, Federal Reserve, BEA, BLS) get representation. State Dept will dominate by volume — do not let it crowd out the other categories.
+Diversity requirement: ensure DEFENSE (CENTCOM, Navy, JCS, Air Force, War.gov), ENFORCEMENT (DOJ, CISA), and ECONOMIC (Federal Register Executive Orders & Rules, Treasury, Federal Reserve, BEA, BLS) get representation. ALLIED-GOV (UK MoD, Australia DFAT, Japan MoFA) is its own slot — pick ≥1 allied-gov item when relevant material exists, especially for Indo-Pacific / Taiwan / AUKUS / Five Eyes / NATO-axis stories where the allied perspective sharpens the bullet beyond the US-gov view. State Dept will dominate by volume — do not let it crowd out the other categories.
 
 Today is ${TODAY}.
 

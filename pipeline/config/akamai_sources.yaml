@@ -79,7 +79,7 @@ sources:
     active: true
     notes: "moduleID 811 confirmed via dnn_ctr811 (2026-05-07). Listing: /News/"
 
-  # ── Allied / Coalition government via RSS ──────────────────────────────────
+  # ── Allied / Coalition government via RSS or HTML ──────────────────────────
 
   - name: "UK Ministry of Defence"
     domain: gov.uk
@@ -89,6 +89,26 @@ sources:
     tier: 1
     active: true
     notes: "gov.uk standard atom feed; non-Akamai but using curl_cffi for consistency"
+
+  - name: "Australia DFAT — Departmental Media Releases"
+    domain: dfat.gov.au
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.dfat.gov.au/news/departmental-media-releases"
+    link_pattern: "/news/media-release/[a-z0-9-]+"
+    category: foreign_policy_allied
+    tier: 2
+    active: true
+    notes: "Australian Dept. of Foreign Affairs & Trade — departmental releases (Indo-Pacific framing, AUKUS, Pacific stepup, Five Eyes sentiment). Non-Akamai but routed via curl_cffi for consistency. Probed 2026-05-14: HTTP 200, 117KB, 163 press-like hrefs."
+
+  - name: "Japan MoFA — Press Releases (EN)"
+    domain: mofa.go.jp
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.mofa.go.jp/press/release/index.html"
+    link_pattern: "/press/release/press[a-z0-9]+_\\d+_\\d+\\.html"
+    category: foreign_policy_allied
+    tier: 2
+    active: true
+    notes: "Japan Ministry of Foreign Affairs English press releases. Key allied perspective on Indo-Pacific / Taiwan / North Korea / Russia. URL pattern /press/release/pressXX_NNNNNN_NNNNN.html. Probed 2026-05-14: HTTP 200, 55KB, 154 press-like hrefs."
 
   # ── Office of the Director of National Intelligence ────────────────────────
 
@@ -107,9 +127,24 @@ sources:
   - name: "NATO Press Releases"
     domain: nato.int
     discovery_type: html_curl_cffi
-    listing_url: "https://www.nato.int/cps/en/natohq/news.htm"
-    link_pattern: "/cps/en/natohq/"
+    listing_url: "https://www.nato.int/en/news-and-events/press-office"
+    link_pattern: "/en/news-and-events/articles/[a-z0-9-]+"
     category: foreign_policy_allied
     tier: 2
     active: false
-    notes: "Site says it's transitioning; URL pattern may shift"
+    notes: "Re-probed 2026-05-14: NATO has migrated from /cps/en/natohq/news.htm to /en/news-and-events/. The new listing page is JS-rendered (curl_cffi gets the chrome HTML but article URLs aren't in the initial HTML; needs Playwright). Listing URL updated; held disabled until a Playwright variant of this discovery type is wired. NATO communiqués and press releases will then surface on the US side."
+
+  # EU EEAS (European External Action Service) — held back 2026-05-14: the
+  # /eeas/press-material_en page is a filter index, not an article list;
+  # actual press releases route through europa.eu/newsroom which mixes EEAS
+  # content with all EU institutions. Site architecture needs investigation
+  # before wiring (probably an RSS feed exists somewhere on europa.eu).
+  - name: "EU EEAS — Press Material"
+    domain: eeas.europa.eu
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.eeas.europa.eu/eeas/press-material_en"
+    link_pattern: "/eeas/[a-z0-9-]+_en"
+    category: foreign_policy_allied
+    tier: 2
+    active: false
+    notes: "Held 2026-05-14: page is a press-material filter index, not an article list. Need to find the actual EEAS press-release URL pattern OR switch to europa.eu/newsroom press releases scoped to EEAS."
