@@ -93,13 +93,13 @@ Today is ${TODAY}. The week covered runs from ${TODAY} − 6 days to ${TODAY}.
 
 Output requirements:
 
-WEEKLY HEADLINE — ≤14 words, a stance or question, NOT a topic label. Read WEEKLY.md's "The Headline" section before drafting. Examples of right form:
-  - "Washington went to Beijing with leverage and came back with a Taiwan warning."
-  - "The Iran war's coalition phase began this week — quietly."
-Examples of wrong form (BANNED):
-  - "The week in Iran war and trade"
-  - "Big week in US-China relations"
-  - "Top stories of the week"
+WEEKLY HEADLINE — ≤14 words. A PLAIN, STRAIGHTFORWARD SUMMARY of the week's most significant events — the arc of the week. Same factual, accessible register as the daily brief headline: action-led, anchored to concrete facts (named actors, named events), readable by a non-specialist. It is a SUMMARY, NOT A VERDICT — state what happened; do not editorialize, do not reach for a clever or provocative line, do not name a "posture." Read WEEKLY.md's "The Headline" section before drafting. Right form:
+  - "The U.S. removed bomb-grade uranium from Venezuela as the Trump-Xi summit ran three days."
+  - "Forty nations signed a Strait of Hormuz mission; the Iran war reached day 78."
+Wrong form (BANNED):
+  - "Washington spent the summit week closing files not opening fronts" — opinion-forward verdict
+  - "The week in Iran war and trade" — vague topic label
+  - "Big week in US-China relations" — vague
 
 WEEK'S READ (lead paragraph) — 80-120 words, ≤3 sentences. Replaces the daily dek. Read WEEKLY.md's "The Week's Read" section and follow it exactly. PLAIN ANALYST VOICE, not a columnist: lead with the single most consequential development of the week, stated plainly and up front, then group the other items that mattered in clear order. Short declarative sentences, one idea each — do NOT stack clauses with em-dashes and semicolons. NO columnist tics ("the week's tell is", "the choreography", "the agenda belonged to", metaphor standing in for analysis, aphoristic "X; Y" stance lines). State what mattered; do not build a case or reach for a provocative claim. NO chronological recap, NO doctrine name-drops in the lead (NQPF / 15FYP / dual circulation / common prosperity / 30/60 / MIC2025), NO templated openers ("this week was about…", "the week saw…", "on Monday…").
 

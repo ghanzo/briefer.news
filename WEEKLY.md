@@ -37,19 +37,25 @@ The page has these sections, in this order:
 
 ## The Headline
 
-≤14 words. **Not a topic label.** A stance, a question, or a one-line summation of the week's posture.
+≤14 words. A **plain, straightforward summary of the week's most significant events** — the arc of the week. Same factual, accessible register as the daily headline (see `BRIEF_STYLE.md`): action-led, anchored to concrete facts — named actors, named events — and readable by a non-specialist.
 
-**Anti-pattern (banned):**
-- "The week in Iran war and trade" — topic label
+It is a **summary, not a verdict.** State what happened. Do not editorialize, do not reach for a clever or provocative line, do not name a "posture."
+
+**Anti-pattern — opinion-forward verdict (banned):**
+- "Washington spent the summit week closing files not opening fronts." — a clever verdict, opinion-forward
+- "Washington went to Beijing with leverage and came back with a Taiwan warning." — a narrative stance
+- "Three Fridays of regulatory consolidation, one Sunday of accidental clarity." — performed, not informative
+
+**Anti-pattern — vague topic label (also banned):**
+- "The week in Iran war and trade" — a label, says nothing specific
 - "Big week in US-China relations" — vague
 - "Top stories of the week" — generic
 
-**Right pattern (worked examples):**
-- "Washington went to Beijing with leverage and came back with a Taiwan warning."
-- "The Iran war's coalition phase began this week — quietly."
-- "Three Fridays of regulatory consolidation, one Sunday of accidental clarity."
+**Right pattern — a plain summary of the week's significant events:**
+- "The U.S. removed bomb-grade uranium from Venezuela as the Trump–Xi summit ran three days."
+- "Forty nations signed a Strait of Hormuz mission; the Iran war reached day 78."
 
-Read it aloud. If it sounds like an editor's verdict, it's right. If it sounds like a topic, rewrite.
+Read it aloud. If it tells the reader, plainly, the most significant things that happened this week, it's right. If it sounds like a verdict, or like a vague label, rewrite.
 
 ---
 
