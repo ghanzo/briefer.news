@@ -14,7 +14,7 @@ The site root **https://briefer.news** is an editions selector with live-fetched
 
 ## Architecture
 
-**[Interactive pipeline flow map →](https://ghanzo.github.io/briefer.news/pipeline-flows.html)** — click any flow (overnight scrape, publish a brief, refresh digests, edition routing) to trace it step-by-step through every component, annotated with what is passed between them. Source: [`docs/pipeline-flows.html`](docs/pipeline-flows.html).
+**[Interactive pipeline flow map →](https://briefer.news/pipeline-flows.html)** — click any flow (overnight scrape, publish a brief, refresh digests, edition routing) to trace it step-by-step through every component, annotated with what is passed between them. Source: [`docs/pipeline-flows.html`](docs/pipeline-flows.html).
 
 ```mermaid
 flowchart LR
@@ -110,7 +110,7 @@ briefer.news/
 │   ├── prototype_selector_2026-05-12.html # CURRENT home selector (two-card layout)
 │   ├── prototype_2026-05-07.html         # original US template (kept; superseded)
 │   └── brief_*.md                  # human-written reference briefs
-├── docs/pipeline-flows.html        # interactive pipeline flow map (served via GitHub Pages)
+├── docs/pipeline-flows.html        # interactive pipeline flow map → briefer.news/pipeline-flows.html
 ├── nginx/nginx.conf
 ├── docker-compose.yml
 ├── BRIEF_STYLE.md                  # editorial style guide
