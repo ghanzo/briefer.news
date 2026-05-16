@@ -14,22 +14,30 @@ The site root **https://briefer.news** is an editions selector with live-fetched
 
 ## Architecture
 
-```
-M4 Mac mini at home (residential IP — required for Akamai bypass)
-├── Postgres ─────────── article store (7-day rolling retention, 200-300 articles/day)
-├── Pipeline ─────────── Python scrape stack (curl_cffi + Playwright + trafilatura)
-│                        ├── US (RSS + Akamai) ── 45 sources
-│                        └── China (curl_cffi)  ── 27 sources
-├── Claude Code ──────── headless picker + synthesizer + WebSearch (per-edition)
-└── nginx ────────────── local source-of-truth render
-                            │
-                            ▼
-                    AWS S3 + CloudFront + CloudFront Function
-                            (public edge, multi-edition)
-                            │
-                            ├── briefer.news/        → selector
-                            ├── briefer.news/usa/    → US brief
-                            └── briefer.news/china/  → China brief
+**[Interactive pipeline flow map →](https://ghanzo.github.io/briefer.news/pipeline-flows.html)** — click any flow (overnight scrape, publish a brief, refresh digests, edition routing) to trace it step-by-step through every component, annotated with what is passed between them. Source: [`docs/pipeline-flows.html`](docs/pipeline-flows.html).
+
+```mermaid
+flowchart LR
+    GOV["Gov sources<br/>RSS / Akamai / PRC"]
+    subgraph mini["M4 Mac mini (home, residential IP)"]
+        DSH["daily.sh<br/>parallel scrape"]
+        PG[("Postgres<br/>article store")]
+        SYN["synthesize.sh<br/>synthesize_china.sh<br/>daily_digests.sh"]
+        CLA["Claude CLI<br/>pick + synthesize"]
+        NGX["nginx<br/>local render"]
+    end
+    subgraph aws["AWS edge"]
+        S3[("S3 origin")]
+        CF["CloudFront<br/>edition routing"]
+    end
+    GOV --> DSH
+    DSH --> PG
+    PG --> SYN
+    SYN --> CLA
+    CLA --> NGX
+    NGX --> S3
+    S3 --> CF
+    CF --> RDR(["Reader"])
 ```
 
 **Why the mini specifically:** Akamai bot-detection on DoD `.mil` subdomains blocks cloud datacenter IPs. The mini's residential ISP is what makes the curl_cffi Chrome-impersonation bypass actually work. Verified live for war.gov, centcom.mil, navy.mil, jcs.mil, af.mil. See [`research/dod_bypass_findings_2026-05-07.md`](research/dod_bypass_findings_2026-05-07.md).
@@ -102,6 +110,7 @@ briefer.news/
 │   ├── prototype_selector_2026-05-12.html # CURRENT home selector (two-card layout)
 │   ├── prototype_2026-05-07.html         # original US template (kept; superseded)
 │   └── brief_*.md                  # human-written reference briefs
+├── docs/pipeline-flows.html        # interactive pipeline flow map (served via GitHub Pages)
 ├── nginx/nginx.conf
 ├── docker-compose.yml
 ├── BRIEF_STYLE.md                  # editorial style guide
