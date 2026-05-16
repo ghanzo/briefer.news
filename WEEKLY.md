@@ -57,13 +57,18 @@ Read it aloud. If it sounds like an editor's verdict, it's right. If it sounds l
 
 80–120 words. **Two or three sentences max.** Replaces the daily dek; does heavier work.
 
-A good Week's Read does at least three of these five:
+**Voice: the calm, clear-eyed analyst of `BRIEF_STYLE.md` — not a columnist.** State plainly what the week amounted to. The Week's Read still *synthesizes* — it leads with what mattered most and groups the rest — but it reports that read in plain declarative sentences. It does not perform it as an essay.
 
-1. **Names a posture** — who came out ahead, who was pressed, who improvised, what was choreographed.
-2. **Notices an arc** — what moved in a direction. "The Iran war shifted from active strikes to coalition assembly." "Beijing's pre-summit consolidation was the actual story; the summit was the cover."
-3. **Identifies an asymmetry** — what was said vs. done, what made the headlines vs. what mattered, who moved first vs. who answered.
-4. **Makes a falsifiable claim** — something a careful reader could argue with.
-5. **Anchors to a longer arc** — references the threads (Day 76 of Iran war, Year 5 of Ukraine, etc.) where natural.
+What it does:
+
+1. **Leads with the most consequential development** of the week, named plainly and up front.
+2. **Groups the rest** — the other items that mattered, in clear order, lightly connected (what they share, or what drew the coverage vs. what actually mattered).
+3. **Anchors to a longer arc** where it adds context — the threads (Day 78 of the Iran war, Year 5 of Ukraine) — for orientation, not decoration.
+
+**Style:**
+- **Short, declarative sentences — one idea each.** Do not stack clauses with em-dashes and semicolons.
+- **No columnist tics:** no "the week's tell is…", no "the choreography / the agenda belonged to…", no metaphor standing in for analysis, no aphoristic "X; Y" stance lines. Report the read; don't perform it.
+- **State, don't argue.** Name what mattered. Do not build a case or reach for a provocative claim.
 
 **Banned constructions:**
 - "This week was about [X]." (too literal — the reader can see the headlines)
@@ -73,19 +78,24 @@ A good Week's Read does at least three of these five:
 
 **Banned doctrine name-drops** (same rule as DEK.md): no NQPF, 15FYP, dual circulation, common prosperity, 30/60, MIC2025 in the lead paragraph. Those belong in the Strategic Backdrop weekly section.
 
+**Model:**
+> While the Trump–Xi summit drew the week's coverage, the U.S. government closed out several long-running efforts. It removed bomb-grade uranium from Venezuela two years ahead of schedule, backed an Israel–Lebanon framework toward mutual recognition, and jailed an Iran-backed commander who had plotted attacks in New York.
+
 ---
 
 ## Threads at week's end
 
-60–150 words. Prose, not bullets.
+60–150 words. Prose, not bullets — in the same plain analyst voice as the Week's Read.
 
-Tell the reader, in the editor's voice, where each active thread stands at week's close. Reference the thread strip's Day-N counts where natural ("By Friday the Iran war was on Day 76; the coalition phase that began Monday now reads as cumulative"). Do not recite what advanced as a list. Name a *direction*.
+For each active thread, tell the reader plainly where it stands at week's close. Reference the thread strip's Day-N counts where they add context ("The Iran war reached its 78th day"). If a thread *resolved* this week (a war ended, a summit concluded, a regulatory cycle closed), say so and note what comes next.
 
-If a thread *resolved* this week (a war ended, a summit concluded, a regulatory cycle closed), say so plainly and note what comes next.
+Same style as the Week's Read: short declarative sentences, no columnist tics, no clause-stacking. Report where each thread stands; don't perform it.
 
-**Anti-pattern:** "The Iran war continued. The Trump-Xi summit happened. The Ukraine war continued." (List of statuses — useless.)
+**Anti-pattern (bare list):** "The Iran war continued. The Trump-Xi summit happened. The Ukraine war continued." (Statuses with no information — useless.)
 
-**Right pattern:** "The Iran war's seventy-sixth day saw the coalition rather than the trigger become the story; forty navies in Hormuz outsizes any single strike. Trump landed in Beijing Wednesday and left Friday — the summit ended without a joint statement and with Taiwan as Xi's chosen sharp edge. Ukraine entered its fifth year unchanged in shape and worse in stamina."
+**Anti-pattern (columnist register — the old style):** "The Iran war's seventy-sixth day saw the coalition rather than the trigger become the story; forty navies in Hormuz outsizes any single strike." (Too dense, too performed.)
+
+**Model:** "The Iran war reached its 78th day. This week the active story was the coalition, not the fighting: 38 nations signed a Strait of Hormuz mission, though each attached national caveats, so it begins only in a 'permissive environment' that does not yet exist. The Trump–Xi summit closed after three days with a framework but no movement on Taiwan. Ukraine, in its fifth year, drew no U.S. output this week at all."
 
 ---
 
