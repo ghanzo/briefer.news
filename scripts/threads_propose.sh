@@ -36,6 +36,12 @@ INPUT="$RUN_DIR/threads_collected.md"
 OUTPUT="$RUN_DIR/threads_proposed.md"
 PROMPT_FILE="$RUN_DIR/prompt_threads_propose.txt"
 
+# Clear any prior proposal up front. Without this, a stale threads_proposed.md
+# from an earlier run satisfies the [ -s "$OUTPUT" ] success check below even
+# when today's Claude call fails (rate limit, API error) — the script would
+# then report the stale file's content as a fresh result.
+rm -f "$OUTPUT"
+
 if [ ! -s "$INPUT" ]; then
   echo "ERROR: collection produced no input — skipping"
   exit 0
