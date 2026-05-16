@@ -75,42 +75,42 @@ shouldn't be in today's brief — drop it.
 
 The brief's spine is **U.S. federal government primary sourcing**. That is the
 brand promise: a reader who sees a claim can click through to a U.S.-government
-document and verify it. The headline and the dek must hold to that promise.
+document and verify it.
 
 ### Two tiers of source
 
 - **U.S. federal government** — White House, State, Treasury / OFAC, USTR, DOD
   (War.gov, CENTCOM, Navy, Air Force, Joint Chiefs), DOJ, CISA, the Federal
   Reserve, GAO, CBO, BLS, BEA, the Federal Register, GovInfo, and every other
-  U.S. federal agency. **This is the brief's spine.**
+  U.S. federal agency. **This is the brief's spine** — it fills the Events list,
+  the headline, the dek, and the voices.
 - **Allied government** — UK Ministry of Defence, NATO, Australia DFAT, Japan
-  MoFA. Legitimate primary sources that earn body bullets, but they are **not**
-  the U.S. government. They **contextualize**; they do not anchor.
+  MoFA. Legitimate primary sources, but **not** the U.S. government. They get
+  their own short section; they never enter the Events list.
 
 ### The rule
 
-1. **The headline leads with a U.S.-government item.** The headline's primary
-   clause summarizes the most consequential U.S.-federal-government-sourced
-   story of the day. A second clause *may* reference an allied-sourced story
-   for context — but the headline's verifiable spine is U.S.-gov. The brief
-   never leads with a story the reader can only trace to a foreign government.
-2. **The dek is anchored in U.S.-gov material.** The dek names the day's shape
-   from what the U.S. government did. Allied-government output and world
-   context may *frame* the dek, but its central, falsifiable claim must trace
-   to a U.S.-gov source in the bullets.
-3. **U.S.-gov bullets rank above allied-gov bullets.** In the 9-item list, all
-   U.S.-government bullets come before any allied-government bullet. Within
-   each tier, order by significance (see Item ordering). Bullet #1 therefore
-   always matches the headline's U.S.-gov anchor.
+1. **Events is U.S.-government only.** Every one of the 9 Events bullets is
+   sourced to a U.S. federal agency. An allied-government item never appears in
+   the Events list — no exceptions.
+2. **Allied items get their own section.** Significant allied-government output
+   goes in a separate **Allied Governments** section, directly below Events —
+   up to 3 bullets, same structure as Events, with lettered cites (a, b, c).
+   The section is conditional: on days with no allied material worth a slot, it
+   is omitted entirely.
+3. **The headline and dek anchor to U.S.-gov.** The headline summarizes the most
+   consequential U.S.-federal-government item; a second clause may reference an
+   allied story for context, but the verifiable spine is U.S.-gov. The dek's
+   central, falsifiable claim traces to a U.S.-gov item in the Events list.
 
 ### Why
 
-If the day's biggest global story is an allied move — a UK-convened coalition,
-a NATO communiqué — that story still belongs in the brief, as a body bullet
-with its own citation. But it cannot be the headline: a reader who wants to
-*understand* it has nowhere to go inside the brief's promise of U.S.-gov
-sourcing. Lead with what the U.S. government did and said; let the allied
-material give it depth.
+The brand promise is that any claim in the brief's spine — headline, dek,
+Events — traces to a U.S.-government document the reader can open. Allied
+governments are real primary sources and worth surfacing, but a reader who
+wants to *understand* an allied claim has nowhere to go inside that promise.
+So allied output is kept, clearly labelled, in its own section — present but
+never mixed into the U.S.-government Events list.
 
 ---
 
@@ -120,9 +120,10 @@ material give it depth.
 2. **Date stamp** — small, mono caps, top-right of body column. Format: `MAY 7, 2026`.
 3. **Headline** — one short sentence framing the day.
 4. **Voices** — three (occasionally four) pull-quotes from named officials or documents.
-5. **Significant items** — 9 bullets in priority order. Each with bold lead, citation, and date · agency tag.
-6. **Sources** — numbered bibliography with full citation and link.
-7. **Footer** — brand, nav, theme toggle.
+5. **Events** — 9 bullets in priority order, all U.S.-government-sourced. Each with bold lead, citation, and date · agency tag.
+6. **Allied Governments** — short companion section directly below Events: up to 3 allied-government bullets with lettered cites. Omitted on days with no allied material.
+7. **Sources** — numbered bibliography with full citation and link.
+8. **Footer** — brand, nav, theme toggle.
 
 ---
 
@@ -369,7 +370,7 @@ Drop the rest. False Claims Act settlements under $50M, prosecutor-policy notifi
 
 ## Item ordering
 
-**First, tier by source** (see Source hierarchy): all U.S.-government bullets come before any allied-government bullet (UK MoD, NATO, Australia DFAT, Japan MoFA). **Within each tier, order by significance:**
+The Events list is U.S.-government only — allied-government items go in their own section, not here (see Source hierarchy). **Order the Events bullets by significance:**
 1. **Structural/foreign-policy moves** that shape multi-month trajectory (sanctions frameworks, treaties, summit calendars).
 2. **Enforcement actions of national significance** (precedential DOJ cases, major sanctions designations).
 3. **Cyber / national-security incidents** with active exploitation.
