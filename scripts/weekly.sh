@@ -187,8 +187,15 @@ EOF
   return 0
 }
 
-synth_edition "us"
-synth_edition "china"
+# Optional first argument selects a single edition ("us" or "china").
+# No argument — the daily_digests.sh default — runs both.
+EDITION="${1:-both}"
+if [ "$EDITION" = "us" ] || [ "$EDITION" = "both" ]; then
+  synth_edition "us"
+fi
+if [ "$EDITION" = "china" ] || [ "$EDITION" = "both" ]; then
+  synth_edition "china"
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
