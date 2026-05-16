@@ -1,0 +1,677 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>briefer.news — pipeline flow map</title>
+<!--
+  briefer.news pipeline flow map — a single-page, JSON-driven diagram of
+  the components in the publishing pipeline and the flows between them.
+
+  HOW IT WORKS
+  - All data lives in the JSON block (a script element of type
+    application/json, id "flowmap-data") near the bottom of this file.
+    That JSON is the single source of truth: edit it to add a component,
+    add a flow, or change an annotation.
+  - "components" — every package / script / service, each tagged with a
+    zone (pipeline column) and a kind (for colour).
+  - "flows" — each clickable action. A flow is an ordered list of steps;
+    each step is one hop "from" component A "to" component B, with a short
+    "label" (drawn on the arrow on hover) and a longer "detail" (what is
+    actually passed — shown in the side panel).
+
+  Keep this file in the repo next to the code it documents so the JSON can
+  be updated in the same commit as a pipeline change.
+-->
+<style>
+  :root {
+    --bg:#0b0e13; --canvas:#10151d; --panel:#141a24; --line:#222b3a;
+    --ink:#e6ebf2; --ink-soft:#9aa7b8; --ink-faint:#5e6b7e;
+    --accent:#f59e0b; --accent-soft:#7c5410;
+    --k-trigger:#d97706; --k-orchestrator:#3b82f6; --k-engine:#8b5cf6;
+    --k-helper:#06b6d4; --k-store:#22c55e; --k-data:#64748b;
+    --k-infra:#f43f5e; --k-external:#475569;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body {
+    background:var(--bg); color:var(--ink);
+    font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+    display:flex; flex-direction:column;
+  }
+  header.top {
+    padding:12px 20px; border-bottom:1px solid var(--line);
+    display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+  }
+  header.top h1 { font-size:15px; font-weight:650; letter-spacing:.01em; }
+  header.top .sub { color:var(--ink-faint); font-size:12px; }
+  .layout { flex:1; display:flex; min-height:0; }
+
+  /* ── sidebar ─────────────────────────────────────────── */
+  .sidebar {
+    width:248px; flex:none; border-right:1px solid var(--line);
+    background:var(--panel); overflow-y:auto; padding:14px;
+  }
+  .sidebar h2 {
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.13em;
+    color:var(--ink-faint); margin:4px 2px 9px;
+  }
+  .flow-btn {
+    display:block; width:100%; text-align:left; cursor:pointer;
+    background:#1a212e; border:1px solid var(--line); border-radius:8px;
+    color:var(--ink); padding:9px 11px; margin-bottom:7px;
+    transition:border-color .12s, background .12s;
+  }
+  .flow-btn:hover { border-color:#3a4659; background:#1f2735; }
+  .flow-btn.active { border-color:var(--accent); background:#241f15; }
+  .flow-btn .fb-name { font-weight:600; font-size:13px; }
+  .flow-btn .fb-meta { color:var(--ink-faint); font-size:11px; margin-top:2px; }
+  .reset-btn {
+    width:100%; cursor:pointer; background:transparent;
+    border:1px dashed var(--line); border-radius:8px; color:var(--ink-soft);
+    padding:7px; font-size:12px; margin-bottom:14px;
+  }
+  .reset-btn:hover { border-color:#3a4659; color:var(--ink); }
+  .legend { margin-top:16px; }
+  .legend-row {
+    display:flex; align-items:center; gap:7px; font-size:11px;
+    color:var(--ink-soft); margin-bottom:5px;
+  }
+  .legend-dot { width:11px; height:11px; border-radius:3px; flex:none; }
+
+  /* ── canvas ──────────────────────────────────────────── */
+  .canvas-wrap { flex:1; overflow:auto; background:var(--canvas); min-width:0; }
+  svg#map { display:block; width:100%; height:auto; min-width:980px; }
+
+  .zone-label {
+    fill:var(--ink-faint); font-size:11px; font-weight:600;
+    letter-spacing:.13em; text-transform:uppercase;
+  }
+  .zone-band { fill:#0d1219; }
+
+  .node { cursor:pointer; }
+  .node-box {
+    fill:#1a2230; stroke:#3a4456; stroke-width:1.5;
+    transition:opacity .2s, stroke .15s;
+  }
+  .node-box[data-kind="trigger"]      { stroke:var(--k-trigger); }
+  .node-box[data-kind="orchestrator"] { stroke:var(--k-orchestrator); }
+  .node-box[data-kind="engine"]       { stroke:var(--k-engine); }
+  .node-box[data-kind="helper"]       { stroke:var(--k-helper); }
+  .node-box[data-kind="store"]        { stroke:var(--k-store); }
+  .node-box[data-kind="data"]         { stroke:var(--k-data); }
+  .node-box[data-kind="infra"]        { stroke:var(--k-infra); }
+  .node-box[data-kind="external"]     { stroke:var(--k-external); }
+  .node-label { fill:var(--ink); font-size:12px; font-weight:600; text-anchor:middle; }
+  .node-sub   { fill:var(--ink-soft); font-size:9.5px; text-anchor:middle; }
+  .node:hover .node-box { stroke-width:2.5; }
+
+  .node.dim         { opacity:.18; }
+  .node.active .node-box { fill:#222d40; stroke-width:2.5; }
+  .node.selected .node-box { fill:#2d2410; stroke:var(--accent); stroke-width:3; }
+
+  .edge {
+    fill:none; stroke:var(--accent); stroke-width:2;
+    marker-end:url(#arrow);
+  }
+  .edge.draw { stroke-dasharray:var(--len); stroke-dashoffset:var(--len);
+               animation:draw .5s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset:0; } }
+  .edge.emph { stroke-width:4; }
+  .edge.fade { opacity:.22; }
+  .edge-badge   { fill:var(--accent); stroke:var(--bg); stroke-width:1.5; }
+  .edge-badge.emph { stroke:var(--ink); }
+  .edge-num     { fill:#1a1206; font-size:10px; font-weight:700; text-anchor:middle; }
+  .edge-tip-bg  { fill:#241f15; stroke:var(--accent); stroke-width:1; }
+  .edge-tip-tx  { fill:var(--ink); font-size:10.5px; text-anchor:middle; }
+
+  /* ── detail panel ────────────────────────────────────── */
+  .panel {
+    width:330px; flex:none; border-left:1px solid var(--line);
+    background:var(--panel); overflow-y:auto; padding:16px;
+  }
+  .panel .empty { color:var(--ink-faint); font-size:13px; line-height:1.6; }
+  .panel h3 { font-size:14px; margin-bottom:3px; }
+  .panel .p-kind {
+    display:inline-block; font-size:10px; text-transform:uppercase;
+    letter-spacing:.1em; padding:2px 7px; border-radius:4px;
+    background:#1f2735; color:var(--ink-soft); margin-bottom:9px;
+  }
+  .panel .p-file {
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:11px;
+    color:var(--ink-soft); background:#0d1219; border:1px solid var(--line);
+    border-radius:5px; padding:6px 8px; margin:8px 0; word-break:break-all;
+  }
+  .panel .p-desc { font-size:13px; color:var(--ink-soft); line-height:1.6; }
+  .panel .p-flow-desc {
+    font-size:12.5px; color:var(--ink-soft); line-height:1.6;
+    border-bottom:1px solid var(--line); padding-bottom:11px; margin-bottom:11px;
+  }
+  ol.steps { list-style:none; }
+  ol.steps li {
+    border:1px solid var(--line); border-radius:8px; padding:8px 10px;
+    margin-bottom:7px; cursor:pointer; transition:border-color .12s,background .12s;
+  }
+  ol.steps li:hover { border-color:#3a4659; background:#1a212e; }
+  ol.steps li.on { border-color:var(--accent); background:#241f15; }
+  .st-head { display:flex; align-items:center; gap:8px; }
+  .st-num {
+    width:18px; height:18px; flex:none; border-radius:50%;
+    background:var(--accent); color:#1a1206; font-size:10.5px; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .st-route { font-size:12px; font-weight:600; }
+  .st-route .arr { color:var(--accent); margin:0 3px; }
+  .st-label {
+    font-size:10.5px; color:var(--accent); text-transform:uppercase;
+    letter-spacing:.07em; margin:5px 0 0 26px;
+  }
+  .st-detail { font-size:12px; color:var(--ink-soft); line-height:1.55; margin:3px 0 0 26px; }
+  .hint { color:var(--ink-faint); font-size:11.5px; margin-top:14px; font-style:italic; }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <h1>briefer.news — pipeline flow map</h1>
+  <span class="sub">Click a flow to trace it through the components. Click any component for detail.</span>
+</header>
+
+<div class="layout">
+  <aside class="sidebar">
+    <button class="reset-btn" id="resetBtn">↺ Show all · clear flow</button>
+    <h2>Flows</h2>
+    <div id="flowList"></div>
+    <div class="legend">
+      <h2>Component kinds</h2>
+      <div id="legend"></div>
+    </div>
+  </aside>
+
+  <div class="canvas-wrap">
+    <svg id="map" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5"
+                markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#f59e0b"></path>
+        </marker>
+      </defs>
+      <g id="zoneLayer"></g>
+      <g id="edgeLayer"></g>
+      <g id="nodeLayer"></g>
+      <g id="tipLayer"></g>
+    </svg>
+  </div>
+
+  <aside class="panel" id="panel">
+    <p class="empty">Select a flow on the left to highlight how it moves
+      through the pipeline — each step is annotated with what gets passed
+      between components.<br><br>Or click any component box to see its role.</p>
+  </aside>
+</div>
+
+<script type="application/json" id="flowmap-data">
+{
+  "zones": ["Schedule","Ingest","Scrape","Store","Synthesize","Render","Deploy","Serve"],
+  "kinds": {
+    "trigger":"Trigger (cron)", "orchestrator":"Orchestrator script",
+    "engine":"Compute engine", "helper":"Helper stage", "store":"Data store",
+    "data":"Static data / config", "infra":"Infrastructure", "external":"External"
+  },
+  "components": [
+    { "id":"launchagents", "label":"LaunchAgents", "sublabel":"macOS cron",
+      "kind":"trigger", "zone":0,
+      "file":"~/Library/LaunchAgents/news.briefer.*.plist",
+      "desc":"Four macOS LaunchAgents drive the pipeline on a daily schedule — 04:00 overnight scrape, 07:00 US synth, 07:30 China synth, 08:00 weekly digests." },
+
+    { "id":"config", "label":"Source config", "sublabel":"YAML",
+      "kind":"data", "zone":1, "file":"pipeline/config/*.yaml",
+      "desc":"Source lists and editorial config: china_sources.yaml, akamai_sources.yaml, threads.yaml, and the strategy/ doctrine library." },
+    { "id":"daily_sh", "label":"daily.sh", "sublabel":"scrape orchestrator",
+      "kind":"orchestrator", "zone":1, "file":"scripts/daily.sh",
+      "desc":"Brings Postgres up, fires the three scrapers in parallel, then runs the 7-day retention cleanup." },
+
+    { "id":"external_sources", "label":"Gov sources", "sublabel":"RSS · Akamai · PRC",
+      "kind":"external", "zone":2, "file":"—",
+      "desc":"~70 government sites — RSS feeds, Akamai-protected US defense sites, and PRC government pages — the only primary sources the brief draws from." },
+    { "id":"pipeline", "label":"Scraper engine", "sublabel":"main.py",
+      "kind":"engine", "zone":2, "file":"pipeline/main.py + pipeline/scraper/",
+      "desc":"Python scraper with three modes — RSS, Akamai (curl_cffi Chrome-TLS impersonation to bypass bot protection), and China. Extracts article text + metadata." },
+
+    { "id":"postgres", "label":"Postgres", "sublabel":"article store",
+      "kind":"store", "zone":3, "file":"docker: briefer_postgres",
+      "desc":"The articles table — every scraped article with full_text, publish_date and source. Deduped by url_hash." },
+    { "id":"cleanup", "label":"cleanup.sh", "sublabel":"7-day retention",
+      "kind":"helper", "zone":3, "file":"scripts/cleanup.sh",
+      "desc":"Prunes articles older than 7 days so the candidate pool stays current." },
+
+    { "id":"preflight", "label":"preflight.sh", "sublabel":"health-check guard",
+      "kind":"helper", "zone":4, "file":"scripts/preflight.sh",
+      "desc":"Cheap pre-synth check — backtick lint, bash/python syntax, required files, docker services, corpus freshness. A hard failure skips the synth and leaves yesterday's brief." },
+    { "id":"world_context", "label":"world-context", "sublabel":"Stage 0 · Claude",
+      "kind":"helper", "zone":4, "file":"scripts/world_context.sh, china_world_context.sh",
+      "desc":"Claude WebSearch gathers ambient non-government framing of the day's stories. Informs the synthesizer's framing only — never published or cited." },
+    { "id":"threads", "label":"threads_today", "sublabel":"Stage 0b",
+      "kind":"helper", "zone":4, "file":"scripts/threads_today.sh + .py",
+      "desc":"Resolves threads.yaml into today's Day-N / Year-N continuity chips for the brief's thread strip." },
+    { "id":"synth_us", "label":"synthesize.sh", "sublabel":"US daily synth",
+      "kind":"orchestrator", "zone":4, "file":"scripts/synthesize.sh",
+      "desc":"US edition synthesizer — Stages 0-6: preflight, world context, threads, SQL pre-filter, Claude pick, Claude synth, deploy." },
+    { "id":"synth_china", "label":"synthesize_china.sh", "sublabel":"China daily synth",
+      "kind":"orchestrator", "zone":4, "file":"scripts/synthesize_china.sh",
+      "desc":"China edition synthesizer. The SQL pre-filter adds CCDI tier-leadership promotion; the synth applies Xi-first voice ordering and the Qiushi-anchor rule." },
+    { "id":"digests", "label":"daily_digests.sh", "sublabel":"weekly + digests",
+      "kind":"orchestrator", "zone":4, "file":"scripts/daily_digests.sh, weekly.sh",
+      "desc":"Refreshes the rolling 7-day weekly digest and the secondary surfaces each morning, after both daily synths finish." },
+
+    { "id":"specs", "label":"Spec docs", "sublabel":"style + prototypes",
+      "kind":"data", "zone":5, "file":"BRIEF_STYLE.md, DEK.md, WEEKLY.md, lens.md, research/prototype_*.html",
+      "desc":"Binding editorial specs and the visual prototype HTML the synthesizer must mirror exactly. BRIEF_STYLE.md carries the US-gov source-hierarchy rule." },
+    { "id":"claude_cli", "label":"Claude CLI", "sublabel":"picker + synthesizer",
+      "kind":"engine", "zone":5, "file":"claude -p (headless)",
+      "desc":"Headless Claude. Stage 2 picks ~50 articles from candidate metadata; Stage 4 renders the full brief HTML from the picked text + the spec docs." },
+    { "id":"digest_subs", "label":"Digest steps", "sublabel":"archive · sitemap · preview",
+      "kind":"helper", "zone":5, "file":"scripts/archive_index.py, inject_weekly_preview.py, build_sitemap.py, threads_propose.sh",
+      "desc":"Rebuilds the archive index pages, patches the 'This week' preview onto today's briefs, regenerates sitemap.xml, and proposes candidate new threads for editor review." },
+
+    { "id":"nginx", "label":"nginx", "sublabel":"local mirror + volume",
+      "kind":"infra", "zone":6, "file":"docker: briefer_nginx",
+      "desc":"Serves the site locally and holds the source-of-truth Docker volume that the weekly + archive scripts read past briefs from." },
+    { "id":"s3", "label":"AWS S3", "sublabel":"briefer-news-site",
+      "kind":"infra", "zone":6, "file":"s3://briefer-news-site",
+      "desc":"The public origin bucket — every daily brief, archive page, weekly digest and sitemap.xml." },
+
+    { "id":"cloudfront", "label":"CloudFront", "sublabel":"CDN",
+      "kind":"infra", "zone":7, "file":"distribution EMV1VIFYTSI3U",
+      "desc":"CDN in front of the S3 origin. Invalidated after every publish so a fresh brief serves immediately." },
+    { "id":"cf_function", "label":"CF Function", "sublabel":"edition routing",
+      "kind":"infra", "zone":7, "file":"infra/cloudfront-function.js",
+      "desc":"Runs on every viewer request — routes the root to /usa/ or /china/ by cookie or geo, and rewrites trailing-slash / extensionless URLs." },
+    { "id":"reader", "label":"Reader", "sublabel":"browser",
+      "kind":"external", "zone":7, "file":"—",
+      "desc":"A visitor at briefer.news." }
+  ],
+  "flows": [
+    { "id":"scrape", "label":"Overnight scrape",
+      "desc":"04:00 — pull fresh articles from ~70 government sources into Postgres, then prune anything older than 7 days.",
+      "steps":[
+        { "from":"launchagents", "to":"daily_sh", "label":"04:00 trigger",
+          "detail":"news.briefer.daily.plist fires daily.sh at 04:00 local time." },
+        { "from":"daily_sh", "to":"pipeline", "label":"3 scrape modes",
+          "detail":"daily.sh launches main.py in --scrape-only, --akamai-only and --china-only concurrently — each is network-bound on a different set of hosts." },
+        { "from":"config", "to":"pipeline", "label":"source lists",
+          "detail":"The scrapers read china_sources.yaml + akamai_sources.yaml for URLs, link-match patterns and per-source discovery types." },
+        { "from":"external_sources", "to":"pipeline", "label":"HTML / RSS",
+          "detail":"RSS feeds, Akamai-protected DoD sites (reached via curl_cffi Chrome-TLS impersonation) and PRC government pages are fetched and their article bodies extracted." },
+        { "from":"pipeline", "to":"postgres", "label":"extracted articles",
+          "detail":"Article title, URL, full_text and publish_date are upserted into the articles table, deduplicated by url_hash." },
+        { "from":"daily_sh", "to":"cleanup", "label":"Stage 2",
+          "detail":"Once all three scrapes finish, daily.sh runs cleanup.sh." },
+        { "from":"cleanup", "to":"postgres", "label":"prune >7d",
+          "detail":"Articles older than 7 days are deleted so the synthesizer's candidate pool only ever sees recent material." }
+      ]},
+
+    { "id":"brief_us", "label":"Publish US daily brief",
+      "desc":"07:00 — synthesize the US edition in six stages and deploy it to S3 + CloudFront.",
+      "steps":[
+        { "from":"launchagents", "to":"synth_us", "label":"07:00 trigger",
+          "detail":"news.briefer.synthesize.plist fires synthesize.sh at 07:00." },
+        { "from":"synth_us", "to":"preflight", "label":"health check",
+          "detail":"synthesize.sh runs preflight.sh first. A hard failure (broken script, missing file, dead corpus) skips the synth entirely — yesterday's brief stays live, no Claude turns spent." },
+        { "from":"synth_us", "to":"world_context", "label":"Stage 0",
+          "detail":"world_context.sh runs a Claude WebSearch for ambient framing. Saved to .run/ and offered to the synth as context only." },
+        { "from":"synth_us", "to":"threads", "label":"Stage 0b",
+          "detail":"threads_today resolves threads.yaml into today's Day-N continuity chips." },
+        { "from":"synth_us", "to":"postgres", "label":"Stage 1 — SQL pre-filter",
+          "detail":"A per-source-capped SQL query selects ~110-200 candidate articles, priority-ordered, no single source exceeding 12 slots." },
+        { "from":"synth_us", "to":"claude_cli", "label":"Stage 2 — pick",
+          "detail":"Claude (claude -p, ≤40 turns) reads the candidate metadata and picks the ~50 most consequential article IDs." },
+        { "from":"synth_us", "to":"postgres", "label":"Stage 3 — fetch text",
+          "detail":"SQL pulls the full text for the picked article IDs into a candidates file." },
+        { "from":"specs", "to":"claude_cli", "label":"style + prototype",
+          "detail":"BRIEF_STYLE.md, DEK.md, lens.md and the US prototype HTML are @-referenced by the synthesizer prompt — including the US-gov source-hierarchy rule." },
+        { "from":"synth_us", "to":"claude_cli", "label":"Stage 4 — synthesize",
+          "detail":"Claude (claude -p, ≤100 turns) renders the complete brief HTML: headline, dek, thread strip, 9 bullets, 6 voices, sources." },
+        { "from":"synth_us", "to":"nginx", "label":"Stage 5 — local deploy",
+          "detail":"The rendered brief is written into the nginx Docker volume at /usa/index.html and /usa/archive/<date>.html." },
+        { "from":"synth_us", "to":"s3", "label":"Stage 6 — publish",
+          "detail":"The same HTML is uploaded to the briefer-news-site S3 bucket under /usa/." },
+        { "from":"synth_us", "to":"cloudfront", "label":"invalidate",
+          "detail":"A CloudFront invalidation for the /usa/ paths is issued so readers get the fresh brief immediately." }
+      ]},
+
+    { "id":"brief_china", "label":"Publish China daily brief",
+      "desc":"07:30 — synthesize the China edition. Same six stages, with PRC-specific editorial rules.",
+      "steps":[
+        { "from":"launchagents", "to":"synth_china", "label":"07:30 trigger",
+          "detail":"news.briefer.synthesize.china.plist fires synthesize_china.sh at 07:30." },
+        { "from":"synth_china", "to":"preflight", "label":"health check",
+          "detail":"The same preflight guard as the US synth — a hard failure skips the run." },
+        { "from":"synth_china", "to":"world_context", "label":"Stage 0",
+          "detail":"china_world_context.sh gathers ambient non-PRC framing via Claude WebSearch." },
+        { "from":"synth_china", "to":"threads", "label":"Stage 0b",
+          "detail":"threads_today resolves the China-edition continuity threads." },
+        { "from":"synth_china", "to":"postgres", "label":"Stage 1 — SQL pre-filter",
+          "detail":"Per-source-capped SQL pre-filter. CCDI titles naming senior leaders (Politburo, CMC, ministers, senior PLA) auto-promote to priority 1." },
+        { "from":"synth_china", "to":"claude_cli", "label":"Stage 2 — pick",
+          "detail":"Claude picks ~50 articles, with a reserved MFA quota guaranteeing spokesperson material for the voices." },
+        { "from":"synth_china", "to":"postgres", "label":"Stage 3 — fetch text",
+          "detail":"SQL pulls full text for the picked IDs." },
+        { "from":"specs", "to":"claude_cli", "label":"style + prototype",
+          "detail":"DEK.md, lens.md, the strategy doctrine library and the China prototype feed the synthesizer prompt." },
+        { "from":"synth_china", "to":"claude_cli", "label":"Stage 4 — synthesize",
+          "detail":"Claude renders the China brief — Xi-first voice ordering, ≤30-day quote recency, Qiushi-anchored bullets, the Strategic Backdrop and Five-Year Plan blocks." },
+        { "from":"synth_china", "to":"nginx", "label":"Stage 5 — local deploy",
+          "detail":"The brief is written to the nginx volume at /china/index.html and /china/archive/<date>.html." },
+        { "from":"synth_china", "to":"s3", "label":"Stage 6 — publish",
+          "detail":"Uploaded to the S3 bucket under /china/." },
+        { "from":"synth_china", "to":"cloudfront", "label":"invalidate",
+          "detail":"A CloudFront invalidation for the /china/ paths is issued." }
+      ]},
+
+    { "id":"digests", "label":"Refresh weekly + digests",
+      "desc":"08:00 — rebuild the rolling 7-day weekly digest and the secondary surfaces (archive index, sitemap, 'This week' preview).",
+      "steps":[
+        { "from":"launchagents", "to":"digests", "label":"08:00 trigger",
+          "detail":"news.briefer.digests.plist fires daily_digests.sh after both daily synths have finished." },
+        { "from":"nginx", "to":"digests", "label":"7-day archives",
+          "detail":"weekly_aggregate.py reads the past 7 days of archived briefs from the nginx Docker volume." },
+        { "from":"digests", "to":"claude_cli", "label":"weekly synth",
+          "detail":"weekly.sh builds the 7-day JSON — voices pre-filtered to in-week dates — and Claude renders each weekly digest." },
+        { "from":"specs", "to":"claude_cli", "label":"WEEKLY.md",
+          "detail":"WEEKLY.md and the weekly prototype bind the digest's structure and voice rules." },
+        { "from":"claude_cli", "to":"digests", "label":"weekly HTML",
+          "detail":"Claude returns the rendered US and China weekly digests." },
+        { "from":"digests", "to":"digest_subs", "label":"secondary surfaces",
+          "detail":"archive_index.py, inject_weekly_preview.py, build_sitemap.py and threads_propose.sh run in sequence." },
+        { "from":"digest_subs", "to":"nginx", "label":"deploy local",
+          "detail":"Archive index pages and the patched 'This week' preview are written to the nginx volume." },
+        { "from":"digests", "to":"s3", "label":"publish",
+          "detail":"Weekly digests, archive index pages and sitemap.xml are uploaded to S3." },
+        { "from":"s3", "to":"cloudfront", "label":"invalidate",
+          "detail":"CloudFront invalidations are issued for every refreshed path." }
+      ]},
+
+    { "id":"serve", "label":"Serve a reader (edition routing)",
+      "desc":"A visitor hits briefer.news — the CloudFront Function routes them to the right edition.",
+      "steps":[
+        { "from":"reader", "to":"cloudfront", "label":"GET briefer.news",
+          "detail":"A reader requests the site root or a path." },
+        { "from":"cloudfront", "to":"cf_function", "label":"viewer-request",
+          "detail":"CloudFront runs the edition-routing function on the incoming viewer request." },
+        { "from":"cf_function", "to":"s3", "label":"rewritten path",
+          "detail":"The function picks the edition — an explicit cookie wins, else an Asia geo header routes to /china/, otherwise /usa/ — and rewrites trailing-slash / extensionless URLs. CloudFront fetches that key from the S3 origin." },
+        { "from":"s3", "to":"cloudfront", "label":"origin response",
+          "detail":"S3 returns the brief HTML for the resolved key." },
+        { "from":"cloudfront", "to":"reader", "label":"cached brief",
+          "detail":"CloudFront serves the brief — cached at the edge — back to the reader." }
+      ]}
+  ]
+}
+</script>
+
+<script>
+(function(){
+  "use strict";
+  const SVGNS = "http://www.w3.org/2000/svg";
+  const DATA = JSON.parse(document.getElementById("flowmap-data").textContent);
+
+  // ── layout ──────────────────────────────────────────────
+  const COL_W=184, BOX_W=156, BOX_H=54, ROW_H=82, ORIGIN_X=24, ORIGIN_Y=70;
+  const byId = {};
+  DATA.components.forEach(c => byId[c.id]=c);
+
+  const zoneOf = {};
+  DATA.components.forEach(c => { (zoneOf[c.zone] ??= []).push(c); });
+  let maxRows = 0;
+  Object.values(zoneOf).forEach(a => maxRows = Math.max(maxRows, a.length));
+
+  const pos = {};
+  Object.entries(zoneOf).forEach(([z, arr]) => {
+    const zi = +z;
+    const start = (maxRows - arr.length) / 2;
+    arr.forEach((c,i) => {
+      const x = ORIGIN_X + zi*COL_W + (COL_W-BOX_W)/2;
+      const y = ORIGIN_Y + (start+i)*ROW_H;
+      pos[c.id] = { x, y, cx:x+BOX_W/2, cy:y+BOX_H/2 };
+    });
+  });
+  const W = ORIGIN_X + DATA.zones.length*COL_W;
+  const H = ORIGIN_Y + maxRows*ROW_H + 18;
+
+  const svg = document.getElementById("map");
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const zoneLayer = document.getElementById("zoneLayer");
+  const edgeLayer = document.getElementById("edgeLayer");
+  const nodeLayer = document.getElementById("nodeLayer");
+  const tipLayer  = document.getElementById("tipLayer");
+
+  function el(tag, attrs, text){
+    const e = document.createElementNS(SVGNS, tag);
+    for(const k in attrs) e.setAttribute(k, attrs[k]);
+    if(text!=null) e.textContent = text;
+    return e;
+  }
+
+  // ── zone bands + labels ─────────────────────────────────
+  DATA.zones.forEach((name, i) => {
+    if(i % 2 === 1)
+      zoneLayer.appendChild(el("rect", {x:ORIGIN_X+i*COL_W, y:46, width:COL_W,
+        height:H-46, class:"zone-band"}));
+    zoneLayer.appendChild(el("text", {x:ORIGIN_X+i*COL_W+COL_W/2, y:30,
+      class:"zone-label", "text-anchor":"middle"}, name));
+  });
+
+  // ── nodes ───────────────────────────────────────────────
+  const nodeEls = {};
+  DATA.components.forEach(c => {
+    const p = pos[c.id];
+    const g = el("g", {class:"node", "data-id":c.id});
+    g.appendChild(el("rect", {x:p.x, y:p.y, width:BOX_W, height:BOX_H, rx:8,
+      class:"node-box", "data-kind":c.kind}));
+    g.appendChild(el("text", {x:p.cx, y:p.cy-2, class:"node-label"}, c.label));
+    g.appendChild(el("text", {x:p.cx, y:p.cy+13, class:"node-sub"}, c.sublabel));
+    const title = el("title", {}); title.textContent = c.label+" — "+c.desc;
+    g.appendChild(title);
+    g.addEventListener("click", e => { e.stopPropagation(); showComponent(c.id); });
+    nodeLayer.appendChild(g);
+    nodeEls[c.id] = g;
+  });
+
+  // ── edge geometry ───────────────────────────────────────
+  function anchors(a, b){
+    const dx=b.cx-a.cx, dy=b.cy-a.cy;
+    if(Math.abs(dx) >= Math.abs(dy)){
+      return dx>=0
+        ? {p1:{x:a.x+BOX_W,y:a.cy}, p2:{x:b.x,y:b.cy},        h:true, s1:1, s2:-1}
+        : {p1:{x:a.x,y:a.cy},       p2:{x:b.x+BOX_W,y:b.cy},  h:true, s1:-1,s2:1};
+    }
+    return dy>=0
+      ? {p1:{x:a.cx,y:a.y+BOX_H}, p2:{x:b.cx,y:b.y},          h:false,s1:1, s2:-1}
+      : {p1:{x:a.cx,y:a.y},       p2:{x:b.cx,y:b.y+BOX_H},    h:false,s1:-1,s2:1};
+  }
+  function edgePath(aId, bId, bow){
+    const a=pos[aId], b=pos[bId], an=anchors(a,b);
+    const {p1,p2,h,s1,s2}=an;
+    const span = h ? Math.abs(p2.x-p1.x) : Math.abs(p2.y-p1.y);
+    const ext = Math.max(46, span/2);
+    let c1, c2;
+    if(h){ c1={x:p1.x+s1*ext, y:p1.y+bow}; c2={x:p2.x+s2*ext, y:p2.y+bow}; }
+    else { c1={x:p1.x+bow, y:p1.y+s1*ext}; c2={x:p2.x+bow, y:p2.y+s2*ext}; }
+    // cubic midpoint at t=0.5
+    const mid = {
+      x:(p1.x + 3*c1.x + 3*c2.x + p2.x)/8,
+      y:(p1.y + 3*c1.y + 3*c2.y + p2.y)/8
+    };
+    return { d:`M${p1.x},${p1.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${p2.x},${p2.y}`, mid };
+  }
+
+  // ── state ───────────────────────────────────────────────
+  let activeFlow = null;
+  let stepEdges = [];   // {edge, badge, num, step}
+  const panel = document.getElementById("panel");
+
+  function clearCanvas(){
+    edgeLayer.textContent = "";
+    tipLayer.textContent  = "";
+    stepEdges = [];
+    DATA.components.forEach(c => nodeEls[c.id].classList.remove("dim","active","selected"));
+  }
+
+  function showAll(){
+    activeFlow = null;
+    clearCanvas();
+    document.querySelectorAll(".flow-btn").forEach(b => b.classList.remove("active"));
+    panel.innerHTML = '<p class="empty">Select a flow on the left to highlight '+
+      'how it moves through the pipeline — each step is annotated with what '+
+      'gets passed between components.<br><br>Or click any component box to see its role.</p>';
+  }
+
+  // ── render a flow ───────────────────────────────────────
+  function selectFlow(flowId){
+    const flow = DATA.flows.find(f => f.id===flowId);
+    if(!flow) return;
+    activeFlow = flow;
+    clearCanvas();
+    document.querySelectorAll(".flow-btn").forEach(b =>
+      b.classList.toggle("active", b.dataset.flow===flowId));
+
+    const inFlow = new Set();
+    flow.steps.forEach(s => { inFlow.add(s.from); inFlow.add(s.to); });
+    DATA.components.forEach(c =>
+      nodeEls[c.id].classList.add(inFlow.has(c.id) ? "active" : "dim"));
+
+    const pairCount = {};
+    flow.steps.forEach((step, i) => {
+      const key = step.from+">"+step.to;
+      const occ = (pairCount[key] = (pairCount[key]||0) + 1) - 1;
+      const bow = occ===0 ? 0 : (occ%2 ? 1 : -1) * 30 * Math.ceil(occ/2);
+      const geo = edgePath(step.from, step.to, bow);
+
+      const edge = el("path", {d:geo.d, class:"edge draw"});
+      edgeLayer.appendChild(edge);
+      const L = edge.getTotalLength();
+      edge.style.setProperty("--len", L);
+      edge.style.animationDelay = (i*0.12)+"s";
+
+      const badge = el("circle", {cx:geo.mid.x, cy:geo.mid.y, r:10, class:"edge-badge"});
+      const num   = el("text", {x:geo.mid.x, y:geo.mid.y+3.5, class:"edge-num"}, i+1);
+      edgeLayer.appendChild(badge); edgeLayer.appendChild(num);
+
+      stepEdges.push({edge, badge, num, step, mid:geo.mid, idx:i});
+    });
+
+    renderSteps(flow);
+  }
+
+  function renderSteps(flow){
+    let html = '<h3>'+esc(flow.label)+'</h3>'+
+      '<p class="p-flow-desc">'+esc(flow.desc)+'</p>'+
+      '<ol class="steps">';
+    flow.steps.forEach((s, i) => {
+      html += '<li data-step="'+i+'">'+
+        '<div class="st-head"><span class="st-num">'+(i+1)+'</span>'+
+        '<span class="st-route"><b>'+esc(byId[s.from].label)+'</b>'+
+        '<span class="arr">→</span><b>'+esc(byId[s.to].label)+'</b></span></div>'+
+        '<div class="st-label">'+esc(s.label)+'</div>'+
+        '<div class="st-detail">'+esc(s.detail)+'</div></li>';
+    });
+    html += '</ol><p class="hint">Hover a step to spotlight it on the map. '+
+      'Click a component box for its role.</p>';
+    panel.innerHTML = html;
+
+    panel.querySelectorAll("ol.steps li").forEach(li => {
+      const i = +li.dataset.step;
+      li.addEventListener("mouseenter", () => spotlight(i));
+      li.addEventListener("mouseleave", () => spotlight(-1));
+      li.addEventListener("click", () => {
+        const on = li.classList.contains("on");
+        panel.querySelectorAll("ol.steps li").forEach(x => x.classList.remove("on"));
+        if(!on){ li.classList.add("on"); spotlight(i, true); }
+        else spotlight(-1);
+      });
+    });
+  }
+
+  // spotlight one step's edge; sticky=true keeps the label tip up
+  function spotlight(idx, sticky){
+    tipLayer.textContent = "";
+    stepEdges.forEach(se => {
+      const on = se.idx===idx;
+      se.edge.classList.toggle("emph", on);
+      se.edge.classList.toggle("fade", idx>=0 && !on);
+      se.badge.classList.toggle("emph", on);
+    });
+    if(idx<0) return;
+    const se = stepEdges[idx];
+    // annotation tip near the edge midpoint
+    const label = se.step.label;
+    const w = Math.max(54, label.length*6 + 16);
+    tipLayer.appendChild(el("rect", {x:se.mid.x-w/2, y:se.mid.y-32, width:w,
+      height:18, rx:5, class:"edge-tip-bg"}));
+    tipLayer.appendChild(el("text", {x:se.mid.x, y:se.mid.y-19.5,
+      class:"edge-tip-tx"}, label));
+  }
+
+  // ── component detail ────────────────────────────────────
+  function showComponent(id){
+    const c = byId[id];
+    DATA.components.forEach(x =>
+      nodeEls[x.id].classList.toggle("selected", x.id===id));
+    let html = '<h3>'+esc(c.label)+'</h3>'+
+      '<span class="p-kind">'+esc(DATA.kinds[c.kind]||c.kind)+'</span>'+
+      '<div class="p-file">'+esc(c.file)+'</div>'+
+      '<p class="p-desc">'+esc(c.desc)+'</p>';
+    // which flows touch this component
+    const touched = DATA.flows.filter(f =>
+      f.steps.some(s => s.from===id || s.to===id));
+    if(touched.length){
+      html += '<p class="hint">Appears in: '+
+        touched.map(f => esc(f.label)).join(' · ')+'</p>';
+    }
+    if(activeFlow){
+      html += '<p class="hint" style="cursor:pointer;color:var(--accent)" '+
+        'id="backToFlow">&larr; back to "'+esc(activeFlow.label)+'" steps</p>';
+    }
+    panel.innerHTML = html;
+    const back = document.getElementById("backToFlow");
+    if(back) back.addEventListener("click", () => {
+      nodeEls[id].classList.remove("selected");
+      renderSteps(activeFlow);
+    });
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, m =>
+      ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[m]));
+  }
+
+  // ── sidebar ─────────────────────────────────────────────
+  const flowList = document.getElementById("flowList");
+  DATA.flows.forEach(f => {
+    const b = document.createElement("button");
+    b.className = "flow-btn";
+    b.dataset.flow = f.id;
+    b.innerHTML = '<div class="fb-name">'+esc(f.label)+'</div>'+
+      '<div class="fb-meta">'+f.steps.length+' steps</div>';
+    b.addEventListener("click", () => selectFlow(f.id));
+    flowList.appendChild(b);
+  });
+
+  const legend = document.getElementById("legend");
+  Object.entries(DATA.kinds).forEach(([k, label]) => {
+    const row = document.createElement("div");
+    row.className = "legend-row";
+    row.innerHTML = '<span class="legend-dot" style="background:var(--k-'+k+')"></span>'+
+      esc(label);
+    legend.appendChild(row);
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", showAll);
+
+  // start on the first flow so the page is never blank
+  selectFlow(DATA.flows[0].id);
+})();
+</script>
+</body>
+</html>
