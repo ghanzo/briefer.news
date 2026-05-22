@@ -22,7 +22,10 @@
 #   4. build_sitemap          — regenerate sitemap.xml so search engines
 #                                pick up today's new archive entry
 #                                (~3s, no Claude)
-#   5. threads_propose        — scan past 14 days of bullets, ask Claude
+#   5. build_feeds            — regenerate the per-edition RSS feeds
+#                                (/usa/feed.xml, /china/feed.xml) so
+#                                subscribers get today's brief (~3s, no Claude)
+#   6. threads_propose        — scan past 14 days of bullets, ask Claude
 #                                for candidate new threads not yet in
 #                                threads.yaml. Output is editor-review
 #                                only — never auto-merged (~30s, 1 Claude
@@ -47,11 +50,11 @@ echo "Daily digests refresh starting at $(date)"
 echo "═══════════════════════════════════════════════════════════════"
 
 echo ""
-echo "── Stage 1/5: weekly.sh ──"
+echo "── Stage 1/6: weekly.sh ──"
 "$REPO/scripts/weekly.sh"
 
 echo ""
-echo "── Stage 2/5: archive_index ──"
+echo "── Stage 2/6: archive_index ──"
 DOCKER=/usr/local/bin/docker
 AWS=/Users/maxgoshay/.local/bin/aws
 RUN_DIR="$REPO/.run"
@@ -82,11 +85,11 @@ else
 fi
 
 echo ""
-echo "── Stage 3/5: inject_weekly_preview ──"
+echo "── Stage 3/6: inject_weekly_preview ──"
 python3 "$REPO/scripts/inject_weekly_preview.py"
 
 echo ""
-echo "── Stage 4/5: build_sitemap ──"
+echo "── Stage 4/6: build_sitemap ──"
 AWS=/Users/maxgoshay/.local/bin/aws
 python3 "$REPO/scripts/build_sitemap.py"
 if [ -s "$RUN_DIR/sitemap.xml" ]; then
@@ -110,7 +113,27 @@ else
 fi
 
 echo ""
-echo "── Stage 5/5: threads_propose ──"
+echo "── Stage 5/6: build_feeds ──"
+python3 "$REPO/scripts/build_feeds.py"
+if [ -s "$RUN_DIR/feed_usa.xml" ] && [ -s "$RUN_DIR/feed_china.xml" ]; then
+  if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
+    "$AWS" s3 cp "$RUN_DIR/feed_usa.xml"   s3://briefer-news-site/usa/feed.xml   --content-type "application/rss+xml; charset=utf-8" --cache-control "public, max-age=1800" >/dev/null && echo "S3: usa/feed.xml uploaded"
+    "$AWS" s3 cp "$RUN_DIR/feed_china.xml" s3://briefer-news-site/china/feed.xml --content-type "application/rss+xml; charset=utf-8" --cache-control "public, max-age=1800" >/dev/null && echo "S3: china/feed.xml uploaded"
+    "$AWS" cloudfront create-invalidation \
+      --distribution-id EMV1VIFYTSI3U \
+      --paths "/usa/feed.xml" "/china/feed.xml" \
+      --query 'Invalidation.Id' --output text \
+      && echo "CloudFront: feeds invalidation created" \
+      || echo "CloudFront: feeds invalidation FAILED (non-fatal)"
+  else
+    echo "AWS CLI unavailable — feeds built but not deployed"
+  fi
+else
+  echo "feeds not produced — skipping deploy"
+fi
+
+echo ""
+echo "── Stage 6/6: threads_propose ──"
 "$REPO/scripts/threads_propose.sh"
 
 echo ""
