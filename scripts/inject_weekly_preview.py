@@ -34,11 +34,11 @@ WEEKLY_PREVIEW_CSS = """
     .weekly-preview-headline {
       font-family: 'EB Garamond', Garamond, Georgia, serif;
       font-size: 22px; line-height: 1.3; font-weight: 500;
-      color: var(--ink); margin: 0 0 12px; max-width: 64ch;
+      color: var(--ink); margin: 0 0 12px;
     }
     .weekly-preview-lead {
       font-size: 17px; line-height: 1.55;
-      color: var(--ink); margin: 0 0 16px; max-width: 64ch;
+      color: var(--ink); margin: 0 0 16px;
     }
     details.weekly-preview-events { margin: 0 0 16px; }
     details.weekly-preview-events > summary.weekly-preview-events-summary {
