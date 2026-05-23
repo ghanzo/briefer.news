@@ -157,28 +157,26 @@ def extract_weekly(html: str) -> dict:
     return result
 
 
-def trim_to_synopsis(text: str, max_chars: int = 320) -> str:
-    """Trim the weekly lead to a brief 2-3 sentence synopsis ending at a
-    sentence boundary. Used to render "This week" as a small bottom-of-page
-    teaser rather than a wall of prose."""
-    if not text or len(text) <= max_chars:
-        return text
-    window = text[:max_chars]
-    last_break = max(window.rfind(". "), window.rfind("! "), window.rfind("? "))
-    if last_break > max_chars * 0.5:
-        return window[: last_break + 1]
-    return window.rstrip() + "…"
-
-
 def render_preview(weekly: dict, edition_path: str) -> str:
-    headline = html_lib.escape(weekly["headline"]) if weekly["headline"] else "Read this week's digest"
-    lead = trim_to_synopsis(weekly["lead"])  # already entity-encoded; leave as-is
+    """Render "This week" as factual bullets only — the lead phrases of
+    the week's top events. No editorial headline, no narrative paragraph.
+    Just the facts plus a link to the full digest."""
+    events = weekly.get("events", [])
+    if events:
+        # Lead phrases arrive already entity-encoded from the weekly HTML
+        # (`<b>Beijing&rsquo;s haul</b>` → "Beijing&rsquo;s haul" via regex).
+        # Decode first so html.escape produces a single, correct encoding.
+        items = "\n".join(
+            f'      <li>{html_lib.escape(html_lib.unescape(e))}</li>' for e in events
+        )
+        body = f'    <ul class="weekly-preview-events-list">\n{items}\n    </ul>\n'
+    else:
+        body = ""
 
     return (
         '\n  <h3 class="section-label">This week</h3>\n'
         '  <div class="weekly-preview">\n'
-        f'    <p class="weekly-preview-headline">{headline}</p>\n'
-        + (f'    <p class="weekly-preview-lead">{lead}</p>\n' if lead else "")
+        + body
         + f'    <a class="weekly-preview-link" href="/{edition_path}/weekly/">Read the full digest &rarr;</a>\n'
         '  </div>\n'
     )
