@@ -122,12 +122,13 @@ never mixed into the U.S.-government Events list.
 4. **Dek** — the day's narrative shape, 30–55 words.
 5. **Thread strip** — small monospace chips of active long-running threads (Day 76 · Iran war, Year 5 · etc.). Omitted when there are no active threads.
 6. **Top events** — 3 bullets in priority order, the day's most consequential items. Always visible. Cite numerals 1–3.
-7. **Voices** — 3 pull-quotes visible + 3 in a `<details class="voices-extras">` drop-down. Mix of registers; verbatim from articles only.
-8. **More events** — items 4–9 inside `<details class="more-events">`, collapsed by default. Cite numerals 4–9; same bullet structure as Top events.
-9. **Allied Governments** — up to 3 allied-government bullets with lowercase-letter cites (a, b, c). Omitted on days with no allied material.
-10. **This week** — a brief 2–3 sentence synopsis of the week's digest with a link to the full `/weekly/` page. Sits at the bottom of the brief, above Sources, as context after today's content.
-11. **Sources** — numbered bibliography (1–9) with full citation and link.
-12. **Footer** — brand, nav, theme toggle.
+7. **Voices** — 3 pull-quotes visible + 3 in a `<details class="voices-extras">` drop-down inside the Voices section. Mix of registers; verbatim from articles only.
+8. **Allied Governments** — up to 3 allied-government bullets with lowercase-letter cites (a, b, c). Omitted on days with no allied material.
+9. **Transcript** — multi-view event coverage (used for summits, joint statements). Conditional; omitted on most days.
+10. **More events** — items 4–9 inside `<details class="more-events">`, collapsed by default at the BOTTOM of the brief just above Sources. Cite numerals 4–9; same bullet structure as Top events. Positioned low to reduce upfront clutter; the depth is available for readers who want it.
+11. **This week** — a brief 2–3 sentence synopsis of the week's digest with a link to the full `/weekly/` page. Injected at runtime by `scripts/inject_weekly_preview.py` between the More events block and Sources.
+12. **Sources** — bibliography. Primary `<ol>` lists the 9 events with numbered cites (1–9). When Allied Governments material is present, a second `<ol type="a" class="sources-allied">` follows in the same `<section class="sources">`, listing the allied items with letter markers (a, b, c) matching their lowercase cite markers above.
+13. **Footer** — brand, nav, theme toggle.
 
 ---
 

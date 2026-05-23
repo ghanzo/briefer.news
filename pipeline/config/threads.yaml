@@ -33,7 +33,7 @@ threads:
   - id: trump-xi-summit-2026
     name: Trump–Xi summit
     start_date: 2026-05-14
-    end_date: null
+    end_date: 2026-05-15
     editions: [us, china]
     display_format: day
 
