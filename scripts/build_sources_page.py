@@ -225,6 +225,9 @@ PAGE_TPL = Template(r"""<!doctype html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <title>Sources · Briefer News</title>
   <meta name="description" content="Active government primary-source feeds powering Briefer News. U.S. + China editions, grouped by editorial category.">
   <meta property="og:title" content="Sources · Briefer News">
@@ -302,6 +305,7 @@ PAGE_TPL = Template(r"""<!doctype html>
       background: var(--sepia);
       margin: 0 0 12px;
     }
+    p.page-intro b { color: var(--ink); font-weight: 600; }
     h3.edition-label {
       font-family: 'EB Garamond', Garamond, Georgia, serif;
       font-size: 26px;
@@ -375,15 +379,15 @@ PAGE_TPL = Template(r"""<!doctype html>
 
   <main>
     <h2 class="page-title">Active sources</h2>
-    <p class="page-intro">Government primary-source feeds the pipeline scrapes each morning. Lists only sources currently in active rotation; sources held back, blocked, or pruned do not appear. Grouped by edition and editorial category.</p>
+    <p class="page-intro"><b>This is the complete list of every source Briefer News reads from.</b> Every claim on every page &mdash; each bullet, each voice, each dek &mdash; traces back to one of these feeds. Government primary sources only: no wires, no analyst commentary, no aggregator inputs. Sources held back, blocked, or pruned do not appear here.</p>
 
     <h3 class="edition-label">U.S. edition</h3>
-    <p class="edition-blurb">$US_COUNT active feeds across federal departments, regulators, the Federal Register, judicial filings, and one allied gov source (UK MoD). DoD .mil subdomains (war.gov, CENTCOM, Navy, JCS, Air Force) reach via curl_cffi Chrome-impersonation TLS bypass; everything else via standard RSS or Playwright.</p>
+    <p class="edition-blurb">$US_COUNT active feeds across federal departments, financial regulators, the Federal Register, judicial filings, and four allied-government sources (UK MoD, NATO, Australia DFAT, Japan MoFA). Allied-government items publish in a separate "Allied Governments" block on the daily brief &mdash; never blended into the U.S.-federal Events list. DoD .mil subdomains (war.gov, CENTCOM, Navy, JCS, Air Force) reach via curl_cffi Chrome-impersonation; everything else via standard RSS or Playwright.</p>
 
     $US_SECTION
 
     <h3 class="edition-label">China edition</h3>
-    <p class="edition-blurb">$CN_COUNT active Chinese-government feeds covering State Council, central regulators, Party theoretical organs, judicial and discipline-inspection bodies, MFA daily press conferences, leadership beats, and provincial governments. All scraped via curl_cffi.</p>
+    <p class="edition-blurb">$CN_COUNT active Chinese-government feeds covering State Council policy releases, central regulators (NDRC, PBOC, MIIT, CAC), Party theoretical organs (Qiushi), judicial and discipline-inspection bodies (Supreme Court, Procuracy, CCDI), MFA daily press conferences, the PLA (MND and 81.cn), leadership-beat coverage from People's Daily and Xinhua, and provincial governments. All scraped via curl_cffi Chrome-impersonation.</p>
 
     $CN_SECTION
 
