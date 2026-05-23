@@ -157,31 +157,29 @@ def extract_weekly(html: str) -> dict:
     return result
 
 
+def trim_to_synopsis(text: str, max_chars: int = 320) -> str:
+    """Trim the weekly lead to a brief 2-3 sentence synopsis ending at a
+    sentence boundary. Used to render "This week" as a small bottom-of-page
+    teaser rather than a wall of prose."""
+    if not text or len(text) <= max_chars:
+        return text
+    window = text[:max_chars]
+    last_break = max(window.rfind(". "), window.rfind("! "), window.rfind("? "))
+    if last_break > max_chars * 0.5:
+        return window[: last_break + 1]
+    return window.rstrip() + "…"
+
+
 def render_preview(weekly: dict, edition_path: str) -> str:
     headline = html_lib.escape(weekly["headline"]) if weekly["headline"] else "Read this week's digest"
-    lead = weekly["lead"]  # already entity-encoded in source HTML; leave as-is
-
-    events_html = ""
-    if weekly["events"]:
-        items = "\n".join(
-            f'        <li>{html_lib.escape(e)}</li>' for e in weekly["events"]
-        )
-        events_html = (
-            '\n    <details class="weekly-preview-events">\n'
-            '      <summary class="weekly-preview-events-summary">This week\'s events</summary>\n'
-            '      <ul class="weekly-preview-events-list">\n'
-            f"{items}\n"
-            "      </ul>\n"
-            "    </details>"
-        )
+    lead = trim_to_synopsis(weekly["lead"])  # already entity-encoded; leave as-is
 
     return (
         '\n  <h3 class="section-label">This week</h3>\n'
         '  <div class="weekly-preview">\n'
         f'    <p class="weekly-preview-headline">{headline}</p>\n'
         + (f'    <p class="weekly-preview-lead">{lead}</p>\n' if lead else "")
-        + events_html + "\n"
-        f'    <a class="weekly-preview-link" href="/{edition_path}/weekly/">Read the full digest &rarr;</a>\n'
+        + f'    <a class="weekly-preview-link" href="/{edition_path}/weekly/">Read the full digest &rarr;</a>\n'
         '  </div>\n'
     )
 
@@ -221,17 +219,18 @@ def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
 
     preview_html = render_preview(weekly, edition_path)
 
-    # Insert after the thread-strip's closing </p>
+    # Insert directly BEFORE the Sources <details> wrapper, so "This week"
+    # sits as a bottom synopsis after all the day's content has rendered.
     new_html, n = re.subn(
-        r'(<p class="thread-strip">.*?</p>)',
-        lambda m: m.group(1) + preview_html.rstrip("\n"),
+        r'(\s*<details class="sources-details")',
+        lambda m: "\n" + preview_html.rstrip("\n") + m.group(1),
         daily_html, count=1, flags=re.DOTALL,
     )
     if n == 0:
-        # Fallback: insert after the dek
+        # Fallback: insert before </main> if Sources wrapper is missing.
         new_html, n = re.subn(
-            r'(<p class="dek">.*?</p>)',
-            lambda m: m.group(1) + preview_html.rstrip("\n"),
+            r'(\s*</main>)',
+            lambda m: "\n" + preview_html.rstrip("\n") + m.group(1),
             daily_html, count=1, flags=re.DOTALL,
         )
     return new_html

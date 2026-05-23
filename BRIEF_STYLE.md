@@ -116,14 +116,18 @@ never mixed into the U.S.-government Events list.
 
 ## Page structure (in order)
 
-1. **Masthead** — `BRIEFER NEWS` + tagline `A daily brief from U.S. government sources`. Small monochrome flag glyph above title.
+1. **Masthead** — `BRIEFER NEWS` + trust-signal tagline (`Primary U.S. government sources only · Every claim linked · No opinion`). Small monochrome flag glyph above title.
 2. **Date stamp** — small, mono caps, top-right of body column. Format: `MAY 7, 2026`.
 3. **Headline** — one short sentence framing the day.
-4. **Voices** — three (occasionally four) pull-quotes from named officials or documents.
-5. **Events** — 9 bullets in priority order, all U.S.-government-sourced. Each with bold lead, citation, and date · agency tag.
-6. **Allied Governments** — short companion section directly below Events: up to 3 allied-government bullets with lettered cites. Omitted on days with no allied material.
-7. **Sources** — numbered bibliography with full citation and link.
-8. **Footer** — brand, nav, theme toggle.
+4. **Dek** — the day's narrative shape, 30–55 words.
+5. **Thread strip** — small monospace chips of active long-running threads (Day 76 · Iran war, Year 5 · etc.). Omitted when there are no active threads.
+6. **Top events** — 3 bullets in priority order, the day's most consequential items. Always visible. Cite numerals 1–3.
+7. **Voices** — 3 pull-quotes visible + 3 in a `<details class="voices-extras">` drop-down. Mix of registers; verbatim from articles only.
+8. **More events** — items 4–9 inside `<details class="more-events">`, collapsed by default. Cite numerals 4–9; same bullet structure as Top events.
+9. **Allied Governments** — up to 3 allied-government bullets with lowercase-letter cites (a, b, c). Omitted on days with no allied material.
+10. **This week** — a brief 2–3 sentence synopsis of the week's digest with a link to the full `/weekly/` page. Sits at the bottom of the brief, above Sources, as context after today's content.
+11. **Sources** — numbered bibliography (1–9) with full citation and link.
+12. **Footer** — brand, nav, theme toggle.
 
 ---
 

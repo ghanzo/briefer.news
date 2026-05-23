@@ -936,6 +936,52 @@
       color: var(--paper);
       border-color: var(--sepia);
     }
+    details.more-events {
+      margin: 18px 0 0;
+    }
+    details.more-events > summary.more-events-summary {
+      cursor: pointer;
+      list-style: none;
+      display: inline-block;
+      padding: 8px 14px;
+      background: transparent;
+      border: 1px solid var(--ink-soft);
+      border-radius: 2px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--ink-soft);
+      user-select: none;
+      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    }
+    details.more-events > summary.more-events-summary::-webkit-details-marker { display: none; }
+    details.more-events > summary.more-events-summary::before {
+      content: "+ ";
+      font-weight: 600;
+    }
+    details.more-events[open] > summary.more-events-summary {
+      margin-bottom: 14px;
+      color: var(--paper);
+      background: var(--sepia);
+      border-color: var(--sepia);
+    }
+    details.more-events[open] > summary.more-events-summary::before {
+      content: "\2212 ";
+    }
+    details.more-events > summary.more-events-summary:hover {
+      color: var(--ink);
+      border-color: var(--ink-light);
+    }
+    details.more-events[open] > summary.more-events-summary:hover {
+      background: var(--sepia);
+      color: var(--paper);
+      border-color: var(--sepia);
+    }
+    ul.items.items-more {
+      margin-top: 0;
+    }
     .voices-pending {
       margin: 14px 0 0;
       padding: 14px 16px;
@@ -1463,7 +1509,7 @@
     <rect x="0" y="0" width="19" height="14"/>
   </svg>
   <h1>Briefer News</h1>
-  <p class="tagline">A daily brief from U.S. government sources</p>
+  <p class="tagline">Primary U.S. government sources only &middot; Every claim linked &middot; No opinion</p>
   <nav class="editions">
     <a href="./" class="active">United States</a>
     <a href="../china/">China</a>
@@ -1484,6 +1530,14 @@
     <span class="thread-chip"><b>Day 76</b> &middot; Iran war</span>
     <span class="thread-chip"><b>Year 5</b> &middot; Ukraine war</span>
   </p>
+
+
+  <h3 class="section-label">Events</h3>
+  <ul class="items">
+    <li><b>Cuba sanctions.</b> Executive Order 14404 imposes a full sanctions regime on Cuban officials and on persons operating in the country's energy, defense, metals, financial, or security sectors; reaches adult family members of designated persons.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404 (Sanctions on Cuba), May 7, 2026" target="_blank" rel="noopener">1</a></sup><span class="when">May 1 &middot; Fed. Reg.</span></li>
+    <li><b>Iran-China oil.</b> State and Treasury sanctioned Qingdao Haiye Oil Terminal &mdash; a China-based facility that handled tens of millions of barrels of sanctioned Iranian crude &mdash; plus three Iranian currency-exchange houses moving billions annually.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/u-s-sanctions-tighten-grip-on-iran-china-oil-trade/" title="State Dept. — Iran-China Oil Trade Sanctions, May 1, 2026" target="_blank" rel="noopener">2</a></sup><span class="when">May 1 &middot; State</span></li>
+    <li><b>DOJ v. UCLA.</b> Civil Rights Division determined UCLA's David Geffen School of Medicine intentionally selected medical-school applicants by race; admitted Black and Hispanic applicants had, on average, lower academic qualifications than white and Asian applicants.<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race" title="DOJ — UCLA Medical School Discrimination Determination, May 6, 2026" target="_blank" rel="noopener">3</a></sup><span class="when">May 6 &middot; DOJ</span></li>
+  </ul>
 
   <h3 class="section-label">Voices</h3>
   <div class="voices">
@@ -1508,18 +1562,17 @@
     </details>
   </div>
 
-  <h3 class="section-label">Events</h3>
-  <ul class="items">
-    <li><b>Cuba sanctions.</b> Executive Order 14404 imposes a full sanctions regime on Cuban officials and on persons operating in the country's energy, defense, metals, financial, or security sectors; reaches adult family members of designated persons.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404 (Sanctions on Cuba), May 7, 2026" target="_blank" rel="noopener">1</a></sup><span class="when">May 1 &middot; Fed. Reg.</span></li>
-    <li><b>Iran-China oil.</b> State and Treasury sanctioned Qingdao Haiye Oil Terminal &mdash; a China-based facility that handled tens of millions of barrels of sanctioned Iranian crude &mdash; plus three Iranian currency-exchange houses moving billions annually.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/u-s-sanctions-tighten-grip-on-iran-china-oil-trade/" title="State Dept. — Iran-China Oil Trade Sanctions, May 1, 2026" target="_blank" rel="noopener">2</a></sup><span class="when">May 1 &middot; State</span></li>
-    <li><b>DOJ v. UCLA.</b> Civil Rights Division determined UCLA's David Geffen School of Medicine intentionally selected medical-school applicants by race; admitted Black and Hispanic applicants had, on average, lower academic qualifications than white and Asian applicants.<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race" title="DOJ — UCLA Medical School Discrimination Determination, May 6, 2026" target="_blank" rel="noopener">3</a></sup><span class="when">May 6 &middot; DOJ</span></li>
+  <details class="more-events">
+    <summary class="more-events-summary">Show 6 more events</summary>
+    <ul class="items items-more">
     <li><b>DPRK IT workers.</b> Two U.S. nationals &mdash; Knoot of Nashville, Prince of New York &mdash; sentenced to 18 months for hosting laptop farms that let North Korean IT workers fraudulently work for U.S. companies; ~70 victim companies, $1.2M+ to DPRK.<sup><a class="cite" href="https://www.justice.gov/opa/pr/two-us-nationals-sentenced-facilitating-fraudulent-remote-information-technology-worker-0" title="DOJ — DPRK IT Worker Sentencing, May 6, 2026" target="_blank" rel="noopener">4</a></sup><span class="when">May 6 &middot; DOJ</span></li>
     <li><b>CISA KEV.</b> Palo Alto Networks PAN-OS out-of-bounds write (CVE-2026-0300) added to the catalog with active-exploitation evidence.<sup><a class="cite" href="https://www.cisa.gov/news-events/alerts/2026/05/06/cisa-adds-one-known-exploited-vulnerability-catalog" title="CISA — KEV Catalog Addition (CVE-2026-0300, Palo Alto PAN-OS), May 6, 2026" target="_blank" rel="noopener">5</a></sup><span class="when">May 6 &middot; CISA</span></li>
     <li><b>Trump Peace Pipelines.</b> Sec. Wright launched a U.S.-led MOU at the Three Seas Summit in Dubrovnik to expand natural-gas infrastructure across Central and Eastern Europe; concurrent deals: U.S.&ndash;Croatia civil-nuclear/SMR cooperation and Project Pantheon, a $50B+ American data center in Croatia.<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup><span class="when">Apr 28 &middot; DOE</span></li>
     <li><b>DRC&ndash;M23.</b> DRC government and AFC/M23 representatives met April 13&ndash;17 in Montreux to advance the Doha Framework signed Nov 15, 2025; mediators: Qatar, U.S., Togo (AU mediator), AU Commission, Switzerland.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — DRC/AFC-M23 Joint Statement, April 18, 2026" target="_blank" rel="noopener">7</a></sup><span class="when">Apr 18 &middot; State</span></li>
     <li><b>Pax Silica.</b> Norway became the 15th signatory of the U.S.-led Pax Silica Initiative for diversified critical-mineral supply chains.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — Norway Joins Pax Silica, May 6, 2026" target="_blank" rel="noopener">8</a></sup><span class="when">May 6 &middot; State</span></li>
     <li><b>MFN drug pricing.</b> 17 of the largest pharmaceutical manufacturers signed voluntary Most-Favored-Nation pricing agreements; the framework projects $529B in domestic savings over 10 years.<sup><a class="cite" href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/" title="White House — Savings from MFN Drug Pricing Policy, May 2026" target="_blank" rel="noopener">9</a></sup><span class="when">May &middot; WH</span></li>
-  </ul>
+    </ul>
+  </details>
 
   <h3 class="section-label">Allied Governments</h3>
   <ul class="items allied-items">

@@ -193,13 +193,18 @@ Shanghai, Guangdong
               ├─ Stage 4: Claude synthesizer
               │     ├─ Headline ≤12 words; dek per DEK.md (present-tense voice)
               │     ├─ Thread strip (chips from .run/threads_china.txt)
-              │     ├─ "This week" preview (weekly's headline + lead + events)
+              │     ├─ TOP EVENTS — 3 bullets (most consequential; cites 1-3)
               │     ├─ 6 voices (English-only); Xi-first; ≤30-day recency
               │     │   • First 3 visible
               │     │   • 3 more in <details class="voices-extras">
-              │     ├─ 9 bullets (25-word cap); CCDI cadence rule; Qiushi anchor
+              │     ├─ MORE EVENTS — 6 bullets in <details class="more-events">
+              │     │   (cites 4-9; collapsed by default; 25-word cap;
+              │     │   CCDI cadence rule; Qiushi anchor)
               │     ├─ Strategic Backdrop (2-3 doctrines, collapsible-open)
               │     ├─ Five-Year Plan static anchor (collapsible-open)
+              │     ├─ "This week" synopsis (injected at runtime by
+              │     │   inject_weekly_preview.py — headline + 2-3
+              │     │   sentence lead + link to /china/weekly/)
               │     ├─ Sources block (collapsible-open)
               │     ├─ Footer nav (Archive / Weekly / About / Sources)
               │     └─ Render into research/prototype_china_2026-05-12.html
