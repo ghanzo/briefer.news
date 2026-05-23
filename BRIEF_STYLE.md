@@ -116,7 +116,7 @@ never mixed into the U.S.-government Events list.
 
 ## Page structure (in order)
 
-1. **Masthead** — `BRIEFER NEWS` + trust-signal tagline (`Primary U.S. government sources only · Every claim linked · No opinion`). Small monochrome flag glyph above title.
+1. **Masthead** — `BRIEFER NEWS` + trust-signal tagline (`All sourcing from the U.S. government · Everything cited · News without opinion`). Small monochrome flag glyph above title.
 2. **Date stamp** — small, mono caps, top-right of body column. Format: `MAY 7, 2026`.
 3. **Headline** — one short sentence framing the day.
 4. **Dek** — the day's narrative shape, 30–55 words.

@@ -379,7 +379,7 @@ PAGE_TPL = Template(r"""<!doctype html>
 
   <main>
     <h2 class="page-title">Active sources</h2>
-    <p class="page-intro"><b>This is the complete list of every source Briefer News reads from.</b> Every claim on every page &mdash; each bullet, each voice, each dek &mdash; traces back to one of these feeds. Government primary sources only: no wires, no analyst commentary, no aggregator inputs. Sources held back, blocked, or pruned do not appear here.</p>
+    <p class="page-intro"><b>This is the complete list of every source Briefer News reads from.</b> Each bullet, each voice, each dek traces back to one of these feeds. Government sources only: no wires, no analyst commentary, no aggregator inputs. Sources held back, blocked, or pruned do not appear here.</p>
 
     <h3 class="edition-label">U.S. edition</h3>
     <p class="edition-blurb">$US_COUNT active feeds across federal departments, financial regulators, the Federal Register, judicial filings, and four allied-government sources (UK MoD, NATO, Australia DFAT, Japan MoFA). Allied-government items publish in a separate "Allied Governments" block on the daily brief &mdash; never blended into the U.S.-federal Events list. DoD .mil subdomains (war.gov, CENTCOM, Navy, JCS, Air Force) reach via curl_cffi Chrome-impersonation; everything else via standard RSS or Playwright.</p>
