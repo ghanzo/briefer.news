@@ -245,6 +245,68 @@ fi
 N_META=$(jq 'length' "$META" 2>/dev/null || echo "?")
 echo "China candidate pool: $N_META articles, $(wc -c < "$META") bytes"
 
+# ── Stage 1b: Outside-the-Gate candidate pool ──────────────────────────────
+# Non-PRC government voices that bear on China: near-orbit partners (Russia,
+# Iran, Pakistan, North Korea) + cross-Strait counterpart (Taiwan). All
+# government primary sources, routed via Google News site-restricted RSS.
+# Taiwan items are included unfiltered (every Taiwan gov statement is
+# cross-Strait relevant by context); other partner sources are keyword-
+# filtered to surface only China-relevant items.
+# Output: $OUTSIDE_META. Synth picks 3 of these to render in the
+# "Outside the Gate" section between Voices and Strategic Backdrop.
+# Non-fatal: if empty, synth omits the section entirely.
+OUTSIDE_META="$RUN_DIR/china_outside_meta.json"
+echo "--- Stage 1b: outside-the-gate SQL pre-filter ---"
+"$DOCKER" exec briefer_postgres psql -U briefer -d briefer -tA -c "
+  WITH outside_sources(name, is_taiwan) AS (VALUES
+    ('Taiwan MOFA', true),
+    ('Taiwan Presidential Office', true),
+    ('Russia Foreign Ministry', false),
+    ('Iran MFA', false),
+    ('Pakistan Foreign Office', false),
+    ('KCNA (DPRK)', false)
+  ),
+  outside_candidates AS (
+    SELECT a.id, s.name AS source, a.title,
+      a.publish_date::date AS pub_date, a.url, a.scraped_at
+    FROM articles a
+    JOIN sources s ON a.source_id = s.id
+    JOIN outside_sources os ON os.name = s.name
+    WHERE a.full_text IS NOT NULL
+      AND LENGTH(a.full_text) >= 200
+      AND (a.publish_date >= NOW() - INTERVAL '14 days'
+           OR (a.publish_date IS NULL AND a.scraped_at >= NOW() - INTERVAL '36 hours'))
+      AND (
+        os.is_taiwan = true
+        OR a.title ILIKE '%China%'
+        OR a.title ILIKE '%PRC%'
+        OR a.title ILIKE '%Beijing%'
+        OR a.title ILIKE '%Xi Jinping%'
+        OR a.title ILIKE '%Taiwan%'
+        OR a.title ILIKE '%Strait%'
+        OR a.title ILIKE '%Hong Kong%'
+        OR a.title ILIKE '%Chinese%'
+        OR a.title ILIKE '%PLA%'
+        OR a.title ILIKE '%Cross-Strait%'
+      )
+  ),
+  capped AS (
+    SELECT id, source, title, pub_date, url,
+      ROW_NUMBER() OVER (PARTITION BY source
+        ORDER BY pub_date DESC NULLS LAST, scraped_at DESC) AS rn
+    FROM outside_candidates
+  )
+  SELECT COALESCE(json_agg(json_build_object(
+    'id', id, 'source', source, 'title', title,
+    'pub_date', pub_date, 'url', url
+  )), '[]'::json)
+  FROM (SELECT * FROM capped WHERE rn <= 6 ORDER BY pub_date DESC NULLS LAST LIMIT 30) ranked;
+" > "$OUTSIDE_META"
+
+N_OUTSIDE=$(jq 'length' "$OUTSIDE_META" 2>/dev/null || echo "0")
+echo "Outside-the-gate pool: $N_OUTSIDE articles, $(wc -c < "$OUTSIDE_META") bytes"
+# Note: non-fatal — section omits entirely if pool is empty/sparse.
+
 # ── Stage 2: Claude PICKER ──────────────────────────────────────────────────
 PICK_PROMPT="$RUN_DIR/prompt_china_pick.txt"
 PICKED="$RUN_DIR/china_picked_ids.json"
@@ -344,7 +406,9 @@ Required reading (in order):
 4. @${REPO}/research/prototype_china_2026-05-12.html — visual template; preserve all CSS, header, footer, script
 5. @${FULL} — full text of the articles the picker selected
 6. **Strategy library** — list and read the markdown files in @${REPO}/pipeline/config/strategy/ . Each describes a long-arc Chinese strategic doctrine (15FYP, new quality productive forces, common prosperity, dual circulation, civil-military fusion, BRI, GDI/GSI, energy 30/60, energy security, etc.) with a "Today's coverage triggers" section. You'll use these to populate the Strategic Backdrop section.
-7. **World-context (ambient signal, NEVER published):** @${REPO}/.run/china_world_context.md if it exists. What non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. Use this to (a) calibrate which bullets to emphasize and how, (b) inform the dek's selection of which events to name, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce this file in the brief.** Do NOT render any non-PRC source on the page. Every cite in the bullets must point to .gov.cn or another Chinese-government primary source. The brand promise is primary-government-sources-only.
+7. **World-context (ambient signal, NEVER published):** @${REPO}/.run/china_world_context.md if it exists. What non-Chinese sources are reporting about China today — inbound signals, Western framing, politically-vital stories Chinese state press won't carry. Use this to (a) calibrate which bullets to emphasize and how, (b) inform the dek's selection of which events to name, (c) decide which Strategic Backdrop cards are most resonant. **NEVER cite, quote, or directly reproduce this file in the brief.** Every cite in the 9 BULLETS / Voices / Strategic Backdrop / numbered Sources must point to .gov.cn or another Chinese-government primary source. The 9-bullet spine of the brief is primary-government-sources-only.
+
+8. **Outside the Gate candidates:** @${OUTSIDE_META} — non-PRC government voices that bear on China (near-orbit partners: Russia, Iran, Pakistan, North Korea; cross-Strait counterpart: Taiwan). Read this file and pick 3 to render in the Outside the Gate section per the OUTSIDE THE GATE SECTION instruction below. These are the explicit, labeled exception to the PRC-only rule — non-PRC GOV sources with their own letter-cite (a, b, c) markers and a separate listing in Sources. **Conditional:** if the file is empty or has 0 items, omit the Outside the Gate section entirely.
 
 Today is ${TODAY}.
 
@@ -410,7 +474,9 @@ Bullet caps:
 
 **Qiushi anchor rule (HARD).** When a bullet sources from Qiushi (求是, Party Theoretical Journal), the bullet text MUST anchor to the speech / piece — explicitly name "in a Qiushi speech [date]", "Xi's [date] speech republished in Qiushi", or "Qiushi commentary, [date]". Otherwise the bullet reads as breaking news when the underlying material is long-arc doctrinal framing.
 
-STRATEGIC BACKDROP: After the Voices section, and after the summit transcript section if present, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. (Note: the more-events <details class="more-events"> block sits at the BOTTOM of the brief, immediately before Sources — after Strategic Backdrop and Five-Year Plan render.) Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
+OUTSIDE THE GATE SECTION: directly after the Voices section closes and BEFORE Strategic Backdrop, render a short non-PRC-government section — an <h3 class="section-label">Outside the Gate</h3> then <ul class="items allied-items">. UP TO 3 bullets, drawn ONLY from items in @${OUTSIDE_META} (Taiwan MOFA, Taiwan Presidential Office, Russia Foreign Ministry, Iran MFA, Pakistan Foreign Office, KCNA — non-PRC government voices that bear on China). Same bullet structure as Events (bold lead, tight description, citation, date+agency tag), but cite markers are LOWERCASE LETTERS (a, b, c) so they do not collide with the Events numerals 1-9. **Outside the Gate items ALSO get entries in the Sources bibliography** — render them as a second list <ol type="a" class="sources-allied"> inside the <section class="sources"> (after the main 1-9 <ol>), containing 3 li in the same cite format as the numbered events. SELECTION GUIDANCE: prefer recency (last 7 days), distinct sources (do not render 3 from Taiwan if other voices are available), and items that materially engage with today's PRC story (the Russia/Iran/Pakistan/NK items already passed the China-keyword filter; Taiwan items are unfiltered because every Taiwan-gov statement is cross-Strait relevant by context — pick those that specifically respond to or anticipate today's PRC moves). CONDITIONAL: if @${OUTSIDE_META} is empty or no item is worth a slot today, OMIT the whole Outside the Gate section AND the corresponding sources-allied list — never render either empty.
+
+STRATEGIC BACKDROP: After the Voices section AND the Outside the Gate section (if present), and after the summit transcript section if present, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. (Note: the more-events <details class="more-events"> block sits at the BOTTOM of the brief, immediately before Sources — after Strategic Backdrop and Five-Year Plan render.) Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
 
 Pick rules:
 - Each card connects to AT LEAST 2 of today's bullets via the strategy's themes.
@@ -445,6 +511,8 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <div class="voices">...</div> — first 3 voices as <blockquote class="pull"> directly inside, then a <details class="voices-extras"><summary class="voices-extras-summary">Show 3 more voices</summary> with the additional 3 <blockquote class="pull"> elements inside. No "open" attribute on this details — extras default to hidden (preserving the priority-selection-first behavior).
 - <ul class="items">...</ul> — the TOP EVENTS block (always visible): exactly 3 <li> elements. These are the day's THREE MOST CONSEQUENTIAL items, ordered by significance. Cite numerals 1-3.
 - <details class="more-events"><summary class="more-events-summary">Show 6 more events</summary><ul class="items items-more">...</ul></details> — appears in the prototype at the BOTTOM of the brief, immediately before the Sources block (after Strategic Backdrop, Five-Year Plan, and the transcript section if present). Exactly 6 <li> elements inside the items-more <ul>, same bullet structure as the visible top 3. These are items 4-9 in significance order, with cite numerals 4-9. No "open" attribute — collapsed by default. Together with the top 3, the 9 events preserve the Sources bibliography numbering 1-9.
+- <h3 class="section-label">Outside the Gate</h3> + <ul class="items allied-items">...</ul> — directly AFTER the Voices section closes and BEFORE Strategic Backdrop, per the OUTSIDE THE GATE SECTION instruction above. Omit BOTH the h3 and the ul entirely if there is no Outside the Gate material today.
+- <ol type="a" class="sources-allied">...</ol> — a second ordered list with type="a" (renders a, b, c) inside <section class="sources">, immediately after the main 9-item <ol>. Contains 3 li, one per Outside the Gate item, in the same cite format as the numbered events. The letter labels (a, b, c) match the lowercase cite markers in the Outside the Gate bullets above. CONDITIONAL: if there is no Outside the Gate section today, OMIT this list entirely.
 - The inner <div class="backdrop">...</div> of the Strategic Backdrop block (PRESERVE the wrapping <details class="collapsible-details" open><summary class="collapsible-summary">Strategic Backdrop</summary> and the closing </details>; only the inner backdrop div is replaced with 2-3 fresh strategy cards per today's items). Strategic Backdrop uses <details open> — expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the "open" attribute.
 - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details" open><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). Sources uses <details open> — expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the "open" attribute.
 - The Five-Year Plan section is wrapped in <details class="collapsible-details" open><summary class="collapsible-summary">Five-Year Plan</summary>...</details>. The synth must PRESERVE this wrapper, the summary text, and the "open" attribute. The inner <article class="fyp"> content is unchanged — see the existing preserve rule for the Five-Year Plan section.

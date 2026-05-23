@@ -197,10 +197,19 @@ Shanghai, Guangdong
               │     ├─ 6 voices (English-only); Xi-first; ≤30-day recency
               │     │   • First 3 visible
               │     │   • 3 more in <details class="voices-extras">
+              │     ├─ OUTSIDE THE GATE — 3 bullets (cites a-c)
+              │     │   non-PRC government voices that bear on China:
+              │     │   near-orbit partners (Russia MID, Iran MFA,
+              │     │   Pakistan FO, KCNA) + cross-Strait counterpart
+              │     │   (Taiwan MOFA, Taiwan Presidential Office).
+              │     │   Conditional: omitted if no material today.
+              │     │   Items also appear in Sources as <ol type="a">.
+              │     ├─ Strategic Backdrop (2-3 doctrines, collapsible-open)
               │     ├─ MORE EVENTS — 6 bullets in <details class="more-events">
               │     │   (cites 4-9; collapsed by default; 25-word cap;
               │     │   CCDI cadence rule; Qiushi anchor)
-              │     ├─ Strategic Backdrop (2-3 doctrines, collapsible-open)
+              │     │   (Note: positioned at the bottom of the brief,
+              │     │    immediately before Sources)
               │     ├─ Five-Year Plan static anchor (collapsible-open)
               │     ├─ "This week" synopsis (injected at runtime by
               │     │   inject_weekly_preview.py — headline + 2-3

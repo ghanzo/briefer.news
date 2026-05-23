@@ -1004,6 +1004,52 @@ sources:
     active: false
 
   # ════════════════════════════════════════════════════════════════════════════
+  # CHINA "OUTSIDE THE GATE" sources — added 2026-05-23
+  # Non-PRC government voices that bear on China: near-orbit partners
+  # (Russia, Iran, Pakistan, NK) and cross-Strait counterpart (Taiwan).
+  # All government primary sources. Routed via Google News site-restricted
+  # search because none of these governments expose clean direct RSS.
+  # Used by synthesize_china.sh's Stage 1b SQL to populate the Outside
+  # the Gate section on the China brief.
+  # ════════════════════════════════════════════════════════════════════════════
+
+  - name: "Taiwan MOFA"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=site:mofa.gov.tw&hl=en-US&gl=US"
+    category: geopolitics
+    tier: 1
+
+  - name: "Taiwan Presidential Office"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=site:english.president.gov.tw&hl=en-US&gl=US"
+    category: geopolitics
+    tier: 1
+
+  - name: "Russia Foreign Ministry"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=site:mid.ru&hl=en-US&gl=US"
+    category: geopolitics
+    tier: 1
+
+  - name: "Iran MFA"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=site:en.mfa.gov.ir&hl=en-US&gl=US"
+    category: geopolitics
+    tier: 1
+
+  - name: "Pakistan Foreign Office"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=site:mofa.gov.pk&hl=en-US&gl=US"
+    category: geopolitics
+    tier: 1
+
+  - name: "KCNA (DPRK)"
+    type: google_news
+    url: "https://news.google.com/rss/search?q=site:kcna.kp&hl=en-US&gl=US"
+    category: geopolitics
+    tier: 1
+
+  # ════════════════════════════════════════════════════════════════════════════
   # REMOVED 2026-05-02 — confirmed dead or duplicate
   # See research/probe_2026-05-02.md for evidence.
   # ════════════════════════════════════════════════════════════════════════════
