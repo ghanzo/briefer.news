@@ -26,12 +26,12 @@ import urllib.request
 from pathlib import Path
 
 
-# Site palette (matches research/prototype_us_2026-05-12.html CSS root).
-# Light body + dark text + dark rectangular masthead block. Most email
-# clients (incl. Gmail) render this reliably; trying to do email-wide
-# dark mode usually backfires when Gmail forces light-mode and inverts
-# only some of the colors, producing low-contrast unreadable output.
-PAPER = "#F5EFE2"          # body background
+# Light palette designed to survive Gmail's dark-mode auto-inversion.
+# Body background is pure white (#FFFFFF) — Gmail won't try to "smartly"
+# darken or hue-shift it. The cream (#F5EFE2) we used before got
+# misinterpreted as a "light tan we should darken." Color-scheme meta
+# tags in the <head> tell Gmail this email is light-only.
+PAPER = "#FFFFFF"          # body background — pure white, immune to dark-mode shifts
 INK = "#1A1614"            # primary text
 INK_SOFT = "#3D332C"       # subtle dividers + dek body
 INK_LIGHT = "#6B5D52"      # footer / muted text
@@ -53,7 +53,14 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="only light">
+<meta name="supported-color-schemes" content="only light">
 <title>Briefer News — {today_pretty}</title>
+<style>
+  :root {{ color-scheme: only light; supported-color-schemes: only light; }}
+  /* Force light treatment even in dark-mode-forcing clients */
+  body, table, td {{ color-scheme: only light !important; }}
+</style>
 </head>
 <body style="margin:0;padding:0;background:{PAPER};font-family:Georgia,'Times New Roman',serif;color:{INK};-webkit-font-smoothing:antialiased;">
 
