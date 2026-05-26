@@ -399,6 +399,9 @@ PAGE_TPL = Template(r"""<!doctype html>
       <a href="https://github.com/ghanzo/briefer.news" target="_blank" rel="noopener">GitHub</a>
     </footer>
   </main>
+
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "4f4a59f7acb24ed2845fba16d404f2f7"}'></script><!-- End Cloudflare Web Analytics -->
+
 </body>
 </html>
 """)
