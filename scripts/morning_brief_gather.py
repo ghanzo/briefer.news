@@ -237,6 +237,28 @@ def gather_aws_costs() -> dict:
     }
 
 
+def gather_reminders() -> list[str]:
+    """Read .run/reminders.json (a date -> [messages] map) and return
+    any reminders whose date matches today. Lets the operator schedule
+    one-off "do this on date X" nudges that surface in the morning brief
+    on the matching day.
+
+    File format:
+      { "2026-05-31": ["Downgrade AWS Business+...", "..."] }
+
+    Missing file or no entry for today = empty list. Returns text
+    strings; the brief synthesizer surfaces them in a "## Reminders for
+    today" section if non-empty."""
+    path = REPO / ".run" / "reminders.json"
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text())
+        return data.get(TODAY.isoformat(), [])
+    except Exception:
+        return []
+
+
 def scan_today_errors() -> list[str]:
     """Sweep today's log files for any ERROR / FAIL / Traceback lines."""
     seen: list[str] = []
@@ -269,6 +291,7 @@ def main() -> int:
         "traffic":   gather_traffic(),
         "search":    gather_search(),
         "costs":     gather_aws_costs(),
+        "reminders_for_today": gather_reminders(),
         "errors_today": scan_today_errors(),
     }
 

@@ -72,6 +72,12 @@ moved. Write like a co-founder briefing me, not like a status dashboard.
 
 # briefer.news — morning brief · ${TODAY}
 
+## Reminders for today
+ONLY include this section if data.reminders_for_today is non-empty.
+If it is, render each reminder as a bullet at the TOP of the brief
+(before TL;DR) so the operator can't miss it. If empty, omit the
+section entirely — don't write "no reminders" or anything.
+
 ## TL;DR
 ONE LINE. Status badge + the single most important thing about today.
 Pick from: ✓ all green / ⚠ N issues to look at / ✗ critical issue.
