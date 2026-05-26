@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>news.briefer.email_bounce_handler</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/maxgoshay/code/briefernewsapp/scripts/email_bounce_handler.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/maxgoshay/code/briefernewsapp</string>
+
+    <key>StartInterval</key>
+    <integer>600</integer>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/maxgoshay/code/briefernewsapp/logs/email_bounce_handler.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/maxgoshay/code/briefernewsapp/logs/email_bounce_handler.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/Users/maxgoshay/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>

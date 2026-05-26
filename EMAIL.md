@@ -54,11 +54,11 @@ SNS → bounce handler → status: 'confirmed' → 'bounced'
 |---|---|---|---|
 | 1 | AWS SES setup — domain identity + DKIM CNAMEs + SPF + DMARC + production-access request | 30 min | ✓ **shipped 2026-05-26** |
 | 2 | Postgres `email_subscribers` table + Python helpers + CLI | 30 min | ✓ **shipped 2026-05-26** (migration 004) |
-| 3 | Signup form on site footer + double-opt-in backend handler | 2 hr | **pending** (handler ✓ in Step 6 server; just need form HTML on site) |
+| 3 | Signup form on site footer + double-opt-in backend handler | 2 hr | ✓ **shipped 2026-05-26** (subscribe-block embedded in US + China + about prototype footers; AJAX POST to api.briefer.news with inline status; About deployed live, US + China auto-pick-up tomorrow morning's synth) |
 | 4 | HTML email template matching the site | 3 hr | ✓ **shipped 2026-05-26** (scripts/email_template.py — light bg + dark text + inset dark masthead box, color-scheme meta for Gmail) |
 | 5 | Daily send pipeline + LaunchAgent at 08:30 PT | 1 hr | ✓ **shipped 2026-05-26** (scripts/email_send.py — kill switch, daily cap, sandbox guard, unsubscribe-live guard) |
 | 6 | Unsubscribe flow + signed-token URL endpoint | 1 hr | **code ✓ 2026-05-26** (scripts/email_api_server.py); **deployment pending** (Cloudflare Tunnel) |
-| 7 | Bounce / complaint handling via SNS → handler | 1 hr | pending |
+| 7 | Bounce / complaint handling via SNS → handler | 1 hr | ✓ **shipped 2026-05-26** (SES→SNS→SQS→`scripts/email_bounce_handler.py`, LaunchAgent every 10 min; tested with AWS bounce simulator) |
 | 8 | Cost guards (daily send cap, CloudWatch alarm, kill switch) + testing | 2 hr | partial — daily cap + kill switch shipped in Step 5; CloudWatch billing alarm pending |
 
 Total remaining: ~10 hours across 3-4 sessions.
@@ -152,6 +152,41 @@ Once shipped, the daily-send wrapper enforces:
 - **Kill switch** — `EMAIL_ENABLED=true|false` in `.env`. Daily-send
   wrapper checks and refuses to send if false. Useful for "halt all
   outbound" in case of weird behavior.
+
+---
+
+## Step 7 wiring — SNS + SQS for bounce / complaint events
+
+```
+SES briefer.news identity
+   ↓ (on Bounce or Complaint)
+SNS topic   arn:aws:sns:us-east-1:462170975634:briefer-ses-events
+   ↓ (SQS subscription, RawMessageDelivery=false)
+SQS queue   https://sqs.us-east-1.amazonaws.com/462170975634/briefer-ses-events-queue
+   ↓ (long-poll receive every 10 min)
+scripts/email_bounce_handler.py
+   ↓
+email_subscribers.mark_bounced(email)   (Permanent bounces + Complaints)
+logs/email-bounces-YYYY-MM-DD.jsonl     (every event, including Transient + Undetermined)
+```
+
+Why SQS, not an HTTP webhook: the mini is on residential ISP; SQS holds
+messages durably until acked, so a blip doesn't lose bounce data. Also
+decouples Step 7 from Cloudflare Tunnel.
+
+LaunchAgent: `~/Library/LaunchAgents/news.briefer.email_bounce_handler.plist`
+(mirrored at `launchd/`). Runs every 600s (10 min). Each run polls up to
+3 batches × 10 messages = 30 messages per run, plenty for our scale.
+
+Hard bounces (`bounceType == "Permanent"`) → row marked status='bounced'.
+Soft bounces (Transient / Undetermined) → logged only — recipient may recover.
+Complaints (any feedback type) → same treatment as hard bounce: marked bounced,
+sender list cleaned immediately.
+
+Manual poll any time:
+```bash
+python3 scripts/email_bounce_handler.py --verbose
+```
 
 ---
 

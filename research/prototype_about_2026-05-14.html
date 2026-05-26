@@ -168,6 +168,78 @@
       border-bottom: 1px dotted var(--sepia);
     }
     footer.site-foot a:hover { border-bottom-style: solid; }
+
+    /* ── Subscribe block (above site-foot) ─────────────────────────────────── */
+    .subscribe-block {
+      max-width: 460px;
+      margin: 48px auto 0;
+      padding: 24px 0;
+      border-top: 1px solid var(--ink-soft);
+      border-bottom: 1px solid var(--ink-soft);
+      text-align: center;
+    }
+    .subscribe-h {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--ink);
+      margin: 0 0 6px;
+      letter-spacing: 0.01em;
+    }
+    .subscribe-sub {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 13px;
+      color: var(--ink-soft);
+      line-height: 1.45;
+      margin: 0 0 14px;
+    }
+    .subscribe-form { display: flex; gap: 8px; }
+    .subscribe-form input[type=email] {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 10px 12px;
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 15px;
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid var(--ink-light);
+      border-radius: 2px;
+      outline: none;
+    }
+    .subscribe-form input[type=email]:focus { border-color: var(--sepia); }
+    .subscribe-form button {
+      padding: 10px 16px;
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-size: 11px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-weight: 600;
+      color: var(--paper);
+      background: var(--ink);
+      border: 1px solid var(--ink);
+      border-radius: 2px;
+      cursor: pointer;
+    }
+    .subscribe-form button:hover { background: var(--sepia); border-color: var(--sepia); }
+    .subscribe-status {
+      margin: 10px 0 0;
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
+      font-size: 13px;
+      color: var(--sepia);
+      min-height: 1.2em;
+    }
+    .visually-hidden {
+      position: absolute !important;
+      clip: rect(1px,1px,1px,1px);
+      padding: 0 !important;
+      border: 0 !important;
+      height: 1px !important;
+      width: 1px !important;
+      overflow: hidden;
+    }
+    @media (max-width: 540px) {
+      .subscribe-form { flex-direction: column; }
+    }
   </style>
 </head>
 <body class="theme-kraft">
@@ -219,6 +291,18 @@
       <p>Live and operating since 2026-05-10. Multi-edition split (U.S. + China) landed 2026-05-12. Continuity strip, weekly digest, and the dek-voice spec landed 2026-05-14. Allied Governments and Outside the Gate blocks separated allied/non-PRC context from primary-government voice 2026-05-14. RSS feeds, sitemap, healthcheck, and Google Search Console verification went live 2026-05-22. Page layout reorganized for top-3-events-first with the trust-signal masthead tagline 2026-05-22. The brief evolves; see the GitHub commit log for the editorial and infrastructural history.</p>
     </section>
 
+    <section class="subscribe-block" aria-label="Subscribe to the daily brief">
+      <h3 class="subscribe-h">Get the daily brief by email</h3>
+      <p class="subscribe-sub">One short email each morning. No tracking, no third parties, one-click unsubscribe.</p>
+      <form id="subscribeForm" class="subscribe-form" action="https://api.briefer.news/subscribe" method="POST">
+        <label for="subscribe-email" class="visually-hidden">Email address</label>
+        <input id="subscribe-email" name="email" type="email" required placeholder="you@somewhere.com" autocomplete="email" inputmode="email">
+        <input type="hidden" name="edition" value="both">
+        <button type="submit">Subscribe</button>
+      </form>
+      <p id="subscribeStatus" class="subscribe-status" role="status" aria-live="polite"></p>
+    </section>
+
     <footer class="site-foot">
       <a href="/usa/">U.S. brief</a>
       <a href="/china/">China brief</a>
@@ -226,6 +310,34 @@
       <a href="https://github.com/ghanzo/briefer.news" target="_blank" rel="noopener">GitHub</a>
     </footer>
   </main>
+
+<script>
+  // Subscribe form — POST to api.briefer.news, render inline status
+  (function () {
+    var form = document.getElementById('subscribeForm');
+    var status = document.getElementById('subscribeStatus');
+    if (!form || !status) return;
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = new URLSearchParams(new FormData(form));
+      status.textContent = 'Sending…';
+      fetch(form.action, { method: 'POST', body: body, mode: 'cors' })
+        .then(function (r) {
+          if (r.ok) {
+            status.textContent = 'Check your inbox to confirm.';
+            form.reset();
+          } else if (r.status === 400) {
+            status.textContent = 'That email looks invalid. Please try again.';
+          } else {
+            status.textContent = 'Hmm, something went wrong. Try again in a minute.';
+          }
+        })
+        .catch(function () {
+          status.textContent = 'Network error. Try again in a minute.';
+        });
+    });
+  })();
+</script>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "4f4a59f7acb24ed2845fba16d404f2f7"}'></script><!-- End Cloudflare Web Analytics -->
 

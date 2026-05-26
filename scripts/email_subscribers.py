@@ -35,12 +35,20 @@ DB = "briefer"
 USER = "briefer"
 
 
+_COMMAND_TAG = re.compile(r"^(INSERT|UPDATE|DELETE|MERGE|COPY)\s+\d+(\s+\d+)?\s*$")
+
 def _psql(sql: str) -> str:
-    """Run a SQL statement and return stdout (psql -tA — tuple-only, unaligned)."""
-    return subprocess.check_output(
+    """Run a SQL statement and return stdout (psql -tA — tuple-only, unaligned).
+
+    Strips trailing command-tag lines (e.g. 'UPDATE 0') that psql emits for
+    DML even in -tA mode — they pollute JSON parsing when RETURNING yields
+    zero rows."""
+    raw = subprocess.check_output(
         [DOCKER, "exec", CONTAINER, "psql", "-U", USER, "-d", DB, "-tA", "-c", sql],
         text=True, timeout=15,
-    ).strip()
+    )
+    lines = [ln for ln in raw.splitlines() if not _COMMAND_TAG.match(ln)]
+    return "\n".join(lines).strip()
 
 
 def _psql_json(sql: str) -> list[dict]:
