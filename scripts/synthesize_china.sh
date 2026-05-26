@@ -267,13 +267,18 @@ echo "--- Stage 1b: outside-the-gate SQL pre-filter ---"
     ('KCNA (DPRK)', false)
   ),
   outside_candidates AS (
+    -- Note: Google News scrapes save title + URL only; the extractor does not
+    -- follow the news.google.com redirect to fetch full body text. For the
+    -- Outside the Gate section the title IS the substance (each bullet is a
+    -- one-line factual claim), so we filter on title presence + length, not
+    -- full_text. The URL still resolves to the underlying gov source for cites.
     SELECT a.id, s.name AS source, a.title,
       a.publish_date::date AS pub_date, a.url, a.scraped_at
     FROM articles a
     JOIN sources s ON a.source_id = s.id
     JOIN outside_sources os ON os.name = s.name
-    WHERE a.full_text IS NOT NULL
-      AND LENGTH(a.full_text) >= 200
+    WHERE a.title IS NOT NULL
+      AND LENGTH(a.title) >= 20
       AND (a.publish_date >= NOW() - INTERVAL '14 days'
            OR (a.publish_date IS NULL AND a.scraped_at >= NOW() - INTERVAL '36 hours'))
       AND (
