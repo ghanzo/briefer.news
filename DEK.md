@@ -68,6 +68,29 @@ A dek that ships should satisfy all three:
 
 44 words — but "Iran runs through nearly every item today" is editorial framing (thesis-as-opener) and the comma chain leans toward TL;DR rather than synopsis.
 
+### Bad — subtle interpretive framing (US, 2026-05-26)
+
+> Cuba marks 124 years of independence this week, and Washington answers with a courtroom. A three-decade-old murder indictment naming Raúl Castro arrives the same week as a green-card seizure tied to Cuba's military elite — pressure aimed less at a 1996 shoot-down than at the conglomerate the U.S. now treats as the island's real power.
+
+48 words, 4 events named — *passes the "events count" check* but every connective is editorial:
+- **"Washington answers with a courtroom"** — interpretive cause-and-effect; reframes events as a metaphorical "answer."
+- **"X arrives the same week as Y"** — interpretive temporal grouping ("notable that these coincide"); reader can see the dates.
+- **"pressure aimed less at X than at Y"** — explicit interpretive framing; the writer's read of what the action targets.
+- **"the U.S. now treats X as Y"** — interpretive characterization; the writer's read of policy intent.
+
+These framings are subtle because they don't use stance words like "signals" or "tightening" — they sneak in as connective tissue. **Banned phrasings to watch for specifically:**
+- *X answers with Y* / *X responds with Y* / *X moves on Y* (interpretive verbs)
+- *X arrives the same week as Y* / *X comes as Y* / *X coincides with Y* (interpretive grouping)
+- *aimed less at X than at Y* / *aimed at Y* (interpretive intent attribution)
+- *now treats X as Y* / *now views X as Y* / *increasingly sees X as Y* (interpretive characterization)
+- *X is part of a larger Y* / *X fits into Y* (pattern-attribution)
+
+Rewrite the dek to name the events with neutral verbs:
+
+> DOJ indicted Raúl Castro on terrorism charges tied to the 1996 shoot-down. ICE seized a green card from a Cuban military-conglomerate figure. The State Department announced a fifth round of Cuba sanctions. The Federal Register published two new energy-export rules.
+
+48 words, same four events, no editorial framing.
+
 ---
 
 ## A short checklist for the synth before writing the dek

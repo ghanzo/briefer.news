@@ -265,9 +265,9 @@ echo "--- Stage 1b: outside-the-gate SQL pre-filter ---"
     ('Iran MFA', false),
     ('Pakistan Foreign Office', false)
     -- KCNA (DPRK) dropped 2026-05-25: Google News scrape returns
-    -- literally "- KCNA.kp" for every item, no usable titles. Source
-    -- stays in pipeline/config/sources.yaml for possible direct-scrape
-    -- reinstatement later.
+    -- only the source-name string for every item, no usable titles.
+    -- Source stays in pipeline/config/sources.yaml in case a future
+    -- direct scrape becomes worth the work.
   ),
   outside_candidates AS (
     -- Note: Google News scrapes save title + URL only; the extractor does not
