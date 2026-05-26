@@ -170,6 +170,120 @@ def gather_search() -> dict:
     }
 
 
+def _gsc_query(token: str, quota_project: str, body: dict) -> dict:
+    """Direct Search Console searchAnalytics.query call."""
+    import requests
+    site_enc = requests.utils.quote("sc-domain:briefer.news", safe="")
+    url = f"https://searchconsole.googleapis.com/webmasters/v3/sites/{site_enc}/searchAnalytics/query"
+    r = requests.post(
+        url,
+        headers={"Authorization": f"Bearer {token}",
+                 "Content-Type": "application/json",
+                 "X-Goog-User-Project": quota_project},
+        json=body, timeout=30,
+    )
+    if r.status_code != 200:
+        raise RuntimeError(f"GSC HTTP {r.status_code}: {r.text[:300]}")
+    return r.json()
+
+
+def gather_search_wow() -> dict:
+    """Per-page week-over-week comparison so we can SEE the meta-description
+    CTR fix landing in the SERP. Two 7-day windows compared on impressions,
+    clicks, CTR, and average position. Pages with zero impressions in both
+    windows are dropped.
+
+    Search Console reports data on a 2-3 day lag, so:
+      this_week  = (today-9 .. today-3)
+      last_week  = (today-16 .. today-10)
+    Each window is 7 days, separated by a gap to avoid the freshest +
+    least-reliable data.
+    """
+    try:
+        import google.auth
+        from google.auth.transport.requests import Request
+        creds, project = google.auth.default(
+            scopes=["https://www.googleapis.com/auth/webmasters.readonly"])
+        creds.refresh(Request())
+        token = creds.token
+        quota_project = creds.quota_project_id or project or "skillful-coast-288311"
+    except Exception as e:
+        return {"status": "auth_error", "reason": str(e)[:300]}
+
+    today = dt.date.today()
+    this_start = (today - dt.timedelta(days=9)).isoformat()
+    this_end   = (today - dt.timedelta(days=3)).isoformat()
+    last_start = (today - dt.timedelta(days=16)).isoformat()
+    last_end   = (today - dt.timedelta(days=10)).isoformat()
+
+    try:
+        this_resp = _gsc_query(token, quota_project, {
+            "startDate": this_start, "endDate": this_end,
+            "dimensions": ["page"], "rowLimit": 100,
+        })
+        last_resp = _gsc_query(token, quota_project, {
+            "startDate": last_start, "endDate": last_end,
+            "dimensions": ["page"], "rowLimit": 100,
+        })
+    except Exception as e:
+        return {"status": "query_error", "reason": str(e)[:300]}
+
+    def index(resp):
+        out = {}
+        for row in resp.get("rows", []):
+            url = row["keys"][0]
+            out[url] = {
+                "impressions": row.get("impressions", 0),
+                "clicks": row.get("clicks", 0),
+                "ctr": row.get("ctr", 0.0),
+                "position": row.get("position", 0.0),
+            }
+        return out
+
+    this_idx = index(this_resp)
+    last_idx = index(last_resp)
+    all_urls = set(this_idx) | set(last_idx)
+
+    deltas = []
+    for url in all_urls:
+        t = this_idx.get(url, {"impressions": 0, "clicks": 0, "ctr": 0.0, "position": 0.0})
+        l = last_idx.get(url, {"impressions": 0, "clicks": 0, "ctr": 0.0, "position": 0.0})
+        # Skip noise — only include if either window had ≥1 impression
+        if t["impressions"] == 0 and l["impressions"] == 0:
+            continue
+        deltas.append({
+            "url": url,
+            "this_imp": int(t["impressions"]), "last_imp": int(l["impressions"]),
+            "imp_delta": int(t["impressions"]) - int(l["impressions"]),
+            "this_clicks": int(t["clicks"]), "last_clicks": int(l["clicks"]),
+            "clicks_delta": int(t["clicks"]) - int(l["clicks"]),
+            "this_ctr": round(t["ctr"], 4), "last_ctr": round(l["ctr"], 4),
+            "ctr_delta": round(t["ctr"] - l["ctr"], 4),
+            "this_pos": round(t["position"], 1), "last_pos": round(l["position"], 1),
+            "pos_delta": round(t["position"] - l["position"], 1),
+        })
+
+    # Sort by this-week impressions descending — most visible pages first
+    deltas.sort(key=lambda d: d["this_imp"], reverse=True)
+
+    # Site-wide totals
+    def totals(idx):
+        if not idx:
+            return {"impressions": 0, "clicks": 0, "ctr": 0.0}
+        imp = sum(r["impressions"] for r in idx.values())
+        clk = sum(r["clicks"] for r in idx.values())
+        return {"impressions": int(imp), "clicks": int(clk),
+                "ctr": round(clk / imp, 4) if imp else 0.0}
+
+    return {
+        "status": "ok",
+        "this_window": {"start": this_start, "end": this_end, **totals(this_idx)},
+        "last_window": {"start": last_start, "end": last_end, **totals(last_idx)},
+        "deltas_by_page": deltas[:20],
+        "n_pages_compared": len(deltas),
+    }
+
+
 # ── Healthcheck ────────────────────────────────────────────────────────────
 
 def gather_healthcheck() -> dict:
@@ -395,6 +509,7 @@ def main() -> int:
         "site_quality": {},  # filled below — score AFTER live_briefs collected
         "traffic":   gather_traffic(),
         "search":    gather_search(),
+        "search_wow": gather_search_wow(),
         "costs":     gather_aws_costs(),
         "reminders_for_today": gather_reminders(),
         "errors_today": scan_today_errors(),

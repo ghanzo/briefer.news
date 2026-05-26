@@ -134,6 +134,26 @@ From data.search. Only include if the snapshot is from this week or last
 week. Lead with impressions / clicks / avg position. Flag the trend if
 visible (impressions climbing, position improving).
 
+## SERP CTR — week-over-week (per page)
+From data.search_wow. Two 7-day windows compared with a 3-day gap (GSC
+reports lag 2-3 days). Report MUST include:
+
+- Site totals row: this-week impressions / clicks / CTR vs last-week's,
+  with deltas. Name the percentage CTR — at our scale 0% is the relevant
+  number to track.
+- A per-page table for ANY URL that had ≥3 impressions in either window.
+  Columns: URL · this-imp · last-imp · imp Δ · this-clicks · last-clicks ·
+  this-CTR · last-CTR · CTR Δ · this-pos · pos Δ.
+- ALWAYS surface /usa and /china specifically (even at low volume) since
+  those are the two pages we just shortened meta descriptions on (lift
+  expected 24-72h after each Googlebot re-crawl). A non-zero clicks_delta
+  on either is the signal we're watching for.
+- One sentence interpretation: "/china jumped from X to Y impressions
+  but CTR is still 0%, position improved by N" — write so the operator
+  sees the meta-description lift the moment it shows up.
+
+If data.search_wow.status != "ok", say so in one line and continue.
+
 ## Notable signals
 3-5 bullets. Only the things that ACTUALLY MATTER today — not a list of
 everything. Examples that would qualify: a query showed up that suggests
