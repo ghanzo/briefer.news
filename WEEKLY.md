@@ -2,7 +2,7 @@
 
 The weekly is a different artifact from the daily. The daily is the heartbeat; the weekly is what people save and forward. It is the editorial product that builds a returning-reader habit.
 
-The daily is "what happened." The weekly is "what the week *meant*."
+The daily is "what happened today." The weekly is "what happened across the week, grouped and named." Same factual posture as the daily — news without opinion — just longer-form and retrospective.
 
 This document is binding. Synth must follow every rule below.
 
@@ -11,10 +11,10 @@ This document is binding. Synth must follow every rule below.
 ## What the weekly is for
 
 A reader who skims only the weekly should walk away with:
-- A **posture** on the week (the editor's read of what just happened, not a summary)
-- A handful of items that *clarified* something — not the loudest, the most revealing
-- A sense of which long-arc threads advanced and how
-- A few voices worth remembering
+- **The week's most significant events**, named plainly and in clear order
+- **A handful of items that were the most consequential** (by scope, scale, or arc-significance) with brief context
+- **A sense of which long-arc threads advanced** and how
+- **A few voices worth remembering** from the week's official record
 
 The weekly is **longer-form than the daily** — total editorial content 800–1500 words. It's expected to take 8–12 minutes to read, not 3–5.
 
@@ -68,7 +68,7 @@ Read it aloud. If it tells the reader, plainly, the most significant things that
 What it does:
 
 1. **Leads with the most consequential development** of the week, named plainly and up front.
-2. **Groups the rest** — the other items that mattered, in clear order, lightly connected (what they share, or what drew the coverage vs. what actually mattered).
+2. **Groups the rest** — the other significant items, in clear order, lightly connected (what topic or arc they share).
 3. **Anchors to a longer arc** where it adds context — the threads (Day 78 of the Iran war, Year 5 of Ukraine) — for orientation, not decoration.
 
 **Style:**
@@ -107,20 +107,22 @@ Same style as the Week's Read: short declarative sentences, no columnist tics, n
 
 ## The Week's Bullets — 5 to 7 items
 
-These are NOT the same shape as daily bullets. Daily bullets compress events into bold-lead + one sentence. Weekly bullets are 40–80 words each — enough to **explain why this item mattered more than the other forty-four** from the week.
+These are NOT the same shape as daily bullets. Daily bullets compress events into bold-lead + one sentence. Weekly bullets are 40–80 words each — enough to **add context that wasn't in the original daily bullet** (scope of the action, what it connects to, downstream consequences).
 
-**Each weekly bullet should answer:** what happened, and what does it tell us in retrospect?
+**Each weekly bullet should answer:** what happened, and what context makes it consequential?
 
 Format:
 ```html
 <li>
   <b>Lead phrase.</b> What happened in one sentence, with the date and source.
-  Then the editorial read: why this item, why now, what it reveals or anchors.
-  Cross-reference the daily where this first appeared.
+  Then the additional context: scope (how many affected, dollar amount, geography),
+  connections to other items in the week, or relation to long-arc threads.
+  Cross-reference the daily where this first appeared. Stay factual — no
+  editorial "what this reveals" framing.
 </li>
 ```
 
-Selection rule: **5–7 items that, in retrospect, told you what the week meant.** Not the biggest news. The most clarifying news. Avoid items that were dominant but didn't reveal anything new ("more Iran sanctions" — only include if a specific sanction signaled a new posture).
+Selection rule: **5–7 items that were the most consequential of the week**, judged by scope (number of people affected, dollar amount, lasting impact), significance to long-running arcs, or scale of the action. Not necessarily the loudest news of any given day. Avoid filler ("more Iran sanctions") unless the specific action genuinely changed something material — and if it did, name what changed.
 
 Cap: ≤2 of the 5–7 bullets can be from a single thread (so the week's news isn't 100% Iran or 100% summit).
 
@@ -174,9 +176,9 @@ Two cases:
 
 Before writing the headline + lead:
 
-- What is the *posture* I'm naming for this week?
-- What arc moved most clearly? In which direction?
-- What asymmetry emerged across days?
-- Which bullets, in retrospect, clarified what the week meant? Why those?
-- Have I avoided every banned construction?
+- What are the most consequential events of the week, by scope and scale?
+- Which long-running threads advanced this week, and how?
+- Is the right shape one dominant event (single-event mode) or a group of significant items (regular mode)?
+- Which 5–7 items, by scope and consequence, deserve their own weekly bullet?
+- Have I avoided every banned construction (posture-naming, asymmetry-flagging, "what the week meant," doctrine name-drops in the lead, columnist tics)?
 - Could a careful reader disagree with my lead? (If no, the lead is too safe.)
