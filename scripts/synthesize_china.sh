@@ -263,8 +263,11 @@ echo "--- Stage 1b: outside-the-gate SQL pre-filter ---"
     ('Taiwan Presidential Office', true),
     ('Russia Foreign Ministry', false),
     ('Iran MFA', false),
-    ('Pakistan Foreign Office', false),
-    ('KCNA (DPRK)', false)
+    ('Pakistan Foreign Office', false)
+    -- KCNA (DPRK) dropped 2026-05-25: Google News scrape returns
+    -- literally "- KCNA.kp" for every item, no usable titles. Source
+    -- stays in pipeline/config/sources.yaml for possible direct-scrape
+    -- reinstatement later.
   ),
   outside_candidates AS (
     -- Note: Google News scrapes save title + URL only; the extractor does not
@@ -279,20 +282,45 @@ echo "--- Stage 1b: outside-the-gate SQL pre-filter ---"
     JOIN outside_sources os ON os.name = s.name
     WHERE a.title IS NOT NULL
       AND LENGTH(a.title) >= 20
+      -- Noise excludes: generic landing-page artifacts surfaced by Google
+      -- News, administrative pages, source-name-only placeholders.
+      AND a.title NOT ILIKE 'News Agency:Events%'
+      AND a.title NOT ILIKE 'Ministry of Foreign Affairs of the Islamic Republic of Iran%'
+      AND a.title NOT ILIKE 'Visa - Ministry%'
+      AND a.title NOT ILIKE 'Consular Services - Ministry%'
       AND (a.publish_date >= NOW() - INTERVAL '14 days'
            OR (a.publish_date IS NULL AND a.scraped_at >= NOW() - INTERVAL '36 hours'))
       AND (
         os.is_taiwan = true
+        -- Direct China references
         OR a.title ILIKE '%China%'
         OR a.title ILIKE '%PRC%'
+        OR a.title ILIKE '%People''s Republic of China%'
         OR a.title ILIKE '%Beijing%'
         OR a.title ILIKE '%Xi Jinping%'
+        OR a.title ILIKE '%Chinese%'
+        OR a.title ILIKE '%Sino-%'
+        -- Cross-Strait + Taiwan
         OR a.title ILIKE '%Taiwan%'
         OR a.title ILIKE '%Strait%'
-        OR a.title ILIKE '%Hong Kong%'
-        OR a.title ILIKE '%Chinese%'
-        OR a.title ILIKE '%PLA%'
         OR a.title ILIKE '%Cross-Strait%'
+        -- China-adjacent territories
+        OR a.title ILIKE '%Hong Kong%'
+        OR a.title ILIKE '%Xinjiang%'
+        OR a.title ILIKE '%Tibet%'
+        -- PLA / military
+        OR a.title ILIKE '%PLA%'
+        OR a.title ILIKE '%South China Sea%'
+        -- Multilateral frameworks where China is central
+        OR a.title ILIKE '%BRICS%'
+        OR a.title ILIKE '%SCO%'
+        OR a.title ILIKE '%Shanghai Cooperation%'
+        OR a.title ILIKE '%Belt and Road%'
+        OR a.title ILIKE '%BRI %'
+        OR a.title ILIKE '%CPEC%'
+        OR a.title ILIKE '%Indo-Pacific%'
+        OR a.title ILIKE '%Quad %'
+        OR a.title ILIKE '%AUKUS%'
       )
   ),
   capped AS (
