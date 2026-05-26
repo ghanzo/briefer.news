@@ -26,14 +26,19 @@ import urllib.request
 from pathlib import Path
 
 
-# Site palette (matches research/prototype_us_2026-05-12.html CSS root)
-PAPER = "#F5EFE2"
-INK = "#1A1614"
-INK_SOFT = "#3D332C"
-INK_LIGHT = "#6B5D52"
-SEPIA = "#7A4F2E"
-BLACK = "#14110F"
-CREAM = "#F2EBD9"
+# Dark palette — inverted from the site's kraft theme. Background is ink
+# black; primary text is full cream; accent is the lighter cream-tan so
+# it remains legible against the dark (sepia at #7A4F2E was contrast-
+# borderline against #14110F).
+BLACK = "#14110F"          # background
+INK_SOFT = "#3D332C"       # subtle dividers
+CREAM = "#F2EBD9"          # primary text + headings
+CREAM_TAN = "#C9BFA7"      # secondary text (dek body, section labels)
+SEPIA = "#A6754B"          # accent — brightened sepia so links pop on dark
+# Backward-compat aliases used elsewhere in the template
+PAPER = BLACK
+INK = CREAM
+INK_LIGHT = CREAM_TAN
 
 
 def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
