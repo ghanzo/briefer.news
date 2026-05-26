@@ -54,12 +54,12 @@ SNS → bounce handler → status: 'confirmed' → 'bounced'
 |---|---|---|---|
 | 1 | AWS SES setup — domain identity + DKIM CNAMEs + SPF + DMARC + production-access request | 30 min | ✓ **shipped 2026-05-26** |
 | 2 | Postgres `email_subscribers` table + Python helpers + CLI | 30 min | ✓ **shipped 2026-05-26** (migration 004) |
-| 3 | Signup form on site footer + double-opt-in backend handler | 2 hr | pending |
-| 4 | HTML email template matching the site | 3 hr | pending |
-| 5 | Daily send pipeline + LaunchAgent at 08:30 PT | 1 hr | pending |
-| 6 | Unsubscribe flow + signed-token URL endpoint | 1 hr | pending |
+| 3 | Signup form on site footer + double-opt-in backend handler | 2 hr | **pending** (handler ✓ in Step 6 server; just need form HTML on site) |
+| 4 | HTML email template matching the site | 3 hr | ✓ **shipped 2026-05-26** (scripts/email_template.py — light bg + dark text + inset dark masthead box, color-scheme meta for Gmail) |
+| 5 | Daily send pipeline + LaunchAgent at 08:30 PT | 1 hr | ✓ **shipped 2026-05-26** (scripts/email_send.py — kill switch, daily cap, sandbox guard, unsubscribe-live guard) |
+| 6 | Unsubscribe flow + signed-token URL endpoint | 1 hr | **code ✓ 2026-05-26** (scripts/email_api_server.py); **deployment pending** (Cloudflare Tunnel) |
 | 7 | Bounce / complaint handling via SNS → handler | 1 hr | pending |
-| 8 | Cost guards (daily send cap, CloudWatch alarm, kill switch) + testing | 2 hr | pending |
+| 8 | Cost guards (daily send cap, CloudWatch alarm, kill switch) + testing | 2 hr | partial — daily cap + kill switch shipped in Step 5; CloudWatch billing alarm pending |
 
 Total remaining: ~10 hours across 3-4 sessions.
 
@@ -152,6 +152,82 @@ Once shipped, the daily-send wrapper enforces:
 - **Kill switch** — `EMAIL_ENABLED=true|false` in `.env`. Daily-send
   wrapper checks and refuses to send if false. Useful for "halt all
   outbound" in case of weird behavior.
+
+---
+
+## Step 6 deployment runbook (Cloudflare Tunnel → api.briefer.news)
+
+The email API server (`scripts/email_api_server.py`) listens on `0.0.0.0:8765`
+on the Mac mini. The mini sits behind a residential ISP with no static IP, so
+we expose it via a Cloudflare Tunnel — same pattern the user already runs for
+`goshaycabin.com` via the `cabin_tunnel` Docker container.
+
+### Mini-side (LaunchAgent — already installed)
+
+Plist: `~/Library/LaunchAgents/news.briefer.email_api.plist` (committed at
+`launchd/news.briefer.email_api.plist` in this repo for reference). To load:
+
+```bash
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/news.briefer.email_api.plist
+launchctl kickstart -k gui/$(id -u)/news.briefer.email_api
+curl http://localhost:8765/         # → OK page if running
+tail -f logs/email_api.err.log      # stderr
+```
+
+To unload (useful during dev / debugging):
+
+```bash
+launchctl bootout gui/$(id -u)/news.briefer.email_api
+```
+
+### Cloudflare-side (one-time, user action)
+
+```bash
+# 1. Auth cloudflared CLI to user's Cloudflare account
+brew install cloudflare/cloudflare/cloudflared    # if not installed locally
+cloudflared tunnel login                          # opens browser; pick Cloudflare zone
+
+# 2. Create a dedicated tunnel for the briefer.news email API
+cloudflared tunnel create briefer-api
+# Note the tunnel UUID it prints — needed in step 3
+
+# 3. Write ~/.cloudflared/config-briefer.yml:
+#
+#     tunnel: <UUID-FROM-STEP-2>
+#     credentials-file: /Users/maxgoshay/.cloudflared/<UUID>.json
+#     ingress:
+#       - hostname: api.briefer.news
+#         service: http://host.docker.internal:8765
+#       - service: http_status:404
+#
+# (host.docker.internal lets a Docker'd cloudflared reach the host's port 8765)
+
+# 4. Add CNAME api.briefer.news → <UUID>.cfargotunnel.com in Route 53
+#    (briefer.news DNS is in hosted zone Z07630701MT6TMX2WHCGE in the
+#    deployment account; I can run this part)
+
+# 5. Run cloudflared in Docker (mirroring the cabin_tunnel pattern):
+#    Add a service block to briefer's docker-compose:
+#
+#    briefer_tunnel:
+#      image: cloudflare/cloudflared:latest
+#      restart: unless-stopped
+#      command: tunnel --no-autoupdate --config /etc/cloudflared/config.yml run
+#      volumes:
+#        - /Users/maxgoshay/.cloudflared:/etc/cloudflared
+#      extra_hosts:
+#        - "host.docker.internal:host-gateway"
+
+# 6. Verify:
+curl https://api.briefer.news/                    # → "OK" health page
+curl 'https://api.briefer.news/unsubscribe?t=fake' # → "Already unsubscribed" page
+
+# 7. Flip EMAIL_UNSUBSCRIBE_LIVE=true in .env once the above works.
+```
+
+After Step 6 deployment, production sends can ship. The first real send
+should still be to `ghanzo@gmail.com` only (one-row subscriber list) — then
+expand by inviting people to the public signup form once Step 3 is wired.
 
 ---
 

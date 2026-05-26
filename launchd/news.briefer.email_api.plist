@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>news.briefer.email_api</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/maxgoshay/code/briefernewsapp/scripts/email_api_server.py</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/maxgoshay/code/briefernewsapp</string>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+        <key>Crashed</key>
+        <true/>
+    </dict>
+
+    <key>ThrottleInterval</key>
+    <integer>10</integer>
+
+    <key>StandardOutPath</key>
+    <string>/Users/maxgoshay/code/briefernewsapp/logs/email_api.out.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/maxgoshay/code/briefernewsapp/logs/email_api.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>EMAIL_API_PORT</key>
+        <string>8765</string>
+        <key>PATH</key>
+        <string>/Users/maxgoshay/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+</dict>
+</plist>
