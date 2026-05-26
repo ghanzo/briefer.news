@@ -60,9 +60,8 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
 
         <!-- Masthead -->
-        <tr><td style="background:{BLACK};color:{CREAM};padding:28px 24px 18px;text-align:center;">
-          <img src="https://briefer.news/apple-touch-icon.png" alt="Briefer News" width="52" height="52" style="display:block;margin:0 auto 10px;border:0;outline:none;-ms-interpolation-mode:bicubic;">
-          <div style="font-family:Georgia,'Times New Roman',serif;font-size:30px;font-weight:600;letter-spacing:0.01em;line-height:1;">Briefer News</div>
+        <tr><td style="background:{BLACK};color:{CREAM};padding:22px 24px 16px;text-align:center;">
+          <div style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:600;letter-spacing:0.01em;line-height:1;">Briefer News</div>
           <div style="font-style:italic;font-size:12px;color:#C9BFA7;letter-spacing:0.02em;margin-top:8px;">All sourcing from government · Everything cited · News without opinion</div>
         </td></tr>
 
