@@ -26,19 +26,18 @@ import urllib.request
 from pathlib import Path
 
 
-# Dark palette — inverted from the site's kraft theme. Background is ink
-# black; primary text is full cream; accent is the lighter cream-tan so
-# it remains legible against the dark (sepia at #7A4F2E was contrast-
-# borderline against #14110F).
-BLACK = "#14110F"          # background
-INK_SOFT = "#3D332C"       # subtle dividers
-CREAM = "#F2EBD9"          # primary text + headings
-CREAM_TAN = "#C9BFA7"      # secondary text (dek body, section labels)
-SEPIA = "#A6754B"          # accent — brightened sepia so links pop on dark
-# Backward-compat aliases used elsewhere in the template
-PAPER = BLACK
-INK = CREAM
-INK_LIGHT = CREAM_TAN
+# Site palette (matches research/prototype_us_2026-05-12.html CSS root).
+# Light body + dark text + dark rectangular masthead block. Most email
+# clients (incl. Gmail) render this reliably; trying to do email-wide
+# dark mode usually backfires when Gmail forces light-mode and inverts
+# only some of the colors, producing low-contrast unreadable output.
+PAPER = "#F5EFE2"          # body background
+INK = "#1A1614"            # primary text
+INK_SOFT = "#3D332C"       # subtle dividers + dek body
+INK_LIGHT = "#6B5D52"      # footer / muted text
+SEPIA = "#7A4F2E"          # accent — section labels + links
+BLACK = "#14110F"          # masthead box background
+CREAM = "#F2EBD9"          # masthead text on dark background
 
 
 def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
@@ -64,10 +63,14 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
     <td align="center" style="padding:24px 12px;">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
 
-        <!-- Masthead -->
-        <tr><td style="background:{BLACK};color:{CREAM};padding:22px 24px 16px;text-align:center;">
-          <div style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:600;letter-spacing:0.01em;line-height:1;">Briefer News</div>
-          <div style="font-style:italic;font-size:12px;color:#C9BFA7;letter-spacing:0.02em;margin-top:8px;">All sourcing from government · Everything cited · News without opinion</div>
+        <!-- Masthead — inset dark box with cream gutters -->
+        <tr><td style="padding:8px 0 18px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr><td style="background:{BLACK};color:{CREAM};padding:28px 28px 22px;text-align:center;border-radius:3px;">
+              <div style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:600;letter-spacing:0.01em;line-height:1;color:{CREAM};">Briefer News</div>
+              <div style="font-style:italic;font-size:12px;color:#C9BFA7;letter-spacing:0.02em;margin-top:10px;">All sourcing from government · Everything cited · News without opinion</div>
+            </td></tr>
+          </table>
         </td></tr>
 
         <!-- Date stamp -->
