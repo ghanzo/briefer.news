@@ -502,6 +502,7 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <meta property="og:title" content="..."> — same string as the <title> tag.
 - <meta property="og:description" content="..."> — same as meta description (today's dek).
 - <meta property="og:url" content="..."> — leave as "https://briefer.news/china/" (canonical URL, not the dated archive URL).
+- <link rel="canonical" href="..."> — leave as "https://briefer.news/china/" (same canonical URL as og:url).
 - <meta name="twitter:title" content="..."> — same as <title>.
 - <meta name="twitter:description" content="..."> — same as meta description (today's dek).
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
@@ -539,14 +540,19 @@ fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 
 # ── Stage 5: deploy to local nginx /china/ subpath ─────────────────────────
+# Archive copy gets a rewritten canonical pointing to ITS dated URL so
+# Google indexes each archive as unique content, not a dupe of today.
 echo "--- Stage 5: deploying to nginx volume /china/ ---"
+ARCHIVE_HTML="$RUN_DIR/china_today-archive.html"
+/usr/bin/sed "s|<link rel=\"canonical\" href=\"https://briefer.news/china/\">|<link rel=\"canonical\" href=\"https://briefer.news/china/archive/${TODAY}.html\">|" "$OUT" > "$ARCHIVE_HTML"
+
 "$DOCKER" run --rm \
   -v "$RUN_DIR":/src:ro \
   -v briefernewsapp_site_output:/dst \
   alpine sh -c "
     mkdir -p /dst/china /dst/china/archive
     cp /src/china_today.html /dst/china/index.html
-    cp /src/china_today.html /dst/china/archive/${TODAY}.html
+    cp /src/china_today-archive.html /dst/china/archive/${TODAY}.html
     ls -la /dst/china | head -5
   "
 
@@ -564,10 +570,10 @@ if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
     && echo "S3: china/index.html uploaded" \
     || echo "S3: china/index.html upload FAILED (non-fatal)"
 
-  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/china/archive/${TODAY}.html" \
+  "$AWS" s3 cp "$ARCHIVE_HTML" "s3://${S3_BUCKET}/china/archive/${TODAY}.html" \
     --content-type "text/html; charset=utf-8" \
     --cache-control "public, max-age=31536000, immutable" \
-    && echo "S3: china/archive uploaded" \
+    && echo "S3: china/archive uploaded (with archive canonical)" \
     || echo "S3: china/archive upload FAILED (non-fatal)"
 
   "$AWS" cloudfront create-invalidation \

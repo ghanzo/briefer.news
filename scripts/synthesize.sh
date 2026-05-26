@@ -350,6 +350,7 @@ Your job:
   - <meta property="og:title" content="..."> — same string as the <title> tag.
   - <meta property="og:description" content="..."> — same as the meta description (today's dek).
   - <meta property="og:url" content="..."> — leave as "https://briefer.news/usa/" (canonical URL, not the dated archive URL).
+  - <link rel="canonical" href="..."> — leave as "https://briefer.news/usa/" (same canonical URL as og:url; the live daily is the authoritative URL, not the dated archive snapshot).
   - <meta name="twitter:title" content="..."> — same as <title>.
   - <meta name="twitter:description" content="..."> — same as meta description (today's dek).
   - <div class="stamp">...</div> to today's date in CAPS (e.g. "MAY 13, 2026", not "May 13, 2026")
@@ -380,14 +381,20 @@ fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 
 # ── Stage 5: deploy to local nginx volume ──────────────────────────────────
+# Archive copy gets a rewritten canonical pointing to ITS dated URL, not
+# the live /usa/ — so Google indexes each archive as unique content rather
+# than a duplicate of today's brief.
 echo "--- Stage 5: deploying to nginx volume ---"
+ARCHIVE_HTML="$RUN_DIR/today-archive.html"
+/usr/bin/sed "s|<link rel=\"canonical\" href=\"https://briefer.news/usa/\">|<link rel=\"canonical\" href=\"https://briefer.news/usa/archive/${TODAY}.html\">|" "$OUT" > "$ARCHIVE_HTML"
+
 "$DOCKER" run --rm \
   -v "$RUN_DIR":/src:ro \
   -v briefernewsapp_site_output:/dst \
   alpine sh -c "
     mkdir -p /dst/usa /dst/usa/archive
     cp /src/today.html /dst/usa/index.html
-    cp /src/today.html /dst/usa/archive/${TODAY}.html
+    cp /src/today-archive.html /dst/usa/archive/${TODAY}.html
     ls -la /dst/usa | head -5
   "
 
@@ -409,10 +416,10 @@ if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
     && echo "S3: usa/index.html uploaded" \
     || echo "S3: usa/index.html upload FAILED (non-fatal)"
 
-  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/usa/archive/${TODAY}.html" \
+  "$AWS" s3 cp "$ARCHIVE_HTML" "s3://${S3_BUCKET}/usa/archive/${TODAY}.html" \
     --content-type "text/html; charset=utf-8" \
     --cache-control "public, max-age=31536000, immutable" \
-    && echo "S3: usa/archive uploaded" \
+    && echo "S3: usa/archive uploaded (with archive canonical)" \
     || echo "S3: usa/archive upload FAILED (non-fatal)"
 
   "$AWS" cloudfront create-invalidation \

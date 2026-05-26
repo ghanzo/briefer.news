@@ -234,6 +234,7 @@ PAGE_TPL = Template(r"""<!doctype html>
   <meta property="og:description" content="Active government primary-source feeds powering Briefer News.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://briefer.news/sources/">
+  <link rel="canonical" href="https://briefer.news/sources/">
   <meta property="og:site_name" content="Briefer News">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
