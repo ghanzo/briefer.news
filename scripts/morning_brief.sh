@@ -82,17 +82,31 @@ section entirely — don't write "no reminders" or anything.
 ONE LINE. Status badge + the single most important thing about today.
 Pick from: ✓ all green / ⚠ N issues to look at / ✗ critical issue.
 
-## Last night's pipeline
+## Last night's pipeline + site quality
 What ran, what worked, what didn't. Lead with anomalies if any. Reference
 specific log lines when something is off. If everything is clean, say so in
-one sentence and move on — don't pad. Note specifically:
-  - Did today's US dek read factual or did it slip into editorial framing?
-    (Look at live_briefs.us.dek_first_120 — flag any of the banned
-    framings from DEK.md: "X answers with Y," "arrives the same week as,"
-    "aimed less at," "now treats X as," "while/even as.")
+one sentence and move on — don't pad.
+
+Then surface today's mechanical **site-quality score** from
+data.site_quality (both US and China have a .score_pct out of 100, plus
+itemized checks). Format the score line like:
+  "Site quality: US 100% (8/8), China 87% (7/8) — `outside_gate_present`
+  failed (expected, sources parked)."
+If any non-conditional check failed, NAME IT and explain what it means.
+The mechanical checks cover: dek banned-patterns (DEK.md), dek 30-55
+word count, headline word count (US 12-16, China ≤12), voices /
+more-events / This week structural presence, canonical URL declares the
+live URL, stamp matches today. Conditional checks (allied_present for
+US, outside_gate_present for China) are NOT in the score denominator
+— they vary by day intentionally; just call them out separately as
+present/absent.
+
+Then editorial-level dek + headline checks (Claude's eye, not the
+mechanical pattern scan):
+  - Did today's US dek read factual or did it slip into editorial framing
+    in ways the mechanical scan misses? (subtle interpretive verbs,
+    cause-and-effect framings the regex doesn't catch).
   - Did today's China dek pass the same check?
-  - Did Outside the Gate render on China? (live_briefs.china.outside_gate_present)
-  - Did Allied Governments render on US? (live_briefs.us.allied_present)
 
 ## Yesterday's traffic
 Pull the numbers from data.traffic. Lead with totals (requests / unique
