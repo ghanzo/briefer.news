@@ -96,6 +96,19 @@ which is fine). Then anything notable (a spike, a new referrer, a 5xx
 status). If traffic data is missing or "no traffic recorded," say so
 plainly — it's normal for the first few days after enabling logging.
 
+## Costs
+From data.costs. Lead with the deployment account's month-to-date total
+(usd) and yesterday's daily total. Then call out the 2-3 biggest line
+items by service. Distinguish SITE costs (Route 53, S3, CloudFront,
+Cost Explorer queries) from NON-SITE costs (AWS Business Support+,
+WorkMail, anything else AWS is charging for that isn't briefer.news
+infrastructure). If a non-site cost is dominant, flag it explicitly
+("$N of MTD is X, which isn't site-related — consider cancelling if
+unused"). Mention any offsite known costs from
+data.costs.known_offsite_costs only if non-zero or operationally
+relevant. Skip the section in one line if everything is trivial
+("~\$N MTD, site infrastructure is ~\$N — within budget").
+
 ## Search performance (week)
 From data.search. Only include if the snapshot is from this week or last
 week. Lead with impressions / clicks / avg position. Flag the trend if

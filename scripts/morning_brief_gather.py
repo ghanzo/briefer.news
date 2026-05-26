@@ -189,6 +189,54 @@ def gather_healthcheck() -> dict:
 
 # ── Cron-runtime errors across all of today's logs ─────────────────────────
 
+def gather_aws_costs() -> dict:
+    """Pull AWS spend from the deployment account's Cost Explorer.
+    Month-to-date by service + yesterday's daily by service. Cost Explorer
+    is enabled in the deployment account (462170975634); the registrar
+    account does not have CE enabled (one-time UI activation needed)."""
+    aws_bin = "/Users/maxgoshay/.local/bin/aws"
+    month_start = TODAY.strftime("%Y-%m-01")
+    today_str = TODAY.isoformat()
+    yest_str = YESTERDAY.isoformat()
+
+    def query(period_start, period_end, granularity):
+        try:
+            out = subprocess.check_output(
+                [aws_bin, "ce", "get-cost-and-usage",
+                 "--time-period", f"Start={period_start},End={period_end}",
+                 "--granularity", granularity,
+                 "--metrics", "UnblendedCost",
+                 "--group-by", "Type=DIMENSION,Key=SERVICE",
+                 "--output", "json"],
+                text=True, timeout=30,
+            )
+            data = json.loads(out)
+            groups = data.get("ResultsByTime", [{}])[0].get("Groups", [])
+            by_service = {
+                g["Keys"][0]: float(g["Metrics"]["UnblendedCost"]["Amount"])
+                for g in groups
+            }
+            total = sum(by_service.values())
+            return {"total_usd": round(total, 2),
+                    "by_service": {k: round(v, 4) for k, v in by_service.items() if v > 0}}
+        except Exception as e:
+            return {"error": str(e)[:200]}
+
+    return {
+        "deployment_account": {
+            "month_to_date": query(month_start, today_str, "MONTHLY"),
+            "yesterday": query(yest_str, today_str, "DAILY"),
+        },
+        "registrar_account": "Cost Explorer not enabled (User not enabled for cost explorer access). Enable once in the Billing console → Cost Explorer → Launch. Until then, domain renewal cost is the known annual line item (~$15/year for briefer.news, renews 2026-08-08).",
+        "known_offsite_costs": {
+            "anthropic_claude_api": "Estimated $15-30/day in synth + morning-brief usage. No public billing API; check console.anthropic.com manually for actual.",
+            "cloudflare": "Free tier (Web Analytics only — no DNS routing).",
+            "buttondown": "Free tier until 100+ subscribers ($9/mo above).",
+            "github": "Free (public repo).",
+        },
+    }
+
+
 def scan_today_errors() -> list[str]:
     """Sweep today's log files for any ERROR / FAIL / Traceback lines."""
     seen: list[str] = []
@@ -220,6 +268,7 @@ def main() -> int:
         },
         "traffic":   gather_traffic(),
         "search":    gather_search(),
+        "costs":     gather_aws_costs(),
         "errors_today": scan_today_errors(),
     }
 
