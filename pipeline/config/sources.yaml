@@ -1004,13 +1004,15 @@ sources:
     active: false
 
   # ════════════════════════════════════════════════════════════════════════════
-  # CHINA "OUTSIDE THE GATE" sources — added 2026-05-23
+  # CHINA "OUTSIDE THE GATE" sources — PARKED 2026-05-26
   # Non-PRC government voices that bear on China: near-orbit partners
   # (Russia, Iran, Pakistan, NK) and cross-Strait counterpart (Taiwan).
-  # All government primary sources. Routed via Google News site-restricted
-  # search because none of these governments expose clean direct RSS.
-  # Used by synthesize_china.sh's Stage 1b SQL to populate the Outside
-  # the Gate section on the China brief.
+  # All marked active: false because they were briefly routed via
+  # Google News (news.google.com/rss/search?q=site:...), which violated
+  # the gov-sources-only brand promise: the cite URL in the published
+  # bullet pointed to news.google.com, not to the underlying gov page.
+  # Re-enable each ONLY when a direct scraper exists for that site.
+  # See CHINA_ALLIED.md for the proper direct-scraper plan.
   # ════════════════════════════════════════════════════════════════════════════
 
   - name: "Taiwan MOFA"
@@ -1018,36 +1020,42 @@ sources:
     url: "https://news.google.com/rss/search?q=site:mofa.gov.tw&hl=en-US&gl=US"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "Taiwan Presidential Office"
     type: google_news
     url: "https://news.google.com/rss/search?q=site:english.president.gov.tw&hl=en-US&gl=US"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "Russia Foreign Ministry"
     type: google_news
     url: "https://news.google.com/rss/search?q=site:mid.ru&hl=en-US&gl=US"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "Iran MFA"
     type: google_news
     url: "https://news.google.com/rss/search?q=site:en.mfa.gov.ir&hl=en-US&gl=US"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "Pakistan Foreign Office"
     type: google_news
     url: "https://news.google.com/rss/search?q=site:mofa.gov.pk&hl=en-US&gl=US"
     category: geopolitics
     tier: 1
+    active: false
 
   - name: "KCNA (DPRK)"
     type: google_news
     url: "https://news.google.com/rss/search?q=site:kcna.kp&hl=en-US&gl=US"
     category: geopolitics
     tier: 1
+    active: false
 
   # ════════════════════════════════════════════════════════════════════════════
   # REMOVED 2026-05-02 — confirmed dead or duplicate

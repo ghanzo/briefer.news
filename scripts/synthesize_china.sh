@@ -258,16 +258,14 @@ echo "China candidate pool: $N_META articles, $(wc -c < "$META") bytes"
 OUTSIDE_META="$RUN_DIR/china_outside_meta.json"
 echo "--- Stage 1b: outside-the-gate SQL pre-filter ---"
 "$DOCKER" exec briefer_postgres psql -U briefer -d briefer -tA -c "
-  WITH outside_sources(name, is_taiwan) AS (VALUES
-    ('Taiwan MOFA', true),
-    ('Taiwan Presidential Office', true),
-    ('Russia Foreign Ministry', false),
-    ('Iran MFA', false),
-    ('Pakistan Foreign Office', false)
-    -- KCNA (DPRK) dropped 2026-05-25: Google News scrape returns
-    -- only the source-name string for every item, no usable titles.
-    -- Source stays in pipeline/config/sources.yaml in case a future
-    -- direct scrape becomes worth the work.
+  WITH outside_sources(name, is_taiwan) AS (
+    -- All 6 prior OTG sources parked 2026-05-26: they were routed
+    -- via Google News, which violated the gov-sources-only brand
+    -- promise (cite URL was news.google.com, not the underlying
+    -- gov page). Re-list source names here ONLY when each has a
+    -- direct scraper that stores a gov URL in the articles table.
+    -- See CHINA_ALLIED.md for the direct-scraper plan.
+    SELECT NULL::text AS name, false AS is_taiwan WHERE FALSE
   ),
   outside_candidates AS (
     -- Note: Google News scrapes save title + URL only; the extractor does not
