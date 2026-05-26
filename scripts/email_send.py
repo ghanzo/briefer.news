@@ -74,13 +74,23 @@ def load_env() -> dict[str, str]:
 
 
 def fetch_brief(edition: str) -> dict:
+    """Pull headline + top 3 event leads (the <b>Lead.</b> prefix of each <li>
+    in the visible items list — NOT the items-more collapsed block)."""
     url = f"https://briefer.news/{edition}/"
     html = urllib.request.urlopen(url, timeout=20).read().decode("utf-8", errors="replace")
-    h = re.search(r'<h2 class="headline">([^<]+)</h2>', html)
-    d = re.search(r'<p class="dek">([\s\S]+?)</p>', html)
+    h = re.search(r'<h2 class="headline">([\s\S]+?)</h2>', html)
+    ul = re.search(r'<ul class="items"(?! items-more)[^>]*>([\s\S]+?)</ul>', html)
+    events = []
+    if ul:
+        items = re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))
+        for item in items[:3]:
+            lead = re.search(r'<b>([\s\S]+?)</b>', item)
+            if lead:
+                text = re.sub(r"<[^>]+>", "", lead.group(1)).strip().rstrip(".")
+                events.append(html_lib.unescape(text))
     return {
-        "headline": html_lib.unescape(h.group(1).strip()) if h else "(headline missing)",
-        "dek": html_lib.unescape(re.sub(r"<[^>]+>", "", d.group(1)).strip()) if d else "(dek missing)",
+        "headline": html_lib.unescape(re.sub(r"<[^>]+>", "", h.group(1)).strip()) if h else "(headline missing)",
+        "events": events,
         "url": url,
     }
 

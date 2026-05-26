@@ -43,7 +43,10 @@ CREAM = "#F2EBD9"          # masthead text on dark background
 def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
     """Compose the HTML email.
 
-    Each edition dict needs: headline, dek, url (full /usa/ or /china/).
+    Each edition dict needs: headline, url (full /usa/ or /china/), events
+    (list of 3 event lead strings). The dek is intentionally NOT used —
+    the email shows brief headline + 3 event leads per edition, nothing
+    else, per the operator's design call.
     today is an ISO date string (e.g., '2026-05-26').
     unsubscribe_url is the signed token URL specific to this subscriber.
     """
@@ -88,17 +91,12 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
         <!-- U.S. edition -->
         <tr><td style="padding:8px 24px 0;">
           <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:6px;margin-bottom:14px;font-weight:600;">U.S. Edition</div>
-          <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:500;color:{INK};margin:0 0 12px;">
-            {html_lib.escape(us['headline'])}
+          <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:500;color:{INK};margin:0 0 14px;">
+            <a href="{us['url']}" style="color:{INK};text-decoration:none;">{html_lib.escape(us['headline'])}</a>
           </h2>
-          <p style="font-size:17px;line-height:1.55;color:{INK_SOFT};margin:0 0 16px;">
-            {html_lib.escape(us['dek'])}
-          </p>
-          <p style="margin:4px 0 28px;">
-            <a href="{us['url']}" style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:{SEPIA};text-decoration:none;border-bottom:1px dotted {SEPIA};padding-bottom:2px;">
-              Read the full brief &rarr;
-            </a>
-          </p>
+          <ul style="margin:0 0 28px;padding:0 0 0 20px;font-size:16px;line-height:1.5;color:{INK_SOFT};">
+            {''.join(f'<li style="margin:0 0 8px;">{html_lib.escape(e)}</li>' for e in us.get('events', []))}
+          </ul>
         </td></tr>
 
         <!-- Divider -->
@@ -109,17 +107,12 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
         <!-- China edition -->
         <tr><td style="padding:24px 24px 0;">
           <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:6px;margin-bottom:14px;font-weight:600;">China Edition</div>
-          <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:500;color:{INK};margin:0 0 12px;">
-            {html_lib.escape(china['headline'])}
+          <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:500;color:{INK};margin:0 0 14px;">
+            <a href="{china['url']}" style="color:{INK};text-decoration:none;">{html_lib.escape(china['headline'])}</a>
           </h2>
-          <p style="font-size:17px;line-height:1.55;color:{INK_SOFT};margin:0 0 16px;">
-            {html_lib.escape(china['dek'])}
-          </p>
-          <p style="margin:4px 0 28px;">
-            <a href="{china['url']}" style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:{SEPIA};text-decoration:none;border-bottom:1px dotted {SEPIA};padding-bottom:2px;">
-              Read the full brief &rarr;
-            </a>
-          </p>
+          <ul style="margin:0 0 28px;padding:0 0 0 20px;font-size:16px;line-height:1.5;color:{INK_SOFT};">
+            {''.join(f'<li style="margin:0 0 8px;">{html_lib.escape(e)}</li>' for e in china.get('events', []))}
+          </ul>
         </td></tr>
 
         <!-- Footer -->
@@ -151,29 +144,27 @@ def render_text_fallback(us: dict, china: dict, today: str, unsubscribe_url: str
     """Plain-text version for clients that prefer/require text/plain. Some
     spam filters and minimalist clients show this instead of the HTML."""
     today_pretty = dt.date.fromisoformat(today).strftime("%A, %B %-d, %Y")
+    us_bullets = "\n".join(f"  • {e}" for e in us.get('events', []))
+    china_bullets = "\n".join(f"  • {e}" for e in china.get('events', []))
     return f"""Briefer News — {today_pretty}
 All sourcing from government · Everything cited · News without opinion
 
 ═══════════════════════════════════════════════════════════════
-U.S. EDITION
+U.S. EDITION  ·  {us['url']}
 ═══════════════════════════════════════════════════════════════
 
 {us['headline']}
 
-{us['dek']}
-
-Read the full brief: {us['url']}
+{us_bullets}
 
 
 ═══════════════════════════════════════════════════════════════
-CHINA EDITION
+CHINA EDITION  ·  {china['url']}
 ═══════════════════════════════════════════════════════════════
 
 {china['headline']}
 
-{china['dek']}
-
-Read the full brief: {china['url']}
+{china_bullets}
 
 
 ═══════════════════════════════════════════════════════════════
@@ -186,13 +177,23 @@ Unsubscribe (one click, no questions): {unsubscribe_url}
 
 
 def _fetch_live(edition: str) -> dict:
-    """Pull today's headline + dek from the live brief for the CLI preview."""
+    """Pull today's headline + top 3 event leads from the live brief for the CLI preview."""
     html = urllib.request.urlopen(f"https://briefer.news/{edition}/", timeout=20).read().decode('utf-8', errors='replace')
-    h = re.search(r'<h2 class="headline">([^<]+)</h2>', html)
-    d = re.search(r'<p class="dek">([\s\S]+?)</p>', html)
+    h = re.search(r'<h2 class="headline">([\s\S]+?)</h2>', html)
+    # Find the visible top-3 list (NOT the items-more collapsed list)
+    ul = re.search(r'<ul class="items"(?! items-more)[^>]*>([\s\S]+?)</ul>', html)
+    events = []
+    if ul:
+        items = re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))
+        for item in items[:3]:
+            # The event lead is the bolded prefix: <b>Lead phrase.</b>
+            lead = re.search(r'<b>([\s\S]+?)</b>', item)
+            if lead:
+                text = re.sub(r'<[^>]+>', '', lead.group(1)).strip().rstrip('.')
+                events.append(html_lib.unescape(text))
     return {
-        'headline': html_lib.unescape(h.group(1).strip()) if h else "(no headline)",
-        'dek': html_lib.unescape(re.sub(r'<[^>]+>', '', d.group(1)).strip()) if d else "(no dek)",
+        'headline': html_lib.unescape(re.sub(r'<[^>]+>', '', h.group(1)).strip()) if h else "(no headline)",
+        'events': events,
         'url': f"https://briefer.news/{edition}/",
     }
 
