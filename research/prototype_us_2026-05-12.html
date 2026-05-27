@@ -186,11 +186,24 @@
       line-height: 1;
     }
     header.masthead p.tagline {
+      font-family: 'EB Garamond', Garamond, Georgia, serif;
       font-weight: 400;
-      font-size: clamp(13px, 1.4vw, 15px);
+      font-style: italic;
+      font-size: clamp(15px, 1.7vw, 18px);
+      color: var(--cream);
+      letter-spacing: 0.01em;
+      margin: 0 0 8px;
+      line-height: 1.35;
+    }
+    header.masthead p.trust-pillars {
+      font-family: 'IBM Plex Mono', ui-monospace, monospace;
+      font-weight: 500;
+      font-size: clamp(10px, 1.1vw, 12px);
       color: var(--tagline);
-      letter-spacing: 0.02em;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
       margin: 0;
+      opacity: 0.88;
     }
 
     /* Date stamp */
@@ -1574,7 +1587,11 @@
         font-size: 32px;
       }
       header.masthead p.tagline {
-        font-size: 13px;
+        font-size: 14px;
+      }
+      header.masthead p.trust-pillars {
+        font-size: 10px;
+        letter-spacing: 0.14em;
       }
       header.masthead .flag-mark {
         margin-bottom: 10px;
@@ -1677,7 +1694,8 @@
     <rect x="0" y="0" width="19" height="14"/>
   </svg>
   <h1>Briefer News</h1>
-  <p class="tagline">All sourcing from the U.S. government &middot; Everything cited &middot; News without opinion</p>
+  <p class="tagline">Today's U.S. government publications, made readable.</p>
+  <p class="trust-pillars">Primary sources &middot; No opinion &middot; Everything cited</p>
   <nav class="editions">
     <a href="./" class="active">United States</a>
     <a href="../china/">China</a>
