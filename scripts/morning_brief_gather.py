@@ -344,8 +344,7 @@ def gather_aws_costs() -> dict:
         "registrar_account": "Cost Explorer not enabled (User not enabled for cost explorer access). Enable once in the Billing console → Cost Explorer → Launch. Until then, domain renewal cost is the known annual line item (~$15/year for briefer.news, renews 2026-08-08).",
         "known_offsite_costs": {
             "anthropic_claude_api": "Estimated $15-30/day in synth + morning-brief usage. No public billing API; check console.anthropic.com manually for actual.",
-            "cloudflare": "Free tier (Web Analytics only — no DNS routing).",
-            "buttondown": "Free tier until 100+ subscribers ($9/mo above).",
+            "cloudflare": "Free tier (DNS, Tunnel for api.briefer.news, Web Analytics). 2026-05-26 migration moved briefer.news DNS from Route 53 → Cloudflare.",
             "github": "Free (public repo).",
         },
     }

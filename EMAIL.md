@@ -268,11 +268,21 @@ expand by inviting people to the public signup form once Step 3 is wired.
 
 ## Migration path from Buttondown
 
-1. Self-built ships, tested with `ghanzo@gmail.com` as the only confirmed
-   subscriber.
-2. Run a week in parallel — both Buttondown and self-built sending to
-   ghanzo daily so we can compare.
-3. Once self-built is reliable, point the signup form on the site to
-   `/api/subscribe` instead of Buttondown's embed.
-4. Cancel Buttondown account (or keep on free tier as backup forever —
-   costs nothing).
+**Cutover completed 2026-05-26.**
+
+- All 8 self-built steps shipped (Steps 1-2 + 4-8). The signup form on
+  the site footer POSTs directly to `https://api.briefer.news/subscribe`
+  (self-built); Buttondown's signup widget is no longer referenced
+  anywhere on the site.
+- `BUTTONDOWN_API_KEY` removed from `.env` (gitignored). No script in
+  the repo reads it anymore.
+- `morning_brief_gather.py` no longer tallies Buttondown as a cost line.
+- The Buttondown account still exists with `ghanzo@gmail.com` as its one
+  subscriber + a stale smoke-test draft (em_1y1bh98jcf87c9e0jahcertv5d).
+  Two options:
+  - **Leave it idle** — free tier costs $0/mo; useful as a backup channel
+    if self-built ever breaks for an extended window.
+  - **Cancel + delete** — clean break. The single subscriber will be
+    notified per Buttondown's standard offboarding.
+
+Either is fine. No automated send pipeline touches Buttondown.
