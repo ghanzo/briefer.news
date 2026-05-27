@@ -345,11 +345,13 @@
       color: var(--sepia);
     }
     ul.items li sup {
-      color: var(--sepia);
-      font-weight: 500;
+      color: var(--ink-light);
+      font-weight: 400;
       margin-left: 2px;
-      font-size: 0.78em;
+      font-size: 0.7em;
+      opacity: 0.65;
     }
+    ul.items li sup:hover { opacity: 1; color: var(--sepia); }
     ul.items li .when {
       display: inline-block;
       margin-left: 10px;
@@ -1838,7 +1840,7 @@
     </ul>
   </details>
 
-  <details class="sources-details" open>
+  <details class="sources-details">
     <summary class="sources-summary">Sources</summary>
     <section class="sources">
     <ol>
