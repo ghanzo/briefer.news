@@ -200,3 +200,101 @@ sources:
     tier: 2
     active: false
     notes: "Held 2026-05-14: page is a press-material filter index, not an article list. Need to find the actual EEAS press-release URL pattern OR switch to europa.eu/newsroom press releases scoped to EEAS."
+
+  # ── HEALTH sources (added 2026-05-27 — Ebola gap) ─────────────────────────
+  # Operator flagged that the brief never picked up the recent Ebola
+  # airport-screening story. The brief's source pool was heavily diplomatic
+  # / security / financial — missing health entirely. These five sources
+  # close that gap.
+
+  - name: "CDC Media Releases"
+    domain: cdc.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.cdc.gov/media/index.html"
+    link_pattern: "/media/releases/\\d{4}/[a-z0-9-]+\\.html"
+    category: health
+    tier: 1
+    active: true
+    notes: "CDC press releases (e.g., outbreak alerts, public-health advisories). URL pattern /media/releases/YYYY/<slug>.html. Probed 2026-05-27: contains 'enhanced-ebola-airport-screening-expands-to-atlanta.html' — direct primary source for the Ebola story the brief had been missing."
+
+  - name: "HHS Press Releases"
+    domain: hhs.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.hhs.gov/about/news/index.html"
+    link_pattern: "/about/news/\\d{4}/\\d{2}/\\d{2}/[a-z0-9-]+\\.html"
+    category: health
+    tier: 1
+    active: true
+    notes: "Department of Health and Human Services press releases. URL pattern /about/news/YYYY/MM/DD/<slug>.html. Probed 2026-05-27: 187KB, 10 recent items in last 30 days."
+
+  - name: "FDA Press Announcements"
+    domain: fda.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.fda.gov/news-events"
+    link_pattern: "/news-events/press-announcements/[a-z0-9-]+"
+    category: health
+    tier: 1
+    active: true
+    notes: "FDA press announcements — drug approvals, enforcement actions, retailer warnings, recalls. Probed 2026-05-27 via /news-events: clear /news-events/press-announcements/<slug> pattern (e.g., fda-approves-first-treatment-chronic-hepatitis-delta-virus)."
+
+  - name: "FDA Recalls & Safety Alerts"
+    domain: fda.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts"
+    link_pattern: "/safety/recalls-market-withdrawals-safety-alerts/[a-z0-9-]+"
+    category: health
+    tier: 2
+    active: true
+    notes: "FDA recalls + market withdrawals + safety alerts. Distinct from press announcements — listing 73KB with 11 dated entries. Pattern /safety/recalls-market-withdrawals-safety-alerts/<slug>."
+
+  - name: "NIH News Releases"
+    domain: nih.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.nih.gov/news-events/news-releases"
+    link_pattern: "/news-events/news-releases/[a-z0-9-]+"
+    category: health
+    tier: 1
+    active: true
+    notes: "National Institutes of Health press releases — research findings, grants, policy. Pattern /news-events/news-releases/<slug>. Probed 2026-05-27: 68KB with 7 recent items, 27 article links."
+
+  # ── TECHNOLOGY + SCIENCE sources (added 2026-05-27) ───────────────────────
+
+  - name: "NIST News"
+    domain: nist.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.nist.gov/news-events/news"
+    link_pattern: "/news-events/news/\\d{4}/\\d{2}/[a-z0-9-]+"
+    category: technology
+    tier: 1
+    active: true
+    notes: "National Institute of Standards and Technology news — measurement science, AI/quantum standards, cybersecurity guidelines (the basis for federal CISA + DoD CNSA practice). 127KB at listing, 6 recent dated items."
+
+  - name: "NSF News"
+    domain: nsf.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.nsf.gov/news/"
+    link_pattern: "/news/[a-z0-9-]+"
+    category: technology
+    tier: 2
+    active: true
+    notes: "National Science Foundation news — research funding announcements, scientific results. 75KB at listing, 13 recent dated items, 14 article links."
+
+  - name: "FCC News"
+    domain: fcc.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.fcc.gov/news-events/headlines"
+    link_pattern: "/news-events/headlines/\\d+"
+    category: technology
+    tier: 2
+    active: true
+    notes: "Federal Communications Commission headlines — telecom rulings, spectrum policy, broadband. Pattern /news-events/headlines/<numeric-id>. 168KB at listing, 29 recent items, 37 article links."
+
+  - name: "DOE Newsroom Articles"
+    domain: energy.gov
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.energy.gov/newsroom"
+    link_pattern: "/articles/[a-z0-9-]+"
+    category: energy
+    tier: 1
+    active: true
+    notes: "Department of Energy articles — grid policy, secretary statements, fact sheets. /newsroom is the official news landing. Pattern /articles/<slug>. 142KB at listing with fresh secretary remarks + fact sheets."
