@@ -536,6 +536,7 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <link rel="canonical" href="..."> — leave as "https://briefer.news/china/" (same canonical URL as og:url).
 - <meta name="twitter:title" content="..."> — same as <title>.
 - <meta name="twitter:description" content="..."> — same string as the meta description (the ≤155-char dedicated description).
+- Preserve UNCHANGED the social-card image meta tags already in the prototype: `<meta property="og:image" content="https://briefer.news/og-image.png">`, `og:image:width=1200`, `og:image:height=630`, `og:image:alt`, `<meta name="twitter:card" content="summary_large_image">`, and `<meta name="twitter:image" content="https://briefer.news/og-image.png">`. These power the social preview card.
 - <div class="stamp">...</div> to today's date in ALL CAPS, e.g. literally "MAY 12, 2026" (not "May 12, 2026")
 - <h2 class="headline">...</h2> — **5 to 8 words**, one event, plain English statement of fact per HEADLINE rule above
 - **No dek-bullets block.** The headline is followed directly by the events block. Skim view is the 5 event ledes; DEK.md's plain-English rules apply to those ledes.
