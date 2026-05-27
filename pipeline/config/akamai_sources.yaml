@@ -139,6 +139,29 @@ sources:
     active: true
     notes: "gov.uk search-feed pinned to keyword 'aukus' — captures the UK side of trilateral AUKUS announcements (UK + Aus + US joint statements typically published by all three). Pairs with Aus DFAT + State Dept already in feed. Probed 2026-05-26: returns recent matches."
 
+  # ── Tier B partial: Indo-Pacific (no-RSS direct-scrape sources) ───────────
+
+  - name: "Taiwan MOFA — Press Releases (EN)"
+    domain: en.mofa.gov.tw
+    discovery_type: html_curl_cffi
+    listing_url: "https://en.mofa.gov.tw/News.aspx?n=8&sms=2"
+    link_pattern: "News_Content\\.aspx\\?n=\\d+&sms=\\d+&s=\\d+"
+    category: foreign_policy_allied
+    tier: 2
+    active: true
+    notes: "Taiwan Ministry of Foreign Affairs English press releases. Cross-strait flashpoint coverage — Lai administration statements, foreign minister activities, bilateral readouts. URL pattern News_Content.aspx?n=NNNN&sms=NNN&s=NNNNNN. Probed 2026-05-26 via curl_cffi (chrome120 impersonation): HTTP 200, 203KB, 29 News_Content links incl. items dated 2026-05-26 (today). Listing is at /News.aspx?n=8&sms=2 (n=8 is the press-release section)."
+
+  # ── G7 / multilateral feeds ───────────────────────────────────────────────
+
+  - name: "G7 Council Material (Canada presidency feed)"
+    domain: international.gc.ca
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.international.gc.ca/world-monde/rss/international_relations-relations_internationales/g7/council_material-materiels_conseil_eng.xml"
+    category: foreign_policy_allied
+    tier: 1
+    active: true
+    notes: "Atom feed published by Global Affairs Canada's G7 division. Captures G7 ministerial meetings (trade, foreign affairs, finance), joint declarations, and bilateral G7-related events. Currently hosted by Canada due to 2025 presidency. Probed 2026-05-26: HTTP 200, 55KB Atom feed with entries dated through 2026-05-11. Note: feed uses Atom <entry> (not RSS <item>) — verify existing rss_curl_cffi parser handles Atom; if not, falls back to feedparser."
+
   # ── Office of the Director of National Intelligence ────────────────────────
 
   - name: "ODNI Press Releases"
