@@ -97,6 +97,49 @@ def _s3_put(local_path: Path, s3_path: str) -> bool:
         return False
 
 
+def _normalize_lede(s: str) -> str:
+    """Normalize an event lede for dedupe comparison.
+
+    Strips HTML entities, whitespace, trailing period, and lowercases. So
+    'Quad critical minerals.' and 'Quad critical minerals' and
+    'Quad&nbsp;critical minerals.' all compare equal."""
+    s = html_lib.unescape(s)
+    s = re.sub(r"\s+", " ", s).strip()
+    return s.rstrip(".").lower()
+
+
+def extract_daily_signatures(daily_html: str) -> dict:
+    """Pull both event ledes AND cite URLs from today's daily — the visible
+    <ul class="items"> AND the collapsed <ul class="items items-more">.
+
+    URL-based dedupe is more reliable than lede-based because the daily and
+    weekly synths sometimes phrase the same event's lede differently
+    (e.g. "Armenia partnership" vs "U.S.–Armenia partnership"); the cite
+    URL is the canonical identifier for "same event."
+
+    Returns dict with keys `ledes` (set of normalized phrases) and
+    `urls` (set of cite URLs). The inject's dedupe checks both — drop a
+    weekly event if its lede OR cite URL matches anything in today's brief."""
+    ledes = set()
+    urls = set()
+    for ul_class in ("items", "items items-more"):
+        ul_re = rf'<ul class="{re.escape(ul_class)}"[^>]*>([\s\S]+?)</ul>'
+        ul_m = re.search(ul_re, daily_html)
+        if not ul_m:
+            continue
+        block = ul_m.group(1)
+        for b_m in re.finditer(r'<b>([^<]+)</b>', block):
+            ledes.add(_normalize_lede(b_m.group(1)))
+        for href_m in re.finditer(r'class="cite"\s+href="([^"]+)"', block):
+            urls.add(href_m.group(1).strip())
+    return {"ledes": ledes, "urls": urls}
+
+
+# kept as a thin alias for any callers expecting the older API
+def extract_daily_ledes(daily_html: str) -> set:
+    return extract_daily_signatures(daily_html)["ledes"]
+
+
 def extract_weekly(html: str) -> dict:
     """Pull headline + lead paragraph + top events (with body + cite) from a weekly.
 
@@ -113,26 +156,26 @@ def extract_weekly(html: str) -> dict:
     if m:
         result["lead"] = re.sub(r"\s+", " ", m.group(1)).strip()
 
-    # Extract top 5 events with full body + cite from <ul class="week-bullets">
+    # Extract up to 9 events with full body + cite from <ul class="week-bullets">.
+    # Inject() then dedupes against today's daily and caps the rendered list at 5.
+    # Pulling more than 5 here gives the dedupe headroom — if 2 of the week's
+    # top stories are today's lead stories, we still have 5 distinct items left.
     bullets_m = re.search(r'<ul class="week-bullets">(.+?)</ul>', html, re.DOTALL)
     if bullets_m:
         for li_m in re.finditer(r'<li>([\s\S]+?)</li>', bullets_m.group(1)):
             li_content = li_m.group(1).strip()
-            # Lede = <b>...</b>
             lead_m = re.search(r'<b>([^<]+)</b>', li_content)
             if not lead_m:
                 continue
             lead = re.sub(r"\s+", " ", lead_m.group(1)).strip().rstrip(".")
-            # Everything after </b> through end of li is the body + cite + when
             after_b = li_content[lead_m.end():]
-            # The weekly uses <span class="week-tag"> for the date; the daily
-            # uses <span class="when">. Normalize so the daily's styling works.
+            # Weekly uses <span class="week-tag">; daily uses <span class="when">.
             after_b = after_b.replace('class="week-tag"', 'class="when"')
             result["events"].append({
                 "lead": lead,
                 "body_html": after_b.strip(),
             })
-            if len(result["events"]) >= 5:
+            if len(result["events"]) >= 9:
                 break
 
     return result
@@ -206,6 +249,36 @@ def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
     )
     daily_html = daily_html.replace("</style>", WEEKLY_PREVIEW_CSS + "\n  </style>", 1)
 
+    # Dedupe — drop weekly events that already appear in today's "Today's
+    # events" or the collapsed more-events block. Checks both lede strings
+    # AND cite URLs since the synth sometimes phrases the same event's lede
+    # differently between daily + weekly ("Armenia partnership" vs
+    # "U.S.–Armenia partnership"). URL is the canonical match.
+    sigs = extract_daily_signatures(daily_html)
+    daily_ledes = sigs["ledes"]
+    daily_urls = sigs["urls"]
+    if daily_ledes or daily_urls:
+        original_count = len(weekly.get("events", []))
+        weekly = dict(weekly)
+        kept = []
+        for ev in weekly.get("events", []):
+            lede_norm = _normalize_lede(ev["lead"])
+            # Extract any cite URL from the body
+            url_m = re.search(r'class="cite"\s+href="([^"]+)"', ev.get("body_html", ""))
+            ev_url = url_m.group(1).strip() if url_m else None
+            if lede_norm in daily_ledes:
+                continue
+            if ev_url and ev_url in daily_urls:
+                continue
+            kept.append(ev)
+        # Cap the dedup'd list at 5 — that's the target visible count for
+        # the "This week" section. We extracted up to 9 to give dedupe room.
+        weekly["events"] = kept[:5]
+        deduped = original_count - len(kept)
+        capped = max(0, len(kept) - 5)
+        if deduped or capped:
+            print(f"    dedupe: dropped {deduped} duplicates, capped {capped} extras (rendered {len(weekly['events'])})")
+
     preview_html = render_preview(weekly, edition_path)
 
     # Insertion anchor (in priority order):
@@ -257,10 +330,15 @@ def process_edition(edition: str) -> bool:
     print(f"  [{edition}] lead:     {len(weekly['lead'])} chars")
     print(f"  [{edition}] events:   {len(weekly['events'])}")
 
-    daily_html = _docker_read(daily_path)
+    # Prefer S3 over nginx — S3 is the authoritative live version (sometimes
+    # manually patched between syntheses). Nginx is the source the morning
+    # synth wrote to, which may be staler than S3 if the operator applied
+    # post-synth fixes. Falls back to nginx if S3 is unreachable.
+    s3_url = f"s3://briefer-news-site/{edition_path}/index.html"
+    daily_html = _s3_get(s3_url)
     if not daily_html:
-        print(f"  [{edition}] daily not in nginx volume; falling back to S3")
-        daily_html = _s3_get(f"s3://briefer-news-site/{edition_path}/index.html")
+        print(f"  [{edition}] S3 unreachable; falling back to nginx volume")
+        daily_html = _docker_read(daily_path)
 
     patched = inject(daily_html, weekly, edition_path)
 
