@@ -349,6 +349,43 @@
       opacity: 0.65;
     }
     ul.items li sup:hover { opacity: 1; color: var(--sepia); }
+
+    /* Progressive disclosure on each event — collapsed = lede only;
+       expanded = lede + body + cite + when. Native <details>. */
+    .event-details {
+      margin: 0;
+    }
+    .event-summary {
+      cursor: pointer;
+      list-style: none;
+      padding: 0;
+      position: relative;
+      display: block;
+      transition: color 0.15s ease;
+    }
+    .event-summary::-webkit-details-marker { display: none; }
+    .event-summary::after {
+      content: "\25BE";  /* ▾ */
+      display: inline-block;
+      margin-left: 8px;
+      color: var(--ink-light);
+      opacity: 0.45;
+      font-size: 0.8em;
+      transition: transform 0.18s ease, opacity 0.15s ease;
+    }
+    .event-summary:hover::after { opacity: 0.9; color: var(--sepia); }
+    .event-details[open] > .event-summary::after {
+      transform: rotate(180deg);
+      opacity: 0.9;
+    }
+    .event-summary:hover b { color: var(--sepia); }
+    .event-details > :not(summary) {
+      animation: event-fade-in 0.18s ease;
+    }
+    @keyframes event-fade-in {
+      from { opacity: 0; transform: translateY(-2px); }
+      to   { opacity: 1; transform: none; }
+    }
     ul.items li .when {
       display: inline-block;
       margin-left: 10px;
@@ -1835,9 +1872,9 @@
 
   <h3 class="section-label">Events</h3>
   <ul class="items">
-    <li><b>Cuba sanctions.</b> Executive Order 14404 imposes a full sanctions regime on Cuban officials and on persons operating in the country's energy, defense, metals, financial, or security sectors; reaches adult family members of designated persons.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404 (Sanctions on Cuba), May 7, 2026" target="_blank" rel="noopener">1</a></sup><span class="when">May 1 &middot; Fed. Reg.</span></li>
-    <li><b>Iran-China oil.</b> State and Treasury sanctioned Qingdao Haiye Oil Terminal &mdash; a China-based facility that handled tens of millions of barrels of sanctioned Iranian crude &mdash; plus three Iranian currency-exchange houses moving billions annually.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/u-s-sanctions-tighten-grip-on-iran-china-oil-trade/" title="State Dept. — Iran-China Oil Trade Sanctions, May 1, 2026" target="_blank" rel="noopener">2</a></sup><span class="when">May 1 &middot; State</span></li>
-    <li><b>DOJ v. UCLA.</b> Civil Rights Division determined UCLA's David Geffen School of Medicine intentionally selected medical-school applicants by race; admitted Black and Hispanic applicants had, on average, lower academic qualifications than white and Asian applicants.<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race" title="DOJ — UCLA Medical School Discrimination Determination, May 6, 2026" target="_blank" rel="noopener">3</a></sup><span class="when">May 6 &middot; DOJ</span></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Cuba sanctions.</b></summary> Executive Order 14404 imposes a full sanctions regime on Cuban officials and on persons operating in the country's energy, defense, metals, financial, or security sectors; reaches adult family members of designated persons.<sup><a class="cite" href="https://www.federalregister.gov/documents/2026/05/07/2026-09173/imposing-sanctions-on-those-responsible-for-repression-in-cuba-and-for-threats-to-united-states" title="Federal Register — EO 14404 (Sanctions on Cuba), May 7, 2026" target="_blank" rel="noopener">1</a></sup><span class="when">May 1 &middot; Fed. Reg.</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Iran-China oil.</b></summary> State and Treasury sanctioned Qingdao Haiye Oil Terminal &mdash; a China-based facility that handled tens of millions of barrels of sanctioned Iranian crude &mdash; plus three Iranian currency-exchange houses moving billions annually.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/2026/05/u-s-sanctions-tighten-grip-on-iran-china-oil-trade/" title="State Dept. — Iran-China Oil Trade Sanctions, May 1, 2026" target="_blank" rel="noopener">2</a></sup><span class="when">May 1 &middot; State</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>DOJ v. UCLA.</b></summary> Civil Rights Division determined UCLA's David Geffen School of Medicine intentionally selected medical-school applicants by race; admitted Black and Hispanic applicants had, on average, lower academic qualifications than white and Asian applicants.<sup><a class="cite" href="https://www.justice.gov/opa/pr/justice-department-investigation-determines-uclas-medical-school-discriminated-based-race" title="DOJ — UCLA Medical School Discrimination Determination, May 6, 2026" target="_blank" rel="noopener">3</a></sup><span class="when">May 6 &middot; DOJ</span></details></li>
   </ul>
 
   <h3 class="section-label">Voices</h3>
@@ -1865,9 +1902,9 @@
 
   <h3 class="section-label">Outside the Gate</h3>
   <ul class="items allied-items">
-    <li><b>Taiwan MOFA on Trump-Xi readout.</b> Foreign Minister calls the summit's Taiwan-line treatment "consistent with international consensus" and reaffirms Taipei's position on cross-Strait status.<sup><a class="cite" href="https://en.mofa.gov.tw/example" title="Taiwan MOFA — Response to Trump-Xi Joint Statement, May 14, 2026" target="_blank" rel="noopener">a</a></sup><span class="when">May 14 &middot; Taiwan MOFA</span></li>
-    <li><b>Russia MID on China-Russia framework.</b> Foreign Ministry briefing extends the friendship-treaty language to cover "joint security architecture" in the Indo-Pacific.<sup><a class="cite" href="https://mid.ru/example" title="Russia MID — Briefing on China-Russia Framework, May 13, 2026" target="_blank" rel="noopener">b</a></sup><span class="when">May 13 &middot; Russia MID</span></li>
-    <li><b>Pakistan FO on CPEC milestone.</b> Foreign Office welcomes the announcement of CPEC Phase 2 financing and the signing of the joint counter-terror coordination memorandum.<sup><a class="cite" href="https://mofa.gov.pk/example" title="Pakistan Foreign Office — Statement on CPEC Phase 2, May 13, 2026" target="_blank" rel="noopener">c</a></sup><span class="when">May 13 &middot; Pakistan FO</span></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Taiwan MOFA on Trump-Xi readout.</b></summary> Foreign Minister calls the summit's Taiwan-line treatment "consistent with international consensus" and reaffirms Taipei's position on cross-Strait status.<sup><a class="cite" href="https://en.mofa.gov.tw/example" title="Taiwan MOFA — Response to Trump-Xi Joint Statement, May 14, 2026" target="_blank" rel="noopener">a</a></sup><span class="when">May 14 &middot; Taiwan MOFA</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Russia MID on China-Russia framework.</b></summary> Foreign Ministry briefing extends the friendship-treaty language to cover "joint security architecture" in the Indo-Pacific.<sup><a class="cite" href="https://mid.ru/example" title="Russia MID — Briefing on China-Russia Framework, May 13, 2026" target="_blank" rel="noopener">b</a></sup><span class="when">May 13 &middot; Russia MID</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Pakistan FO on CPEC milestone.</b></summary> Foreign Office welcomes the announcement of CPEC Phase 2 financing and the signing of the joint counter-terror coordination memorandum.<sup><a class="cite" href="https://mofa.gov.pk/example" title="Pakistan Foreign Office — Statement on CPEC Phase 2, May 13, 2026" target="_blank" rel="noopener">c</a></sup><span class="when">May 13 &middot; Pakistan FO</span></details></li>
   </ul>
 
 
@@ -2037,12 +2074,12 @@
     <details class="more-events">
     <summary class="more-events-summary">Show 6 more events</summary>
     <ul class="items items-more">
-    <li><b>DPRK IT workers.</b> Two U.S. nationals &mdash; Knoot of Nashville, Prince of New York &mdash; sentenced to 18 months for hosting laptop farms that let North Korean IT workers fraudulently work for U.S. companies; ~70 victim companies, $1.2M+ to DPRK.<sup><a class="cite" href="https://www.justice.gov/opa/pr/two-us-nationals-sentenced-facilitating-fraudulent-remote-information-technology-worker-0" title="DOJ — DPRK IT Worker Sentencing, May 6, 2026" target="_blank" rel="noopener">4</a></sup><span class="when">May 6 &middot; DOJ</span></li>
-    <li><b>CISA KEV.</b> Palo Alto Networks PAN-OS out-of-bounds write (CVE-2026-0300) added to the catalog with active-exploitation evidence.<sup><a class="cite" href="https://www.cisa.gov/news-events/alerts/2026/05/06/cisa-adds-one-known-exploited-vulnerability-catalog" title="CISA — KEV Catalog Addition (CVE-2026-0300, Palo Alto PAN-OS), May 6, 2026" target="_blank" rel="noopener">5</a></sup><span class="when">May 6 &middot; CISA</span></li>
-    <li><b>Trump Peace Pipelines.</b> Sec. Wright launched a U.S.-led MOU at the Three Seas Summit in Dubrovnik to expand natural-gas infrastructure across Central and Eastern Europe; concurrent deals: U.S.&ndash;Croatia civil-nuclear/SMR cooperation and Project Pantheon, a $50B+ American data center in Croatia.<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup><span class="when">Apr 28 &middot; DOE</span></li>
-    <li><b>DRC&ndash;M23.</b> DRC government and AFC/M23 representatives met April 13&ndash;17 in Montreux to advance the Doha Framework signed Nov 15, 2025; mediators: Qatar, U.S., Togo (AU mediator), AU Commission, Switzerland.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — DRC/AFC-M23 Joint Statement, April 18, 2026" target="_blank" rel="noopener">7</a></sup><span class="when">Apr 18 &middot; State</span></li>
-    <li><b>Pax Silica.</b> Norway became the 15th signatory of the U.S.-led Pax Silica Initiative for diversified critical-mineral supply chains.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — Norway Joins Pax Silica, May 6, 2026" target="_blank" rel="noopener">8</a></sup><span class="when">May 6 &middot; State</span></li>
-    <li><b>MFN drug pricing.</b> 17 of the largest pharmaceutical manufacturers signed voluntary Most-Favored-Nation pricing agreements; the framework projects $529B in domestic savings over 10 years.<sup><a class="cite" href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/" title="White House — Savings from MFN Drug Pricing Policy, May 2026" target="_blank" rel="noopener">9</a></sup><span class="when">May &middot; WH</span></li>
+    <li><details class="event-details"><summary class="event-summary"><b>DPRK IT workers.</b></summary> Two U.S. nationals &mdash; Knoot of Nashville, Prince of New York &mdash; sentenced to 18 months for hosting laptop farms that let North Korean IT workers fraudulently work for U.S. companies; ~70 victim companies, $1.2M+ to DPRK.<sup><a class="cite" href="https://www.justice.gov/opa/pr/two-us-nationals-sentenced-facilitating-fraudulent-remote-information-technology-worker-0" title="DOJ — DPRK IT Worker Sentencing, May 6, 2026" target="_blank" rel="noopener">4</a></sup><span class="when">May 6 &middot; DOJ</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>CISA KEV.</b></summary> Palo Alto Networks PAN-OS out-of-bounds write (CVE-2026-0300) added to the catalog with active-exploitation evidence.<sup><a class="cite" href="https://www.cisa.gov/news-events/alerts/2026/05/06/cisa-adds-one-known-exploited-vulnerability-catalog" title="CISA — KEV Catalog Addition (CVE-2026-0300, Palo Alto PAN-OS), May 6, 2026" target="_blank" rel="noopener">5</a></sup><span class="when">May 6 &middot; CISA</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Trump Peace Pipelines.</b></summary> Sec. Wright launched a U.S.-led MOU at the Three Seas Summit in Dubrovnik to expand natural-gas infrastructure across Central and Eastern Europe; concurrent deals: U.S.&ndash;Croatia civil-nuclear/SMR cooperation and Project Pantheon, a $50B+ American data center in Croatia.<sup><a class="cite" href="https://www.energy.gov/articles/secretary-wright-signs-agreements-grow-american-lng-exports-advances-trump-peace-pipelines" title="DOE — Trump Peace Pipelines Framework, April 28, 2026" target="_blank" rel="noopener">6</a></sup><span class="when">Apr 28 &middot; DOE</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>DRC&ndash;M23.</b></summary> DRC government and AFC/M23 representatives met April 13&ndash;17 in Montreux to advance the Doha Framework signed Nov 15, 2025; mediators: Qatar, U.S., Togo (AU mediator), AU Commission, Switzerland.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — DRC/AFC-M23 Joint Statement, April 18, 2026" target="_blank" rel="noopener">7</a></sup><span class="when">Apr 18 &middot; State</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>Pax Silica.</b></summary> Norway became the 15th signatory of the U.S.-led Pax Silica Initiative for diversified critical-mineral supply chains.<sup><a class="cite" href="https://www.state.gov/releases/office-of-the-spokesperson/" title="State Dept. — Norway Joins Pax Silica, May 6, 2026" target="_blank" rel="noopener">8</a></sup><span class="when">May 6 &middot; State</span></details></li>
+    <li><details class="event-details"><summary class="event-summary"><b>MFN drug pricing.</b></summary> 17 of the largest pharmaceutical manufacturers signed voluntary Most-Favored-Nation pricing agreements; the framework projects $529B in domestic savings over 10 years.<sup><a class="cite" href="https://www.whitehouse.gov/research/2026/05/savings-from-most-favored-nation-drug-pricing-policy/" title="White House — Savings from MFN Drug Pricing Policy, May 2026" target="_blank" rel="noopener">9</a></sup><span class="when">May &middot; WH</span></details></li>
     </ul>
   </details>
 
