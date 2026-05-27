@@ -57,7 +57,7 @@ SNS → bounce handler → status: 'confirmed' → 'bounced'
 | 3 | Signup form on site footer + double-opt-in backend handler | 2 hr | ✓ **shipped 2026-05-26** (subscribe-block embedded in US + China + about prototype footers; AJAX POST to api.briefer.news with inline status; About deployed live, US + China auto-pick-up tomorrow morning's synth) |
 | 4 | HTML email template matching the site | 3 hr | ✓ **shipped 2026-05-26** (scripts/email_template.py — light bg + dark text + inset dark masthead box, color-scheme meta for Gmail) |
 | 5 | Daily send pipeline + LaunchAgent at 08:30 PT | 1 hr | ✓ **shipped 2026-05-26** (scripts/email_send.py — kill switch, daily cap, sandbox guard, unsubscribe-live guard) |
-| 6 | Unsubscribe flow + signed-token URL endpoint | 1 hr | **code ✓ 2026-05-26** (scripts/email_api_server.py); **deployment pending** (Cloudflare Tunnel) |
+| 6 | Unsubscribe flow + signed-token URL endpoint | 1 hr | ✓ **shipped 2026-05-26** (scripts/email_api_server.py + Cloudflare Tunnel briefer-api routing api.briefer.news → host.docker.internal:8765; DNS migrated R53 → Cloudflare same day) |
 | 7 | Bounce / complaint handling via SNS → handler | 1 hr | ✓ **shipped 2026-05-26** (SES→SNS→SQS→`scripts/email_bounce_handler.py`, LaunchAgent every 10 min; tested with AWS bounce simulator) |
 | 8 | Cost guards (daily send cap, CloudWatch alarm, kill switch) + testing | 2 hr | partial — daily cap + kill switch shipped in Step 5; CloudWatch billing alarm pending |
 

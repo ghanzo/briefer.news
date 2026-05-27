@@ -67,6 +67,21 @@ services:
       - site_output:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
 
+  # ── Cloudflare Tunnel for api.briefer.news ───────────────────────────────────
+  # Outbound-only TLS tunnel to Cloudflare's edge. Exposes the LaunchAgent
+  # email_api_server.py (running on host port 8765) at api.briefer.news with
+  # zero inbound firewall holes. Mirrors the cabin_tunnel pattern from the
+  # Cabin-Server stack. Ingress config + DNS managed via the Cloudflare API
+  # (config_src=cloudflare on the tunnel) — no local YAML config file needed.
+  # Token in .env (BRIEFER_TUNNEL_TOKEN); regenerable via the CF Tunnel API.
+  briefer_tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: briefer_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${BRIEFER_TUNNEL_TOKEN}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
 volumes:
   postgres_data:
   site_output:
