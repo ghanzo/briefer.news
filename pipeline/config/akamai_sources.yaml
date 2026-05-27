@@ -110,6 +110,35 @@ sources:
     active: true
     notes: "Japan Ministry of Foreign Affairs English press releases. Key allied perspective on Indo-Pacific / Taiwan / North Korea / Russia. URL pattern /press/release/pressXX_NNNNNN_NNNNN.html. Probed 2026-05-14: HTTP 200, 55KB, 154 press-like hrefs."
 
+  # ── UK government additions (Tier C: anglosphere + alliance machinery) ────
+
+  - name: "UK Foreign Office (FCDO)"
+    domain: gov.uk
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.gov.uk/government/organisations/foreign-commonwealth-development-office.atom"
+    category: foreign_policy_allied
+    tier: 1
+    active: true
+    notes: "UK Foreign, Commonwealth & Development Office — the diplomatic counterpart to UK MoD. Standard gov.uk atom feed pattern. Probed 2026-05-26: HTTP 200, fresh items same-day (Russia/Ukraine statements). Non-Akamai but routed via curl_cffi for consistency with UK MoD."
+
+  - name: "UK Prime Minister's Office (No.10)"
+    domain: gov.uk
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.gov.uk/government/organisations/prime-ministers-office-10-downing-street.atom"
+    category: foreign_policy_allied
+    tier: 1
+    active: true
+    notes: "UK PM's office — captures bilateral announcements, summit communiqués, treaty signings (e.g., UK-Poland defence treaty). Standard gov.uk atom feed. Probed 2026-05-26: HTTP 200, fresh same-day items."
+
+  - name: "UK AUKUS keyword tracker"
+    domain: gov.uk
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.gov.uk/search/news-and-communications.atom?keywords=aukus&order=updated-newest"
+    category: foreign_policy_allied
+    tier: 2
+    active: true
+    notes: "gov.uk search-feed pinned to keyword 'aukus' — captures the UK side of trilateral AUKUS announcements (UK + Aus + US joint statements typically published by all three). Pairs with Aus DFAT + State Dept already in feed. Probed 2026-05-26: returns recent matches."
+
   # ── Office of the Director of National Intelligence ────────────────────────
 
   - name: "ODNI Press Releases"

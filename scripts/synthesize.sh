@@ -247,7 +247,7 @@ Your job: pick approximately 50 article IDs you would want to read in full to wr
 
 Pick using the BRIEF_STYLE priority order: structural foreign-policy moves → enforcement actions of national/international significance → cyber/national-security incidents → economic/procurement rules with broad effect → energy/infrastructure → diplomatic engagements → administrative.
 
-Diversity requirement: ensure DEFENSE (CENTCOM, Navy, JCS, Air Force, War.gov), ENFORCEMENT (DOJ, CISA), and ECONOMIC (Federal Register Executive Orders & Rules, Treasury, Federal Reserve, BEA, BLS) get representation. ALLIED-GOV (UK MoD, NATO, Australia DFAT, Japan MoFA) — pick 3-5 allied-gov items when material exists; these populate the separate Allied Governments section, NOT the Events list, especially Indo-Pacific / Taiwan / AUKUS / Five Eyes / NATO-axis stories. State Dept will dominate by volume — do not let it crowd out the other categories.
+Diversity requirement: ensure DEFENSE (CENTCOM, Navy, JCS, Air Force, War.gov), ENFORCEMENT (DOJ, CISA), and ECONOMIC (Federal Register Executive Orders & Rules, Treasury, Federal Reserve, BEA, BLS) get representation. ALLIED-GOV (UK MoD, UK FCDO, UK No.10, NATO, Australia DFAT, Japan MoFA) — pick 3-5 allied-gov items when material exists; these populate the separate Allied Governments section, NOT the Events list, especially Indo-Pacific / Taiwan / AUKUS / Five Eyes / NATO-axis stories. State Dept will dominate by volume — do not let it crowd out the other categories.
 
 Today is ${TODAY}.
 
