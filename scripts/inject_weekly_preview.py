@@ -188,22 +188,34 @@ def render_preview(weekly: dict, edition_path: str) -> str:
     so the visual treatment matches Events perfectly (counter numbering,
     sepia accent, when-tag, sup citation, etc.)."""
     events = weekly.get("events", [])
+    def render_li(ev):
+        lead_safe = html_lib.escape(html_lib.unescape(ev["lead"]))
+        return (
+            f'      <li><details class="event-details">'
+            f'<summary class="event-summary"><b>{lead_safe}.</b></summary> '
+            f'{ev["body_html"]}'
+            f'</details></li>'
+        )
+
     if events:
-        items_html = []
-        for ev in events:
-            lead_safe = html_lib.escape(html_lib.unescape(ev["lead"]))
-            body_html = ev["body_html"]  # already HTML; keep entities as-is
-            items_html.append(
-                f'      <li><details class="event-details">'
-                f'<summary class="event-summary"><b>{lead_safe}.</b></summary> '
-                f'{body_html}'
-                f'</details></li>'
-            )
+        # 5 visible, the rest in a "Show N more" expander matching the daily
+        # events more-events pattern (anchored to bottom of week section).
+        visible = events[:5]
+        extras = events[5:]
         body = (
             '    <ul class="items week-items">\n'
-            + "\n".join(items_html)
+            + "\n".join(render_li(ev) for ev in visible)
             + "\n    </ul>\n"
         )
+        if extras:
+            body += (
+                f'    <details class="more-events more-week-events">\n'
+                f'      <summary class="more-events-summary">Show {len(extras)} more weekly events</summary>\n'
+                f'      <ul class="items items-more week-items">\n'
+                + "\n".join(render_li(ev) for ev in extras)
+                + "\n      </ul>\n"
+                f'    </details>\n'
+            )
     else:
         body = ""
 
@@ -271,13 +283,12 @@ def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
             if ev_url and ev_url in daily_urls:
                 continue
             kept.append(ev)
-        # Cap the dedup'd list at 5 — that's the target visible count for
-        # the "This week" section. We extracted up to 9 to give dedupe room.
-        weekly["events"] = kept[:5]
+        # Cap the dedup'd list at 9 — 5 render visible, up to 4 in the
+        # "Show N more weekly events" expander at the bottom of the section.
+        weekly["events"] = kept[:9]
         deduped = original_count - len(kept)
-        capped = max(0, len(kept) - 5)
-        if deduped or capped:
-            print(f"    dedupe: dropped {deduped} duplicates, capped {capped} extras (rendered {len(weekly['events'])})")
+        if deduped:
+            print(f"    dedupe: dropped {deduped} duplicates (kept {len(weekly['events'])} of which 5 visible, {max(0, len(weekly['events'])-5)} in expander)")
 
     preview_html = render_preview(weekly, edition_path)
 
