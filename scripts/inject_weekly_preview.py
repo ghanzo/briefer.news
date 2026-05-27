@@ -31,49 +31,14 @@ NGINX_CONTAINER = "briefer_nginx"
 
 WEEKLY_PREVIEW_CSS = """
     /* BEGIN-WEEKLY-PREVIEW-CSS (managed by scripts/inject_weekly_preview.py) */
-    .weekly-preview-headline {
-      font-family: 'EB Garamond', Garamond, Georgia, serif;
-      font-size: 22px; line-height: 1.3; font-weight: 500;
-      color: var(--ink); margin: 0 0 12px;
-    }
-    .weekly-preview-lead {
-      font-size: 17px; line-height: 1.55;
-      color: var(--ink); margin: 0 0 16px;
-    }
-    details.weekly-preview-events { margin: 0 0 16px; }
-    details.weekly-preview-events > summary.weekly-preview-events-summary {
-      cursor: pointer; list-style: none; display: inline-block;
-      padding: 6px 12px; background: transparent;
-      border: 1px solid var(--ink-soft); border-radius: 2px;
-      font-family: 'IBM Plex Mono', ui-monospace, monospace;
-      font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
-      font-weight: 500; color: var(--ink-soft); user-select: none;
-      transition: color 0.15s, border-color 0.15s, background-color 0.15s;
-    }
-    details.weekly-preview-events > summary.weekly-preview-events-summary::-webkit-details-marker { display: none; }
-    details.weekly-preview-events > summary.weekly-preview-events-summary::before { content: "+ "; font-weight: 600; }
-    details.weekly-preview-events[open] > summary.weekly-preview-events-summary {
-      margin-bottom: 10px; color: var(--paper);
-      background: var(--sepia); border-color: var(--sepia);
-    }
-    details.weekly-preview-events[open] > summary.weekly-preview-events-summary::before { content: "\\2212 "; }
-    details.weekly-preview-events > summary.weekly-preview-events-summary:hover {
-      color: var(--ink); border-color: var(--ink-light);
-    }
-    details.weekly-preview-events[open] > summary.weekly-preview-events-summary:hover {
-      background: var(--sepia); color: var(--paper); border-color: var(--sepia);
-    }
-    .weekly-preview-events-list { list-style: none; padding: 0; margin: 8px 0 0; }
-    .weekly-preview-events-list li {
-      padding: 6px 0 6px 18px; position: relative; font-size: 15px;
-      color: var(--ink); border-top: 1px solid var(--ink-soft);
-    }
-    .weekly-preview-events-list li:first-child { border-top: none; }
-    .weekly-preview-events-list li::before {
-      content: "·"; position: absolute; left: 4px;
-      color: var(--sepia); font-weight: 600;
-    }
+    /* The 'This week' section renders as <ul class="items week-items">, so
+       it inherits the full event styling (counter numbering, .event-details
+       progressive disclosure, sup citations, .when tags). The week-items
+       modifier exists in case we ever want to differentiate visually. */
+    .weekly-preview { margin: 22px 0 22px; }
+    ul.items.week-items { margin-top: 6px; }
     .weekly-preview-link {
+      display: inline-block; margin-top: 4px;
       font-family: 'IBM Plex Mono', ui-monospace, monospace;
       font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
       color: var(--sepia); text-decoration: none;
@@ -133,7 +98,11 @@ def _s3_put(local_path: Path, s3_path: str) -> bool:
 
 
 def extract_weekly(html: str) -> dict:
-    """Pull headline + lead paragraph + top bullet-lead phrases from a weekly."""
+    """Pull headline + lead paragraph + top events (with body + cite) from a weekly.
+
+    Each event extracted as a dict with `lead`, `body`, `cite_html` so we can
+    render the daily's "This week" section with the same progressive-disclosure
+    format as the daily events (lede collapsed, body + cite on click)."""
     result = {"headline": "", "lead": "", "events": []}
 
     m = re.search(r'<h2 class="headline">\s*(.+?)\s*</h2>', html, re.DOTALL)
@@ -144,13 +113,25 @@ def extract_weekly(html: str) -> dict:
     if m:
         result["lead"] = re.sub(r"\s+", " ", m.group(1)).strip()
 
-    # Extract top 5 event lead phrases from <ul class="week-bullets">
+    # Extract top 5 events with full body + cite from <ul class="week-bullets">
     bullets_m = re.search(r'<ul class="week-bullets">(.+?)</ul>', html, re.DOTALL)
     if bullets_m:
-        for li_m in re.finditer(r'<li>\s*<b>([^<]+)</b>', bullets_m.group(1)):
-            lead_phrase = re.sub(r"\s+", " ", li_m.group(1)).strip().rstrip(".")
-            if lead_phrase:
-                result["events"].append(lead_phrase)
+        for li_m in re.finditer(r'<li>([\s\S]+?)</li>', bullets_m.group(1)):
+            li_content = li_m.group(1).strip()
+            # Lede = <b>...</b>
+            lead_m = re.search(r'<b>([^<]+)</b>', li_content)
+            if not lead_m:
+                continue
+            lead = re.sub(r"\s+", " ", lead_m.group(1)).strip().rstrip(".")
+            # Everything after </b> through end of li is the body + cite + when
+            after_b = li_content[lead_m.end():]
+            # The weekly uses <span class="week-tag"> for the date; the daily
+            # uses <span class="when">. Normalize so the daily's styling works.
+            after_b = after_b.replace('class="week-tag"', 'class="when"')
+            result["events"].append({
+                "lead": lead,
+                "body_html": after_b.strip(),
+            })
             if len(result["events"]) >= 5:
                 break
 
@@ -158,18 +139,28 @@ def extract_weekly(html: str) -> dict:
 
 
 def render_preview(weekly: dict, edition_path: str) -> str:
-    """Render "This week" as factual bullets only — the lead phrases of
-    the week's top events. No editorial headline, no narrative paragraph.
-    Just the facts plus a link to the full digest."""
+    """Render "This week" using the same progressive-disclosure format as
+    the daily Events section — each item is a collapsed lede that expands
+    on click to show body + citation. Reuses `<ul class="items">` styling
+    so the visual treatment matches Events perfectly (counter numbering,
+    sepia accent, when-tag, sup citation, etc.)."""
     events = weekly.get("events", [])
     if events:
-        # Lead phrases arrive already entity-encoded from the weekly HTML
-        # (`<b>Beijing&rsquo;s haul</b>` → "Beijing&rsquo;s haul" via regex).
-        # Decode first so html.escape produces a single, correct encoding.
-        items = "\n".join(
-            f'      <li>{html_lib.escape(html_lib.unescape(e))}</li>' for e in events
+        items_html = []
+        for ev in events:
+            lead_safe = html_lib.escape(html_lib.unescape(ev["lead"]))
+            body_html = ev["body_html"]  # already HTML; keep entities as-is
+            items_html.append(
+                f'      <li><details class="event-details">'
+                f'<summary class="event-summary"><b>{lead_safe}.</b></summary> '
+                f'{body_html}'
+                f'</details></li>'
+            )
+        body = (
+            '    <ul class="items week-items">\n'
+            + "\n".join(items_html)
+            + "\n    </ul>\n"
         )
-        body = f'    <ul class="weekly-preview-events-list">\n{items}\n    </ul>\n'
     else:
         body = ""
 
@@ -217,20 +208,33 @@ def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
 
     preview_html = render_preview(weekly, edition_path)
 
-    # Insert directly BEFORE the Sources <details> wrapper, so "This week"
-    # sits as a bottom synopsis after all the day's content has rendered.
-    new_html, n = re.subn(
+    # Insertion anchor (in priority order):
+    #   1. Before <h3>Allied Governments</h3>  — events → week → allied → voices
+    #   2. Before <h3>Outside the Gate</h3>    — China brief equivalent of allied
+    #   3. Before <h3>Voices</h3>              — fallback if no allied section today
+    #   4. Before <details class="sources-details"> — fallback for older briefs
+    #   5. Before </main>                      — last-resort fallback
+    # NOTE: Voices anchors on the H3 LABEL, not the <div class="voices">, because
+    # the label sits OUTSIDE the div as a sibling — anchoring on the div would
+    # place "This week" between the label and its content.
+    anchors = [
+        r'(\s*<h3 class="section-label">Allied Governments</h3>)',
+        r'(\s*<h3 class="section-label">Outside the Gate</h3>)',
+        r'(\s*<h3 class="section-label">Voices</h3>)',
         r'(\s*<details class="sources-details")',
-        lambda m: "\n" + preview_html.rstrip("\n") + m.group(1),
-        daily_html, count=1, flags=re.DOTALL,
-    )
-    if n == 0:
-        # Fallback: insert before </main> if Sources wrapper is missing.
+        r'(\s*</main>)',
+    ]
+    new_html = daily_html
+    inserted = False
+    for anchor in anchors:
         new_html, n = re.subn(
-            r'(\s*</main>)',
+            anchor,
             lambda m: "\n" + preview_html.rstrip("\n") + m.group(1),
             daily_html, count=1, flags=re.DOTALL,
         )
+        if n > 0:
+            inserted = True
+            break
     return new_html
 
 
