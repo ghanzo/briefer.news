@@ -1,6 +1,8 @@
-# DEK.md — The day's synopsis
+# DEK.md — The day's synopsis (v3, 2026-05-27)
 
-The dek is the brief's short factual synopsis of the day. It names the day's most important events in a single short paragraph. The headline gives the day's single biggest fact; the dek extends it by naming the other top events.
+The dek is the brief's short factual synopsis of the day. It names the
+day's most consequential events as a tight bullet list, each bullet a
+plain-English statement of fact.
 
 This document is binding. Synth must follow every rule below.
 
@@ -8,99 +10,205 @@ This document is binding. Synth must follow every rule below.
 
 ## What the dek is for
 
-A reader who skims only the headline + dek should walk away knowing **what happened today** — the day's top three or four most consequential events, named directly. The dek is a factual synopsis, not an editorial frame.
+A reader who skims only the **headline + dek** should walk away knowing
+exactly what happened today — the top three events, in plain English,
+with zero foreign-policy jargon, zero acronyms, and zero personal names
+they don't already recognize.
 
-- It names events. It does not interpret them.
-- It does not take a stance on what the day means.
-- It does not make falsifiable claims.
-- It does not editorialize.
+The target reader is a **smart layperson who reads NYT or Washington Post
+once a day**. They are not a foreign-policy professional. They do not
+follow alliance acronyms (Quad, NPT, AUKUS), they do not recognize most
+foreign ministers by name (Jaishankar, Vučić, Sharif, Motegi), and they
+do not know what abbreviations like NDRC, MFA, or CCDI stand for.
 
-This is the same trust posture as the rest of the brief: news without opinion, government sources only, everything cited. The dek is the one sentence that previously broke that posture; it now matches it.
+The dek must be readable by that audience **on first read, with zero
+Googling**. If a term needs a footnote or a glossary, it does not
+belong in the dek.
+
+---
+
+## Form
+
+The dek is a `<ul class="dek-bullets">` containing **exactly three
+`<li>` bullets**. Each bullet is a single short sentence — no semicolons,
+no commas-as-conjunctions, no clauses-within-clauses.
+
+**Bullet length: ≤12 words each.** Aim for 6–10. A bullet that needs more
+than 12 words is hiding either (a) a name that should be dropped, (b)
+an acronym that should be spelled out as a phrase, or (c) two events
+glued together that should be split.
 
 ---
 
 ## Hard rules
 
-- **Length: 30–55 words. Two sentences maximum.** A dek over 55 words is hiding indecision. A single sentence is allowed if it carries.
-- **Name the day's most important events.** Three or four events is the right density — drawn from the same items that anchor the top-3 visible events list, occasionally extending to one item from the collapsed 6-more events when it materially shapes the day.
-- **Use neutral verbs.** "Washington indicts Castro." "The Federal Reserve holds rates." "State Department asks the UN to reopen the Hormuz." Past tense or present tense, both fine. Avoid voice that implies the writer's read ("signals," "appears to," "looks like," "underscores," "amid").
-- **No stance, no posture, no asymmetry-flagging, no falsifiable claim.** The dek is news, not analysis. The brief carries no editorial column anywhere; the dek is not it either.
-- **No "while / even as / even" hedge clauses.** They imply editorial framing.
-- **No template openers.** "X threads through today," "X sits behind every move today," "Beijing meets [event] from a posture of [Y]." Just name what happened.
-- **No doctrine name-drops** in the dek (NQPF, 15FYP, common prosperity, dual circulation, MIC2025, 30/60). Doctrine framing belongs in Strategic Backdrop cards.
-- **Every event named must be in the Events list.** The dek's role is to surface today's top items; if it names something not in the bullets above, that's a coherence failure.
+### 1. The three bullets ARE the top-3 visible event ledes
+
+The dek bullets are the same three events that anchor the top-3 visible
+items list below. No duplication of work, no contradiction — the dek is
+the collapsed view of those three events, and the events block is the
+expanded view. Pick the day's three most consequential events, write
+each as a dek bullet, and use that same lede phrase as the `<b>...</b>`
+opener on each top-3 event below.
+
+### 2. No bare acronyms or insider jargon
+
+Spell out or rephrase. Examples:
+
+- ❌ `NPT Review Conference closes without consensus.`
+- ✅ `Nuclear non-proliferation treaty review closes without agreement.`
+
+- ❌ `Quad foreign ministers meet for the first time in 2026.`
+- ✅ (drop entirely — see rule 4 on outcomes vs process)
+
+- ❌ `CCDI announces new disciplinary measures.`
+- ✅ `Communist Party's anti-corruption body announces new disciplinary measures.`
+
+- ❌ `NDRC publishes mineral-resources enforcement rules.`
+- ✅ `China's central planning agency publishes mineral-resources enforcement rules.`
+
+Banned-without-context terms: NPT, NDRC, MFA, CCDI, CAC, MIIT, PBOC, SAFE,
+SASAC, NPC, MND, Quad, AUKUS, BRICS, G7 (acceptable — most readers know),
+ASEAN (acceptable — most readers know), NATO (acceptable).
+
+When in doubt: would a smart layperson know what this means? If no,
+spell it out or rephrase.
+
+### 3. No unfamiliar personal names
+
+Use country or institution instead.
+
+- ❌ `Rubio and Jaishankar sign minerals framework.`
+- ✅ `U.S. and India sign critical-minerals framework in New Delhi.`
+
+- ❌ `Xi awards Vučić the Friendship Medal.`
+- ✅ `Xi awards Serbia's president the Friendship Medal.`
+
+Globally-recognized names are fine: **Xi, Trump, Putin, Modi, Netanyahu,
+Erdoğan, MBS, Kim Jong Un, Macron, Sunak/Starmer**. Everyone else: use
+country or institution.
+
+When in doubt: would the average newspaper reader recognize this name?
+If no, drop it.
+
+### 4. Prefer outcomes over process
+
+A deal signed is news. A meeting held is process, and process is empty
+without an outcome.
+
+- ❌ `Quad foreign ministers meet for the first time in 2026.`
+- ❌ `U.S. and Iran begin a new round of talks.`
+- ✅ `U.S. and India sign critical-minerals framework in New Delhi.`
+- ✅ `Nuclear non-proliferation treaty review closes without agreement.`
+
+The exception: when the *meeting itself is the news* — a first-ever
+summit, a walkout, a no-show, an unprecedented signal. Include only with
+the specific newsworthy element named.
+
+### 5. Neutral verbs, no editorial framing
+
+Use plain verbs: sign, announce, publish, host, award, reject, close,
+fail, open, expel, suspend, deploy, recall.
+
+Avoid interpretive verbs: answers with, responds with, threads through,
+sits behind, points to, signals, suggests, underscores, looks like,
+appears to, increasingly, mounting, deepening.
+
+### 6. No "while/even as/even" hedge clauses
+
+They imply editorial framing. Each bullet is one event, one verb, one fact.
+
+### 7. Every dek bullet's event must be in the top-3 events list
+
+Coherence: the dek and the visible top-3 events must name the same
+three things. They're two views of the same content.
 
 ---
 
 ## What the dek must do
 
-A dek that ships should satisfy all three:
+A dek that ships satisfies all three:
 
-1. **Name three or four specific events.** The day's most consequential items — by agency + action + (where useful) target. "Treasury sanctioned eleven Cuban officials." "DOJ indicted Raúl Castro on terrorism charges."
-2. **Be readable on its own.** Someone who reads only the dek learns the shape of the day — what happened, where, who.
-3. **Stay factual.** No interpretation. No stance. No editorial flourish.
+1. **Name three concrete events** — by what happened, where, and (when
+   useful) when.
+2. **Be readable on its own.** A general-news reader sees the bullet
+   list and understands what happened today without needing context
+   from the events block.
+3. **Stay factual.** No interpretation, no stance, no editorial flourish.
 
 ---
 
 ## Examples
 
-### Good — factual, names events
+### Good — three concrete events, no jargon, no unfamiliar names
 
-> Treasury sanctioned eleven Cuban officials and three security agencies. The DOJ indicted Raúl Castro on terrorism charges. The State Department asked the UN to reopen the Strait of Hormuz. The Federal Register published two new energy-export rules.
+```
+• U.S. and India sign critical-minerals framework in New Delhi.
+• Nuclear non-proliferation treaty review closes without agreement.
+• U.S. and Iran continue Strait of Hormuz negotiations in Qatar.
+```
 
-48 words, four events named, no editorial framing.
+Plain English. Outcomes, not meetings. Country names, not personal names.
+No acronyms (NPT spelled out, Quad dropped entirely).
 
-### Good — single dominant event
+### Good — China brief
 
-> Defense Secretary Hegseth ordered the carrier Reagan to depart Yokosuka by 0600 PST. Tokyo cited the deployment as a coordinated readiness measure; the Pentagon released a public statement at 0915 EST.
+```
+• Xi awards Serbia's president the Friendship Medal.
+• China's defense ministry rebuffs Taiwan's inauguration speech.
+• Huawei unveils new chip-design principle.
+```
 
-32 words, one dominant event named with the cascading actions around it.
+Xi kept (globally recognized). Vučić, Sharif, Lai dropped (use country
+or institution). "Inauguration speech" replaces "May 20 speech" (dates
+without context confuse).
 
-### Bad — editorial stance
+### Bad — jargon-loaded
 
-> Washington spent the day tightening the screws on Havana. The indictment of Raúl Castro and the new Treasury package signal a return to a Bush-era posture, while at the UN the U.S. quietly pressed allies on Hormuz.
+```
+• Quad foreign ministers meet for the first time in 2026.
+• NPT Review Conference closes without consensus.
+• MFA daily briefing addresses Hormuz situation.
+```
 
-48 words — but "tightening the screws," "signal a return," "quietly pressed" are all editorial framings. The reader gets the writer's read on the day, not the day itself.
+"Quad," "NPT," "MFA" all require prior knowledge. None of these would
+pass the smart-layperson readability test.
 
-### Bad — three-item enumeration with thesis tag
+### Bad — name-loaded
 
-> Iran runs through nearly every item today. Treasury sanctions the oil network, forty nations meet on Hormuz, the Yemen emergency renews, and an AI-policy note even flags compute exposure if the strait closes.
+```
+• Rubio and Jaishankar sign minerals framework in New Delhi.
+• Wong, Motegi, and Jaishankar join Rubio at Quad meeting.
+• Araghchi tells Motegi Iran is committed to talks.
+```
 
-44 words — but "Iran runs through nearly every item today" is editorial framing (thesis-as-opener) and the comma chain leans toward TL;DR rather than synopsis.
+A general reader recognizes ~0 of these names. Replace with countries
+or institutions.
 
-### Bad — subtle interpretive framing (US, 2026-05-26)
+### Bad — process, not outcome
 
-> Cuba marks 124 years of independence this week, and Washington answers with a courtroom. A three-decade-old murder indictment naming Raúl Castro arrives the same week as a green-card seizure tied to Cuba's military elite — pressure aimed less at a 1996 shoot-down than at the conglomerate the U.S. now treats as the island's real power.
+```
+• U.S. and India hold bilateral talks in New Delhi.
+• Quad ministers meet on Indo-Pacific cooperation.
+• Pakistani prime minister visits Beijing.
+```
 
-48 words, 4 events named — *passes the "events count" check* but every connective is editorial:
-- **"Washington answers with a courtroom"** — interpretive cause-and-effect; reframes events as a metaphorical "answer."
-- **"X arrives the same week as Y"** — interpretive temporal grouping ("notable that these coincide"); reader can see the dates.
-- **"pressure aimed less at X than at Y"** — explicit interpretive framing; the writer's read of what the action targets.
-- **"the U.S. now treats X as Y"** — interpretive characterization; the writer's read of policy intent.
-
-These framings are subtle because they don't use stance words like "signals" or "tightening" — they sneak in as connective tissue. **Banned phrasings to watch for specifically:**
-- *X answers with Y* / *X responds with Y* / *X moves on Y* (interpretive verbs)
-- *X arrives the same week as Y* / *X comes as Y* / *X coincides with Y* (interpretive grouping)
-- *aimed less at X than at Y* / *aimed at Y* (interpretive intent attribution)
-- *now treats X as Y* / *now views X as Y* / *increasingly sees X as Y* (interpretive characterization)
-- *X is part of a larger Y* / *X fits into Y* (pattern-attribution)
-
-Rewrite the dek to name the events with neutral verbs:
-
-> DOJ indicted Raúl Castro on terrorism charges tied to the 1996 shoot-down. ICE seized a green card from a Cuban military-conglomerate figure. The State Department announced a fifth round of Cuba sanctions. The Federal Register published two new energy-export rules.
-
-48 words, same four events, no editorial framing.
+Meetings, not events. None of these tell the reader what *happened.*
 
 ---
 
-## A short checklist for the synth before writing the dek
+## Pre-flight checklist for synth
 
-Before drafting, answer:
+Before writing the dek bullets, answer for each one:
 
-- What are the 3–4 most consequential events of today?
-- Have I named each one specifically (agency, action, where useful: target)?
-- Have I avoided editorial framings ("signals," "appears," "tightening," "amid," "threads through," "underscores")?
-- Is each named event in the Events list?
-- Length 30–55 words?
+1. Would a smart layperson — who reads mainstream news daily but doesn't
+   follow foreign policy — fully understand this bullet on first read,
+   with zero Googling?
+2. Does it use any acronym I haven't spelled out?
+3. Does it use any personal name a typical reader wouldn't recognize?
+4. Is it an outcome (signed, published, announced, rebuffed) or just
+   process (met, discussed, talked)?
+5. Is the bullet ≤12 words?
+6. Is this event in the top-3 visible events list?
 
 If any answer is no, rewrite.

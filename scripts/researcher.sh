@@ -133,11 +133,17 @@ for line in sys.stdin:
 import re
 html = open('$HTML_PATH').read()
 h = re.search(r'<h2 class=\"headline\">([\s\S]+?)</h2>', html)
-d = re.search(r'<p class=\"dek\">([\s\S]+?)</p>', html)
+ul = re.search(r'<ul class=\"dek-bullets\">([\s\S]+?)</ul>', html)
+if ul:
+    bullets = [re.sub(r'<[^>]+>','',b).strip() for b in re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))]
+    dek = ' · '.join(b for b in bullets if b)
+else:
+    d = re.search(r'<p class=\"dek\">([\s\S]+?)</p>', html)
+    dek = re.sub(r'<[^>]+>','',d.group(1)).strip() if d else '(no dek)'
 print('### $EDITION')
 print('**' + (re.sub(r'<[^>]+>','',h.group(1)).strip() if h else '(no headline)') + '**')
 print('')
-print(re.sub(r'<[^>]+>','',d.group(1)).strip() if d else '(no dek)')
+print(dek)
 print('')
 "
     fi

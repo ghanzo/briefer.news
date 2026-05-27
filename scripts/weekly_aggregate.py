@@ -40,6 +40,9 @@ ARCHIVE_BASE = "/usr/share/nginx/html"
 HEADLINE_RE = re.compile(
     r'<h2 class="headline">\s*(.+?)\s*</h2>', re.DOTALL
 )
+# Dek: new bulleted form (post 2026-05-27) preferred; legacy paragraph fallback.
+DEK_BULLETS_RE = re.compile(r'<ul class="dek-bullets">(.+?)</ul>', re.DOTALL)
+DEK_BULLET_LI_RE = re.compile(r'<li[^>]*>(.+?)</li>', re.DOTALL)
 DEK_RE = re.compile(
     r'<p class="dek">(.+?)</p>', re.DOTALL
 )
@@ -141,6 +144,12 @@ def extract_headline(html: str) -> str | None:
 
 
 def extract_dek(html: str) -> str | None:
+    """Return dek text (bullets joined by ' · ' or legacy paragraph)."""
+    m = DEK_BULLETS_RE.search(html)
+    if m:
+        bullets = [_clean_text(b) for b in DEK_BULLET_LI_RE.findall(m.group(1))]
+        joined = " · ".join(b for b in bullets if b)
+        return joined or None
     m = DEK_RE.search(html)
     if not m:
         return None

@@ -85,13 +85,21 @@ def check_live_brief(edition: str) -> dict:
     head_m = re.search(r'<h2 class="headline">([^<]+)</h2>', html)
     headline = head_m.group(1).strip() if head_m else "(none)"
 
-    # Dek length
-    dek_m = re.search(r'<p class="dek">([\s\S]+?)</p>', html)
-    if dek_m:
-        dek_text = re.sub(r"<[^>]+>", "", dek_m.group(1)).strip()
+    # Dek length — new bulleted form (post 2026-05-27) preferred; legacy
+    # paragraph as fallback for pre-cutover archives.
+    ul_m = re.search(r'<ul class="dek-bullets">([\s\S]+?)</ul>', html)
+    if ul_m:
+        bullets = [re.sub(r"<[^>]+>", "", b).strip()
+                   for b in re.findall(r"<li[^>]*>([\s\S]+?)</li>", ul_m.group(1))]
+        dek_text = " · ".join(b for b in bullets if b)
         dek_word_count = len(dek_text.split())
     else:
-        dek_text, dek_word_count = "(none)", 0
+        dek_m = re.search(r'<p class="dek">([\s\S]+?)</p>', html)
+        if dek_m:
+            dek_text = re.sub(r"<[^>]+>", "", dek_m.group(1)).strip()
+            dek_word_count = len(dek_text.split())
+        else:
+            dek_text, dek_word_count = "(none)", 0
 
     # Structural checks
     h3s = re.findall(r'<h3 class="section-label">([^<]+)</h3>', html)

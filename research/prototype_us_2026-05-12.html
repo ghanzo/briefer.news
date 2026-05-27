@@ -223,6 +223,48 @@
       letter-spacing: 0;
     }
 
+    /* Dek bullets — the day's three events as plain statements.
+       Replaces the older paragraph .dek (kept below for any legacy
+       archived briefs that still use it). The bullet list IS the dek;
+       see DEK.md (v3, 2026-05-27) for the editorial rules. */
+    .dek-bullets {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 28px;
+      padding-top: 14px;
+      position: relative;
+      color: var(--ink-light);
+    }
+    .dek-bullets::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: var(--sepia);
+      margin: 0 0 12px;
+    }
+    .dek-bullets li {
+      font-size: 18px;
+      line-height: 1.5;
+      font-weight: 400;
+      padding-left: 22px;
+      position: relative;
+      margin: 0 0 8px;
+    }
+    .dek-bullets li:last-child { margin-bottom: 0; }
+    .dek-bullets li::before {
+      content: '·';
+      color: var(--sepia);
+      font-size: 24px;
+      font-weight: 700;
+      position: absolute;
+      left: 6px;
+      top: -4px;
+    }
+
+    /* Legacy paragraph dek — pre-2026-05-27 prototype briefs. Kept so
+       any pre-cutover archives still render cleanly. New briefs use
+       .dek-bullets above. */
     .dek {
       font-size: 20px;
       line-height: 1.45;
@@ -1514,6 +1556,13 @@
         font-size: 24px;
         margin: 0 0 4px;
       }
+      .dek-bullets {
+        margin: 0 0 22px;
+        padding-top: 12px;
+      }
+      .dek-bullets li {
+        font-size: 16px;
+      }
       .dek {
         font-size: 17px;
         margin: 0 0 22px;
@@ -1603,7 +1652,11 @@
   <h2 class="headline">
     Cuba sanctions framework lands; Iran-China oil network targeted; DOJ opens UCLA admissions probe.
   </h2>
-  <p class="dek">Iran runs through nearly every item today. Treasury sanctions the oil network, forty nations meet on a Strait of Hormuz reopening plan, the Yemen emergency renews, and an AI-policy note even flags compute exposure if the strait closes. Domestic energy quietly accelerates: Strategic Reserve sale, Navy reactivation, record output.</p>
+  <ul class="dek-bullets">
+    <li>Treasury sanctions Iran's oil network and three security agencies.</li>
+    <li>Forty nations meet on Strait of Hormuz reopening plan.</li>
+    <li>U.S. Navy reactivates Pacific carrier amid Yemen emergency renewal.</li>
+  </ul>
 
   <p class="thread-strip">
     <span class="thread-chip"><b>Day 1</b> &middot; Trump&ndash;Xi summit</span>

@@ -223,6 +223,45 @@
       letter-spacing: 0;
     }
 
+    /* Dek bullets — the day's three events as plain statements.
+       Replaces the older paragraph .dek (kept below for legacy archives).
+       See DEK.md v3 (2026-05-27) for the editorial rules. */
+    .dek-bullets {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 28px;
+      padding-top: 14px;
+      position: relative;
+      color: var(--ink-light);
+    }
+    .dek-bullets::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: var(--sepia);
+      margin: 0 0 12px;
+    }
+    .dek-bullets li {
+      font-size: 18px;
+      line-height: 1.5;
+      font-weight: 400;
+      padding-left: 22px;
+      position: relative;
+      margin: 0 0 8px;
+    }
+    .dek-bullets li:last-child { margin-bottom: 0; }
+    .dek-bullets li::before {
+      content: '·';
+      color: var(--sepia);
+      font-size: 24px;
+      font-weight: 700;
+      position: absolute;
+      left: 6px;
+      top: -4px;
+    }
+
+    /* Legacy paragraph dek — pre-2026-05-27 prototype briefs. */
     .dek {
       font-size: 20px;
       line-height: 1.45;
@@ -1690,6 +1729,13 @@
       .headline {
         font-size: 24px;
         margin: 0 0 4px;
+      }
+      .dek-bullets {
+        margin: 0 0 22px;
+        padding-top: 12px;
+      }
+      .dek-bullets li {
+        font-size: 16px;
       }
       .dek {
         font-size: 17px;

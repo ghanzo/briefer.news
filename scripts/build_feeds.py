@@ -46,7 +46,23 @@ MAX_ITEMS = 30
 PUBLISH_HOUR_UTC = 14
 
 HEADLINE_RE = re.compile(r'<h2 class="headline">\s*(.+?)\s*</h2>', re.DOTALL)
+# Dek may be the new bulleted form (post 2026-05-27) or the legacy paragraph.
+DEK_BULLETS_RE = re.compile(r'<ul class="dek-bullets">(.+?)</ul>', re.DOTALL)
 DEK_RE = re.compile(r'<p class="dek">(.+?)</p>', re.DOTALL)
+DEK_LI_RE = re.compile(r'<li[^>]*>(.+?)</li>', re.DOTALL)
+
+
+def extract_dek(html: str) -> str:
+    """Return the dek as a single string. Tries new bullets first, falls
+    back to legacy paragraph. Bullets joined by ' · ' (sepia-dot)."""
+    m = DEK_BULLETS_RE.search(html)
+    if m:
+        bullets = [TAG_RE.sub('', b).strip() for b in DEK_LI_RE.findall(m.group(1))]
+        return " · ".join(b for b in bullets if b)
+    m = DEK_RE.search(html)
+    if m:
+        return TAG_RE.sub('', m.group(1)).strip()
+    return ""
 # The Events list only — `<ul class="items">` exactly, NOT the allied
 # section's `<ul class="items allied-items">`.
 ITEMS_RE = re.compile(r'<ul class="items">(.+?)</ul>', re.DOTALL)
@@ -95,7 +111,7 @@ def _clean(raw: str) -> str:
 def extract_brief(html: str) -> dict:
     """Pull headline, dek, and Events bullets from an archived brief."""
     h = HEADLINE_RE.search(html)
-    d = DEK_RE.search(html)
+    dek_text = extract_dek(html)
     bullets: list[dict] = []
     items = ITEMS_RE.search(html)
     if items:
@@ -115,7 +131,7 @@ def extract_brief(html: str) -> dict:
                 bullets.append({"lead": lead, "desc": desc})
     return {
         "headline": _clean(h.group(1)) if h else "(untitled brief)",
-        "dek": _clean(d.group(1)) if d else "",
+        "dek": dek_text,
         "bullets": bullets,
     }
 
