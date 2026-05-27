@@ -62,6 +62,19 @@ echo "--- Stage 1: gathering ---"
   fi
   echo ""
 
+  echo "## Cloudflare Web Analytics — humans only (last 7 + 30 days)"
+  echo ""
+  echo "### 7-day"
+  if /usr/bin/python3 "$REPO/scripts/cloudflare_analytics.py" --days 7 2>/dev/null; then
+    /usr/bin/python3 "$REPO/scripts/cloudflare_analytics.py" --days 7 2>/dev/null
+  else
+    echo "(cloudflare_analytics failed — token issue, or first day post-migration)"
+  fi
+  echo ""
+  echo "### 30-day (medium-window trend)"
+  /usr/bin/python3 "$REPO/scripts/cloudflare_analytics.py" --days 30 2>/dev/null || echo "(unavailable)"
+  echo ""
+
   echo "## Posting history (last 7 days)"
   echo ""
   POST_FILES=$(/usr/bin/find "$REPO/logs" -name "posts-*.jsonl" -mtime -7 2>/dev/null | /usr/bin/sort)
@@ -157,17 +170,29 @@ Write a research log in this exact structure. Plain markdown. ~400-700 words.
 # Research log — $TODAY $SLOT
 
 ## Traffic snapshot (last 7d)
-Three or four bullet points naming SPECIFIC numbers:
-- Unique buckets per day this week vs last week (if data available)
-- Top 3 pages by views (with their URLs)
-- Top 3 referrers (with what they're sending traffic for)
-- Anything surprising (new referrer, page that spiked, etc.)
-If the data is partial or missing, say so explicitly — don't invent.
+We have THREE traffic data sources in the context — synthesize across them:
+- **CloudFront logs** (everything, including bots) — top pages, top referrers,
+  unique /24 buckets per day, status codes
+- **Cloudflare Web Analytics / RUM** (humans only, JS-beacon) — real browser
+  sessions by path / country / referrer / device
+- **Search Console** — impressions, clicks, position trends
+
+Three or four bullet points naming SPECIFIC numbers. Examples worth calling out:
+- Total CloudFront unique buckets this week vs last week
+- Human page loads (Cloudflare RUM) — even 1 hit is a meaningful signal early;
+  call out the country + path it came from
+- Bot-to-human ratio: CloudFront total requests ÷ Cloudflare RUM page-loads
+  (gives a rough sense of how much organic-human traffic vs scraper noise)
+- Top 3 pages by Cloudflare RUM (closer to "real" engagement than CF logs)
+- Top 3 external referrers (Cloudflare RUM and CF logs both)
+If a data source is empty or sparse, say so explicitly — don't invent numbers.
 
 ## Search performance (last 7d)
 - Top 3 queries by impressions + their average position
 - Any queries that moved up or down notably
 - Total clicks this week, CTR
+- If Cloudflare RUM shows clicks but Search Console shows zero CTR, that's
+  REAL human traffic NOT coming from search — note which referrer is driving it
 
 ## What worked
 The posts (Bluesky, X, manual) and angles that drove the best engagement
