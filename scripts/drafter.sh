@@ -256,11 +256,43 @@ else
   echo "  bluesky: disabled (set BLUESKY_ENABLED=true to enable)"
 fi
 
-# X posting goes here once tokens land
+# Extract X / Twitter section, post it
 if [ "$X_ENABLED" = "true" ]; then
-  echo "  x: enabled, but posting client not yet built — TBD"
+  echo "Posting X..."
+  /usr/bin/python3 <<PYEOF
+import re, sys
+from pathlib import Path
+sys.path.insert(0, '$REPO/scripts')
+
+text_block = Path('$DRAFTS_OUT').read_text()
+m = re.search(r'## X / Twitter\n([\s\S]+?)(?=\n## |\Z)', text_block)
+if not m:
+    print("WARN: no X / Twitter section in drafts")
+    sys.exit(0)
+
+section = m.group(1).strip()
+url_m = re.search(r'URL:\s*(\S+)', section)
+# The post text is everything before URL line
+text = re.split(r'\nURL:', section)[0].strip()
+url = url_m.group(1) if url_m else None
+
+print(f"  text: {text[:80]}…")
+print(f"  url:  {url or '(none)'}")
+
+import x_post as x
+try:
+    result = x.post(text, url=url)
+    x.log_post('x', text, url, result)
+    print(f"  posted: {result.get('url')}")
+    # Annotate the drafts file: mark as POSTED
+    drafts = Path('$DRAFTS_OUT').read_text()
+    drafts = drafts.replace('## X / Twitter\n', f"## X / Twitter [POSTED {result.get('url')}]\n", 1)
+    Path('$DRAFTS_OUT').write_text(drafts)
+except Exception as e:
+    print(f"  ERROR posting to X: {e}")
+PYEOF
 else
-  echo "  x: disabled (set X_ENABLED=true once tokens land)"
+  echo "  x: disabled (set X_ENABLED=true to enable)"
 fi
 
 echo "Done."
