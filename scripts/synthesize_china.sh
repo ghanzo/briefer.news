@@ -507,23 +507,7 @@ Bullet caps:
 
 OUTSIDE THE GATE SECTION: directly after the Voices section closes and BEFORE Strategic Backdrop, render a short non-PRC-government section — an <h3 class="section-label">Outside the Gate</h3> then <ul class="items allied-items">. UP TO 3 bullets, drawn ONLY from items in @${OUTSIDE_META} (Taiwan MOFA, Taiwan Presidential Office, Russia Foreign Ministry, Iran MFA, Pakistan Foreign Office, KCNA — non-PRC government voices that bear on China). Same bullet structure as Events (bold lead, tight description, citation, date+agency tag) **and same `<details class="event-details"><summary class="event-summary">` wrapping per the top-3 progressive-disclosure rule** — each item's body collapses behind its lede. Cite markers are LOWERCASE LETTERS (a, b, c) so they do not collide with the Events numerals 1-9. **Outside the Gate items ALSO get entries in the Sources bibliography** — render them as a second list <ol type="a" class="sources-allied"> inside the <section class="sources"> (after the main 1-9 <ol>), containing 3 li in the same cite format as the numbered events. SELECTION GUIDANCE: prefer recency (last 7 days), distinct sources (do not render 3 from Taiwan if other voices are available), and items that materially engage with today's PRC story (the Russia/Iran/Pakistan/NK items already passed the China-keyword filter; Taiwan items are unfiltered because every Taiwan-gov statement is cross-Strait relevant by context — pick those that specifically respond to or anticipate today's PRC moves). CONDITIONAL: if @${OUTSIDE_META} is empty or no item is worth a slot today, OMIT the whole Outside the Gate section AND the corresponding sources-allied list — never render either empty.
 
-STRATEGIC BACKDROP: After the Voices section AND the Outside the Gate section (if present), and after the summit transcript section if present, identify the **2 or 3 strategy documents** from @${REPO}/pipeline/config/strategy/ whose themes most strongly connect to today's items. (Note: the more-events <details class="more-events"> block sits at the BOTTOM of the brief, immediately before Sources — after Strategic Backdrop and Five-Year Plan render.) Read each doc's "Today's coverage triggers" section to judge fit. For each pick, write a card.
-
-Pick rules:
-- Each card connects to AT LEAST 2 of today's bullets via the strategy's themes.
-- Prefer currently-active over closing/superseded doctrines (e.g., prefer "新质生产力" over "Made in China 2025" if both fit).
-- Each card's blurb is **~30 words** linking the doctrine to today's specific items.
-
-Strategic Backdrop HTML template (use this structure, 2-3 cards inside the .backdrop div). **Do NOT include a Chinese name line** — English name + status only.
-<h3 class="section-label">Strategic Backdrop</h3>
-<div class="backdrop">
-  <article>
-    <h4 class="strategy-title">[English name from doc's name: field]</h4>
-    <p class="strategy-status">[Status from doc's status: field] &middot; [Period from doc's period: field]</p>
-    <p class="strategy-blurb">[~30 words connecting today's items to this doctrine. Specific. Name today's bullets.]</p>
-  </article>
-  ...
-</div>
+STRATEGIC BACKDROP: **REMOVED 2026-05-27 per operator.** Do NOT render any `<h3>Strategic Backdrop</h3>` block or `<div class="backdrop">` content. The strategy-library files in `pipeline/config/strategy/` remain useful for context during synthesis (informing event selection and lede framing) — but the Strategic Backdrop cards are no longer published.
 
 SOURCES section: numbered <ol>, each <li> with publisher in <span class="pub">, article title, date, full URL.
 
@@ -548,9 +532,9 @@ Render as a COMPLETE HTML FILE matching ${REPO}/research/prototype_china_2026-05
 - <ol type="a" class="sources-allied">...</ol> — a second ordered list with type="a" (renders a, b, c) inside <section class="sources">, immediately after the main 9-item <ol>. Contains 3 li, one per Outside the Gate item, in the same cite format as the numbered events. The letter labels (a, b, c) match the lowercase cite markers in the Outside the Gate bullets above. CONDITIONAL: if there is no Outside the Gate section today, OMIT this list entirely.
 - The inner <div class="backdrop">...</div> of the Strategic Backdrop block (PRESERVE the wrapping <details class="collapsible-details" open><summary class="collapsible-summary">Strategic Backdrop</summary> and the closing </details>; only the inner backdrop div is replaced with 2-3 fresh strategy cards per today's items). Strategic Backdrop uses <details open> — expanded by default with a click-to-collapse chevron; the synth must not remove the wrapper, the summary text, or the "open" attribute.
 - The inner <section class="sources"><ol>...</ol></section> (PRESERVE the wrapping <details class="sources-details"><summary class="sources-summary">Sources</summary> and the closing </details>; only the inner section + ol is replaced). Sources is now **COLLAPSED by default** — `<details>` with NO `open` attribute. Readers click "Sources" to expand. The synth must NOT add `open`; render exactly `<details class="sources-details">` (no attributes). Keep the wrapper, summary text, and closing tag intact.
-- The Five-Year Plan section is wrapped in <details class="collapsible-details" open><summary class="collapsible-summary">Five-Year Plan</summary>...</details>. The synth must PRESERVE this wrapper, the summary text, and the "open" attribute. The inner <article class="fyp"> content is unchanged — see the existing preserve rule for the Five-Year Plan section.
+- **No Five-Year Plan section.** Removed 2026-05-27 per operator. Do not render `<details class="collapsible-details">` wrapping Five-Year Plan or any `<article class="fyp">` block.
 
-**Preserve unchanged:** the Five-Year Plan section (<h3 class="section-label">Five-Year Plan</h3> and the <article class="fyp">…</article> block immediately following it). This is a static long-arc anchor; do not edit its title, status, body, themes, or predecessor note. It sits between Strategic Backdrop and Sources.
+**No long-arc anchor sections.** Both Strategic Backdrop and Five-Year Plan removed 2026-05-27 per operator. The brief ends with Sources after Voices.
 
 Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write to the file.
 EOF
