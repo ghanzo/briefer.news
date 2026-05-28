@@ -93,6 +93,21 @@ print('**Headline:** ' + (re.sub(r'<[^>]+>','',h.group(1)).strip() if h else '(n
 print('')
 print('**Dek:** ' + dek)
 print('')
+ev_idx = html.find(\"Today's events\")
+events = []
+if ev_idx != -1:
+    ulm = re.search(r'<ul class=\"items\">([\s\S]+?)</ul>', html[ev_idx:])
+    if ulm:
+        for li in re.findall(r'<li[^>]*>([\s\S]+?)</li>', ulm.group(1))[:3]:
+            sm = re.search(r'<summary[^>]*>([\s\S]+?)</summary>', li)
+            lead = re.sub(r'<[^>]+>','', sm.group(1)).strip() if sm else ''
+            rest = li.split('</summary>',1)[1] if '</summary>' in li else li
+            desc = re.sub(r'<[^>]+>','', re.split(r'<sup|<span', rest)[0]).strip()
+            events.append((lead + ' ' + desc).strip())
+print('**Top 3 events:**')
+for e in events:
+    print('- ' + e)
+print('')
 print('**URL:** https://briefer.news/$EDITION/')
 print('')
 "
@@ -136,8 +151,8 @@ TITLE: <link-card title, ≤120 chars>
 DESCRIPTION: <link-card description, ≤200 chars>
 
 ## X / Twitter
-<post text, ≤270 chars to be safe under the 280 limit>
-URL: <same as Bluesky>
+<Write the post in this EXACT shape, keeping the opening three sentences verbatim: "I'm a builder, I've spent a few years on this. Briefer News is a government publications brief. A new kind of news. Today: EVENT1, EVENT2, EVENT3:" Replace EVENT1/2/3 with the U.S. edition's "Top 3 events" from the context, in order, each a short plain-English phrase of 4 to 10 words. Expand every acronym ("Quad" becomes "four nations"). Refer to any official who is not globally famous by country or institution. Everything before the URL must be 255 characters or fewer and end with a colon; use only 2 events if 3 will not fit. Do not use any dashes.>
+URL: https://briefer.news/usa/?utm_source=x
 
 ## HN
 TITLE: <Show HN / Ask HN style if applicable, else a plain descriptive title — ≤80 chars, no clickbait>
@@ -155,7 +170,7 @@ BODY: <2-4 short paragraphs framing what's in today's brief + why it matters for
 
 Channel-specific tone:
 - Bluesky: matter-of-fact, journalistic, no hashtags.
-- X / Twitter: same but slightly more pointed since the algorithm prefers reaction. Still no editorializing — let the gov source speak.
+- X / Twitter: use the fixed events format defined in the X section above. Plain and factual, no editorializing.
 - HN: descriptive, no superlatives. The HN crowd downvotes hype.
 - Reddit: contextual, sub-aware. r/geopolitics readers want analysis;
   r/news wants the lede. Default to r/geopolitics; only switch if the
@@ -172,6 +187,9 @@ UNIVERSAL RULES (brand-promise constraints):
 - Every post must cite a primary government source IF the post makes a
   claim. The site is the citation aggregator.
 - Lower-case "x", "facebook", "reddit" — no platform name pomp.
+- Do not use dashes of any kind: no em-dashes, no en-dashes, no hyphen
+  used as punctuation. Use commas, periods, or colons instead. Write
+  like a person, not an AI.
 
 The Researcher's "Today's hooks" section is your primary guide for
 angles. If it suggested specific angles, USE THEM verbatim or close to
@@ -256,8 +274,25 @@ else
   echo "  bluesky: disabled (set BLUESKY_ENABLED=true to enable)"
 fi
 
-# Extract X / Twitter section, post it
-if [ "$X_ENABLED" = "true" ]; then
+# Extract X / Twitter section, post it (skip if an X post already went out today)
+X_ALREADY_TODAY=$(/usr/bin/python3 -c "
+import json, datetime
+from pathlib import Path
+f = Path('$LOG_DIR') / ('posts-' + datetime.date.today().isoformat() + '.jsonl')
+n = 0
+if f.exists():
+    for line in f.read_text().splitlines():
+        try:
+            r = json.loads(line)
+        except Exception:
+            continue
+        if r.get('channel') == 'x' and r.get('type') != 'engagement':
+            n += 1
+print(n)
+" 2>/dev/null || echo 0)
+if [ "$X_ENABLED" = "true" ] && [ "${X_ALREADY_TODAY:-0}" != "0" ]; then
+  echo "  x: already posted today (${X_ALREADY_TODAY}); skipping to avoid a double-post."
+elif [ "$X_ENABLED" = "true" ]; then
   echo "Posting X..."
   /usr/bin/python3 <<PYEOF
 import re, sys
