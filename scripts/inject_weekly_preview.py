@@ -228,7 +228,36 @@ def render_preview(weekly: dict, edition_path: str) -> str:
     )
 
 
+def _strip_removed_sections(html: str) -> str:
+    """Strip any China-brief sections that were removed 2026-05-27 per operator
+    but that the synth might still try to produce (Strategic Backdrop,
+    Five-Year Plan, summit transcript). Defensive — if the synth follows
+    its prompt, these are no-ops."""
+    patterns = [
+        # Strategic Backdrop wrapper (filled OR empty)
+        r'\n?\s*<details class="collapsible-details"[^>]*>\s*<summary[^>]*>Strategic Backdrop</summary>[\s\S]*?</details>\n?',
+        # Five-Year Plan wrapper
+        r'\n?\s*<details class="collapsible-details"[^>]*>\s*<summary[^>]*>Five-Year Plan</summary>[\s\S]*?</details>\n?',
+        # Bare h3 + content (in case synth omits the collapsible wrapper)
+        r'\n?\s*<h3 class="section-label">Strategic Backdrop</h3>\s*<div class="backdrop">[\s\S]+?</div>\n?',
+        r'\n?\s*<h3 class="section-label">Five-Year Plan</h3>\s*<article class="fyp">[\s\S]+?</article>\n?',
+        # Orphan div.backdrop with no preceding h3
+        r'\n?\s*<div class="backdrop">[\s\S]+?</div>\n?',
+        # Orphan article.fyp with no preceding h3
+        r'\n?\s*<article class="fyp">[\s\S]+?</article>\n?',
+        # Summit transcript section (display:none-hidden, but still in DOM)
+        r'\n?\s*<section class="transcript"[^>]*>[\s\S]+?</section>\n?',
+    ]
+    for pat in patterns:
+        html = re.sub(pat, '\n', html, count=1, flags=re.DOTALL)
+    return html
+
+
 def inject(daily_html: str, weekly: dict, edition_path: str) -> str:
+    # Strip any deprecated sections the synth might still produce (Strategic
+    # Backdrop, Five-Year Plan, transcript). All removed 2026-05-27.
+    daily_html = _strip_removed_sections(daily_html)
+
     # Remove any previously-injected preview (legacy <p class="weekly-preview">
     # OR new <div class="weekly-preview"> block)
     daily_html = re.sub(
