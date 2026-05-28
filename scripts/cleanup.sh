@@ -43,6 +43,27 @@ echo "════════════════════════�
 echo "Cleanup starting at $(date) — retention: ${RETENTION_DAYS} days, dry-run: ${DRY_RUN}"
 echo "═══════════════════════════════════════════════════════════════"
 
+# ── Filesystem rotation (runs regardless of DB state) ───────────────────────
+# logs/ accrues one dated file per job per day; .run/ accrues stray *.log
+# scratch. Prune by age so incident forensics stays a fast scan, not an mtime
+# hunt across hundreds of files. NOTE: live .run state (*.html/.json/.md/.py)
+# is deliberately NOT touched — only *.log there. Today's files (mtime now)
+# and the constantly-appended daemon logs are always younger than the window.
+LOG_RETENTION_DAYS=14
+RUN_LOG_RETENTION_DAYS=7
+echo ""
+echo "--- Filesystem rotation (logs/ >${LOG_RETENTION_DAYS}d, .run/*.log >${RUN_LOG_RETENTION_DAYS}d) ---"
+n_logs=$(find "$LOG_DIR" -type f -mtime +${LOG_RETENTION_DAYS} 2>/dev/null | wc -l | tr -d ' ')
+n_runlogs=$(find "$REPO/.run" -maxdepth 1 -type f -name '*.log' -mtime +${RUN_LOG_RETENTION_DAYS} 2>/dev/null | wc -l | tr -d ' ')
+echo "candidates — logs/: ${n_logs} file(s), .run/*.log: ${n_runlogs} file(s)"
+if [ "$DRY_RUN" = "true" ]; then
+  echo "DRY RUN — no files deleted."
+else
+  find "$LOG_DIR" -type f -mtime +${LOG_RETENTION_DAYS} -delete 2>/dev/null || true
+  find "$REPO/.run" -maxdepth 1 -type f -name '*.log' -mtime +${RUN_LOG_RETENTION_DAYS} -delete 2>/dev/null || true
+  echo "Pruned ${n_logs} log(s) + ${n_runlogs} run-log(s)."
+fi
+
 if ! "$DOCKER" ps --format '{{.Names}}' | grep -q briefer_postgres; then
   echo "ERROR: briefer_postgres not running — bailing"
   exit 0

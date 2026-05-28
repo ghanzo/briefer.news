@@ -27,7 +27,7 @@ DRAFTS_OUT="$LOG_DIR/drafts-${TODAY}.md"
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
 
-# Load only the env flags we care about — `source` fails on .env values
+# Load only the env flags we care about — 'source' fails on .env values
 # with unquoted spaces (e.g. EMAIL_FROM_NAME=Briefer News). Grep the
 # specific keys we need.
 get_env() {

@@ -41,7 +41,7 @@ echo "════════════════════════�
 # — never backticks — for real command substitution. Any backtick is a bug.
 echo ""
 echo "[1] heredoc backtick lint"
-for f in synthesize.sh synthesize_china.sh weekly.sh; do
+for f in synthesize.sh synthesize_china.sh weekly.sh morning_brief.sh drafter.sh researcher.sh china_world_context.sh; do
   if [ ! -f "scripts/$f" ]; then
     fail "scripts/$f missing"
     continue

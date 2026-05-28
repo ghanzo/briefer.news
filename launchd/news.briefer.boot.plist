@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>news.briefer.boot</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/maxgoshay/code/briefernewsapp/scripts/boot.sh</string>
+  </array>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/launchd-boot.out</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/launchd-boot.err</string>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/maxgoshay/code/briefernewsapp</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/maxgoshay/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>/Users/maxgoshay</string>
+  </dict>
+</dict>
+</plist>

@@ -90,7 +90,7 @@ one sentence and move on — don't pad.
 Then surface today's mechanical **site-quality score** from
 data.site_quality (both US and China have a .score_pct out of 100, plus
 itemized checks). Format the score line like:
-  "Site quality: US 100% (8/8), China 87% (7/8) — `outside_gate_present`
+  "Site quality: US 100% (8/8), China 87% (7/8) — 'outside_gate_present'
   failed (expected, sources parked)."
 If any non-conditional check failed, NAME IT and explain what it means.
 The mechanical checks cover: dek banned-patterns (DEK.md), dek 30-55
@@ -123,7 +123,7 @@ items by service. Distinguish SITE costs (Route 53, S3, CloudFront,
 Cost Explorer queries) from NON-SITE costs (AWS Business Support+,
 WorkMail, anything else AWS is charging for that isn't briefer.news
 infrastructure). If a non-site cost is dominant, flag it explicitly
-("$N of MTD is X, which isn't site-related — consider cancelling if
+("\$N of MTD is X, which isn't site-related — consider cancelling if
 unused"). Mention any offsite known costs from
 data.costs.known_offsite_costs only if non-zero or operationally
 relevant. Skip the section in one line if everything is trivial
