@@ -1,14 +1,16 @@
 #!/bin/bash
-# briefer.news daily run — Path A (scrape only, manual brief publish).
+# briefer.news daily run — the overnight scrape stage.
 # Triggered by ~/Library/LaunchAgents/news.briefer.daily.plist at 04:00 local time.
 #
 # What this does:
 #   1. Ensures Postgres is up (no-op if already running)
 #   2. Runs the standard RSS scrape (~10-60 min, ~40 sources)
 #   3. Runs the Akamai-protected scrape (~30-150 min, 6 sources, rate-limited)
+#   (the China scrape runs in the same parallel block; see below.)
 #
-# Stage 2/3 (AI synthesis) NOT yet wired — brief is published manually for now.
-# That comes later via a separate LaunchAgent calling headless Claude Code.
+# AI synthesis IS fully wired and autonomous (as of 2026-05-09): the separate
+# news.briefer.synthesize / .synthesize.china LaunchAgents call headless Claude
+# Code at 07:00 / 07:30 and deploy each brief on their own. No manual publish.
 
 set -e
 

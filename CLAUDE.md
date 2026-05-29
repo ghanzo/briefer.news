@@ -1,304 +1,199 @@
-# CLAUDE.md — Working in briefer.news
+# CLAUDE.md — Working in briefer.news  *(current as of 2026-05-28)*
 
-This file orients a fresh Claude session. Read it first.
+Orientation for a fresh Claude session. Read this, then run `make status` and
+skim **`INDEX.md`** (one-line purpose + freshness tag for every root doc).
+
+---
+
+## Start here
+
+```bash
+make status      # one-screen orientation: git state, the 16 launchd jobs,
+                 # today's live brief stamps + headline word counts, recent
+                 # logs, last alerts. Run this first every session.
+make help        # all operator targets
+```
+
+Then read `INDEX.md`. It tags every root `*.md` as [LIVE] / [REFERENCE] /
+[PLANNED] / [STALE] so you don't read a superseded plan as if it were current.
 
 ---
 
 ## What this project is
 
-**briefer.news** — a daily intelligence platform that ingests multiple governments' output, runs each through an autonomous Claude-Code pipeline, and publishes a static HTML page per edition each morning. **Live at https://briefer.news** — multi-edition since 2026-05-12, with a selector at the root, US brief at `/usa/`, and China brief at `/china/`. Owner is Max Goshay. Repo at `github.com/ghanzo/briefer.news`.
+**briefer.news** — a daily intelligence platform that ingests multiple
+governments' output, runs each edition through an autonomous Claude-Code
+pipeline, and publishes a static HTML page per edition each morning.
 
-Two products in this repo:
+**Live at https://briefer.news** — multi-edition since 2026-05-12: a selector
+at the root, US brief at `/usa/`, China brief at `/china/`. A CloudFront
+Function rewrites trailing-slash URLs (`/usa/` → `/usa/index.html`). Owner:
+Max Goshay. Repo: `github.com/ghanzo/briefer.news`.
 
-1. **`pipeline/` + `scripts/`** — the news-ingestion + autonomous synthesis stack. **This is the main, shipped product.**
-2. **`briefer/`** — a separate Click-based CLI for ingesting economic time series (FRED, Yahoo Finance) into DuckDB with AI interpretation. Companion tool, not the main product.
+Two editions ship today; the design scales to N (UK / EU / Russia planned):
+- **US edition** at `/usa/` — ~45 sources (RSS + Akamai-protected DoD), synth 07:00 PDT.
+- **China edition** at `/china/` — ~29 Chinese-gov sources, synth 07:30 PDT, English-only voices. See **`CHINA_BRIEF.md`**.
 
-The interpretive lens is in `lens.md` and `AIMS.md` — six layers in priority order: energy/resources, US-China axis, tech chokepoints, financial currents, human systems, innovation signals.
+The interpretive lens is in `lens.md` (six layers, priority order: energy/
+resources, US-China axis, tech chokepoints, financial currents, human systems,
+innovation signals).
 
-Two editions currently shipping; designed to scale to N (UK, EU, Russia, etc.):
-- **US edition** at `/usa/` — 45 sources (39 RSS + 6 Akamai-protected DoD), synth at 07:00 PDT
-- **China edition** at `/china/` — 27 Chinese-gov sources, synth at 07:30 PDT, bilingual voices format. See **`CHINA_BRIEF.md`** for editorial framing.
-
----
-
-## Where we are (current build stage — updated 2026-05-12)
-
-| Stage | Status |
-|---|---|
-| **1. Source foundation (US gov)** | **Done** — 45 active US-gov + allied sources scraping daily |
-| **2. Pipeline validation** | **Done** — autonomous scrape runs at 04:00 PDT every day |
-| **3. AI synthesis (US)** | **Done — autonomous via Claude Code headless.** SQL pre-filter → picker → synthesizer, with world-context layer. Brief generated 07:00 PDT daily, deployed to `/usa/`. |
-| **4. Editorial output** | **Done** — dark-mode default, accessibility-first headlines, 9-bullet/3-voice format locked. China brief uses bilingual voices (Chinese verbatim + English translation), 12-word headline cap, 25-word bullet cap. |
-| **5. Operations** | **Done** — three LaunchAgents on M4 mini, parallel scrapes + cleanup + per-edition publish to S3 + CloudFront invalidation. AWS deployment complete. |
-| **6. China-source brief** | **Done — live at briefer.news/china/.** 27 sources, autonomous synth at 07:30 PDT. Bilingual voices, MFA picker quota, internal-evolution editorial framing. See `CHINA_BRIEF.md`. |
-| **7. Multi-edition platform** | **Done — live since 2026-05-12.** Selector at `/`, US at `/usa/`, China at `/china/`, CloudFront Function rewrites trailing-slash URLs. Designed to scale to N editions. |
-| **8. Expansion** | Deferred — additional country editions (UK / EU / Russia per selector mockup), commercial sources, data APIs |
-
-**Critical principle (still applies):** *Don't add more sources without seeing the pipeline output first.* The user-facing test is the daily brief, not a probe count.
+> The old `briefer/` econ-CLI predecessor has been **archived** to
+> `archive/briefer-cli/`. It is no longer part of this repo's product.
 
 ---
 
-## How the autonomous flow runs
+## Synthesis is FULLY AUTONOMOUS
 
-Three LaunchAgents on the M4 Mac mini at home:
+There is no manual brief-publish step. Both editions generate and deploy
+themselves end-to-end via headless Claude Code (`claude -p`), every morning,
+with no human in the loop:
 
-| Time (PDT) | LaunchAgent | What runs |
-|---|---|---|
-| 04:00 | `news.briefer.daily` | `scripts/daily.sh` → **3 scrapes in parallel** (standard 39 RSS / Akamai 6 sources / China 27 sources, each backgrounded with `&` then `wait`d, output prefixed `[rss]`/`[akamai]`/`[china]`) → cleanup (7-day retention) |
-| 07:00 | `news.briefer.synthesize` | `scripts/synthesize.sh` → world-context (Claude WebSearch, Stage 0) → SQL pre-filter (200 candidates) → Claude picker (~50) → SQL fetch full text → Claude synthesizer → deploy to local nginx `/usa/` + S3 `/usa/` + CloudFront invalidation |
-| 07:30 | `news.briefer.synthesize.china` | `scripts/synthesize_china.sh` → SQL pre-filter (175 internal-evolution slots + 25 reserved MFA slots, sub-quota 15 Daily Press Conf / 10 Foreign Minister Activities) → Claude picker (≥6 MFA required, internal-evolution priority) → SQL fetch full text → Claude synthesizer (bilingual voices, diplomatic-glossary calibration, 12-word headline cap, 25-word bullet cap) → deploy to local nginx `/china/` + S3 `/china/` + CloudFront invalidation |
+- `scripts/synthesize.sh` (07:00 PDT) — US brief → `/usa/`
+- `scripts/synthesize_china.sh` (07:30 PDT) — China brief → `/china/`
 
-Logs land in `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, and `logs/synthesize-china-YYYYMMDD.log`. Failures are non-fatal — yesterday's brief stays live until the next successful synth.
+Each: world-context (Claude WebSearch, Stage 0) → SQL pre-filter → Claude
+picker (~50 items) → SQL fetch full text → Claude synthesizer → deploy to
+local nginx + S3 + CloudFront invalidation. Failures are non-fatal: yesterday's
+brief stays live until the next successful synth, and `synth_catchup.sh` /
+`healthcheck.py` cover a missed run.
 
-**Why the M4 mini specifically:** Akamai bot detection on DoD `.mil` subdomains (war.gov, centcom.mil, navy.mil, jcs.mil, af.mil) blocks cloud datacenter IPs. The mini's residential ISP makes the curl_cffi Chrome-impersonation bypass actually work. **Production cannot move off-mini without paid residential proxies (~$50-100/mo).**
-
----
-
-## Source counts
-
-### US edition (45 active)
-- **39 active standard RSS / web-scrape sources** in `pipeline/config/sources.yaml` — State Dept regional desks, DoD, Federal Reserve, Treasury, USTR, GAO, DOJ NS, CISA, Federal Register (×2), CBP, DOJ OPA, FBI National, CFPB, BLS, BEA, CBO, NY Fed Liberty Street, GovInfo (3), Court of Appeals (2), EIA, plus international (BBC/AJ/DW/Yonhap/AllAfrica/UK/Kremlin/TASS/UN/WHO/IAEA), commercial (OilPrice, Mining.com, Hacker News).
-- **6 active Akamai-protected sources** in `pipeline/config/akamai_sources.yaml` — DOD War.gov, CENTCOM, Navy.mil, JCS, U.S. Air Force, UK MoD. Scraped via `--akamai-only` stage with curl_cffi TLS-impersonation. ~50 articles/day (mostly de-dup; UK MoD is the highest-yield).
-
-### China edition (27 active)
-- **27 active Chinese-government sources** in `pipeline/config/china_sources.yaml` — MFA Daily Press Conference + MFA News, State Council Policies + Yaowen, Xinhua News (homepage) + Xinhua Politics—Leaders, NDRC, PBOC, MOF, MIIT, CAC, Stats Bureau, Qiushi (Party theory), CCDI (anti-corruption), NPC, Supreme People's Court, Supreme People's Procuracy, CSRC, SAFE, SASAC, People's Daily Politics + Opinion, CPC News, Shanghai/Beijing/Guangdong/Zhejiang governments. Three held (`active: false`): SCIO, NFRA, Customs.
-- Scraped via `--china-only` stage with curl_cffi (same TLS impersonation as Akamai layer). ~150-200 articles/day after dedup.
-
-### Total
-- **72 active sources** producing **~200-300 net new articles/day** after dedup across both editions.
-- Held sources (`active: false`) remain in yaml ready to enable later.
+(Any older doc or comment claiming "AI synthesis NOT yet wired" / "manual brief
+publish" / "Path A only" is stale — it has been autonomous since 2026-05-09.)
 
 ---
 
-## Editorial framework (key files)
+## The 16 LaunchAgents
 
-| File | Purpose |
-|---|---|
-| `BRIEF_STYLE.md` | Editorial style guide. **Read end-to-end before any synthesis.** Includes the load-bearing **Accessibility rule** for headlines (replace acronyms with plain descriptors, dinner-party readability test). |
-| `lens.md` | Interpretive framework (6 layers, US-China-axis-aware) |
-| `AIMS.md` | Long-arc themes and predictions |
-| `COVERAGE.md` | Thematic dimensions / categories |
-| `research/prototype_2026-05-07.html` | The visual template the synthesizer mirrors. **Defaults to `theme-ink` (dark mode).** Picker default = Dark, JS fallback = ink. |
-| `CHINA_BRIEF.md` | Companion editorial doc for the China-source brief |
+The running schedule is **16 LaunchAgents** on the M4 Mac mini at home. They
+are now committed in **`launchd/`** (source of truth) and synced to
+`~/Library/LaunchAgents` via **`scripts/install_launchagents.sh`**:
 
-Brief format (locked):
-- **9 bullets** per brief in priority order
-- **3 voices** as `<blockquote class="pull">`, 12-30 words each, mix of registers, **never invent a quote**
-- **Headline**: 12-16 words, ONE OR TWO CLEAR ACTIONS MAX, plain English, **no jargon** (GAESA → "Cuba's military business arm"; DFARS → "Pentagon foreign-ownership rule"; FY27 → "2027 budget")
-- **≤2 DOJ items**, **≤3 purely-domestic items** of 9
-- Each bullet: bold lead (2-4 words), tight description, citation `<sup>`, `<span class="when">Date · Agency</span>`
-
----
-
-## Architecture map
-
-```
-briefernewsapp/
-├── CLAUDE.md                       ← you are here
-├── README.md                       ← public-facing project overview
-├── BRIEF_STYLE.md                  ← editorial style guide (READ before any synthesis)
-├── CHINA_BRIEF.md                  ← China-side editorial + status (NEW 2026-05-10)
-├── lens.md                         ← interpretive framework
-├── AIMS.md                         ← long-arc themes
-├── COVERAGE.md                     ← thematic dimensions
-├── MIGRATION.md                    ← M4 mini deployment runbook (HISTORICAL — done; see Postmortem section at bottom)
-├── PLAN_AUTOMATION.md              ← original deployment plan (HISTORICAL / superseded)
-├── PLAN_PROCESSING.md              ← earlier processing plan (HISTORICAL / superseded)
-├── PLAN_SUMMARIZATION.md           ← earliest summarization sketch (HISTORICAL / superseded)
-├── SOURCES.md / SOURCE_NOTES.md    ← per-source operational notes (US gov)
-├── SOURCES_MATRIX.md / SOURCES_PLAN.md  ← regional + aspirational source planning
-├── DESIGN_REFERENCES.md            ← visual / typographic references
-├── docker-compose.yml              ← postgres + adminer + nginx + (manual-profile) pipeline
-├── .env.example                    ← required env vars (real .env is gitignored)
-├── aws-support-case-body.md        ← saved AWS Support case body (used for the Amplify resolution)
-│
-├── scripts/                        ← OPERATIONAL SCRIPTS — LaunchAgent targets
-│   ├── daily.sh                    ← 04:00 — parallel scrapes (rss + akamai + china) + cleanup
-│   ├── synthesize.sh               ← 07:00 — US synth → /usa/
-│   ├── synthesize_china.sh         ← 07:30 — China synth → /china/ (bilingual voices)
-│   ├── cleanup.sh                  ← 7-day article retention (called from daily.sh)
-│   └── world_context.sh            ← Claude WebSearch → ambient global-narrative file
-│
-├── pipeline/                       ← scraping + DB + (legacy) processor
-│   ├── main.py                     ← orchestrator (--scrape-only / --akamai-only / --china-only / --run-now)
-│   ├── scheduler.py                ← legacy in-container APScheduler (NOT used in production — pipeline service is profile-tagged)
-│   ├── config/sources.yaml         ← SOURCE OF TRUTH for standard scrape (39 active)
-│   ├── config/akamai_sources.yaml  ← SOURCE OF TRUTH for Akamai-protected scrape (6 active)
-│   ├── config/china_sources.yaml   ← SOURCE OF TRUTH for China gov scrape (NEW 2026-05-10, 23 active)
-│   ├── scraper/
-│   │   ├── discovery.py            ← RSS + Playwright link discovery (standard sources)
-│   │   ├── extractor.py            ← article extraction (trafilatura/BS4/playwright)
-│   │   ├── browser.py              ← Playwright singleton manager
-│   │   ├── akamai_bypass.py        ← curl_cffi TLS-impersonation fetch
-│   │   ├── akamai_scrape.py        ← orchestrator for Akamai-protected sources
-│   │   └── china_scrape.py         ← orchestrator for China gov sources (NEW 2026-05-10)
-│   ├── processor/                  ← LEGACY — pre-Claude-Code AI integrations (Grok / Gemini / Claude API)
-│   │                                  Not used in current production flow. synthesize.sh uses headless `claude -p`.
-│   ├── builder/                    ← LEGACY — Jinja2 templates (older render path)
-│   ├── db/models.py                ← SQLAlchemy: Source, Article, ArticleSummary, DailyBriefing, etc.
-│   └── output/                     ← legacy render output (production uses /Users/maxgoshay/code/briefernewsapp/.run/)
-│
-├── briefer/                        ← companion CLI for econ time series (FRED + Yahoo)
-│
-├── research/                       ← design references, sample briefs, probe scripts
-│   ├── prototype_2026-05-06.html   ← original LIVE site prototype (kept for reference)
-│   ├── prototype_2026-05-07.html   ← original US visual template (kept; superseded)
-│   ├── prototype_us_2026-05-12.html      ← CURRENT US template (nav strip baked in)
-│   ├── prototype_china_2026-05-12.html   ← CURRENT China template (red theme, PRC-flag SVG, nav strip)
-│   ├── prototype_selector_2026-05-12.html ← CURRENT home selector page (two-card layout, JS fetches headlines from each edition)
-│   ├── brief_2026-05-06.md         ← May 6 hand-written brief (markdown)
-│   ├── brief_2026-05-07.md         ← May 7 hand-written brief (markdown)
-│   ├── brief_2026-05-07.5_wider-lens.md ← A/B comparison: gov + news outlets
-│   ├── source_gap_analysis_2026-05-07.md ← analysis of what gov-only misses
-│   ├── dod_bypass_findings_2026-05-07.md ← Akamai bypass research
-│   └── (probe and debug scripts)
-│
-├── nginx/nginx.conf
-├── pgadmin/                        ← (legacy admin UI)
-└── logs/                           ← per-day operational logs (gitignored)
-    └── (.run/ for synth intermediates, also gitignored)
-```
-
----
-
-## Recent non-obvious decisions
-
-### 2026-05-12 (multi-edition launch + China brief autonomous)
-
-1. **Site restructured to multi-edition.** Root `/` is now a selector page (two cards, JS fetches today's headline from each edition); US brief moved from `/` to `/usa/`; China brief at `/china/`. Existing `/archive/` preserved as a backstop; new daily archives go to `/usa/archive/` and `/china/archive/`. Designed to scale to N editions (UK / EU / Russia listed as "coming soon" on selector).
-2. **CloudFront Function added** `briefer-news-index-rewrite` (viewer-request, runtime `cloudfront-js-2.0`) to rewrite `/<dir>/` → `/<dir>/index.html`. Without it, `/usa/` and `/china/` would return CloudFront 403 (S3 has no directory-index support). One-time setup; persistent.
-3. **China brief shipped autonomous.** `scripts/synthesize_china.sh` built and a new LaunchAgent `news.briefer.synthesize.china` runs at 07:30 PDT. Two non-obvious editorial decisions baked into the script:
-   - **MFA quota in SQL pre-filter.** Pure priority-ordered ranking crowded out MFA (priority 5) entirely. Fix: split into two CTEs — 175 internal-evolution slots + 25 reserved MFA slots (sub-quota 15 Daily Press Conf + 10 Foreign Minister Activities so the more-recently-scraped feed doesn't shut out the other).
-   - **Hard ≥6 MFA requirement in picker prompt.** Even with MFA in the candidate pool, the picker was reading "MFA should not dominate" as "skip MFA." Replaced with "MUST include ≥6 MFA picks across spokespersons — required for voices."
-4. **`scripts/daily.sh` parallelized.** Three scrapes (`--scrape-only`, `--akamai-only`, `--china-only`) now run concurrently with `&` + `wait`, log lines prefixed `[rss]`/`[akamai]`/`[china]`, individual exit codes reported. Saves ~30 min wall time. Concurrent docker containers + DB connections handled fine by M4 + Postgres.
-5. **Bilingual voices format (China side only).** Each voice in `<blockquote class="pull">` contains verbatim Chinese followed by `<em>`-wrapped English translation. Diplomatic-glossary calibration table inline in the synth prompt (关切→"concerned"; 严重关切→"grave concern"; 坚决反对→"firmly opposes"; etc.) — synthesizer must use the calibrated form, not flat literal translation.
-6. **Per-edition color identity.** US keeps original sepia/orange (`--sepia: #C45842`). China is red on warm dark (`--sepia: #C8252A`, `--paper: #15100F`). Selector page is neutral warm-dark (`--sepia: #B5A88E`) so no edition has color primacy. PRC-flag SVG (5 yellow circles on red rectangle) replaces US-flag SVG on China masthead.
-
-### 2026-05-10 (briefer.news LIVE; China brief sources scaffolded)
-
-1. **AWS Amplify CNAME conflict resolved.** The `briefer.news` / `www.briefer.news` aliases were trapped on an Amplify-managed CloudFront distribution in our own us-east-2 (account `462170975634`, app `d3gh6znsloy9bt` named "briefer"). `cloudfront list-conflicting-aliases` masks the source account ID, so we couldn't locate it ourselves — AWS Support (Amplify team, Kajal G.) used internal tooling to find it. Fix: `aws amplify delete-domain-association --app-id d3gh6znsloy9bt --domain-name briefer.news --region us-east-2`, then `aws cloudfront associate-alias --target-distribution-id EMV1VIFYTSI3U --alias briefer.news` (and same for www). Total resolution: ~30 seconds of CLI once we knew where to look.
-2. **China-source brief sources scaffolded.** `pipeline/config/china_sources.yaml` defines 23 active sources (MFA, State Council, Xinhua, NDRC, PBOC, MOF, MIIT, CAC, Stats Bureau, CCDI, NPC, Qiushi, Court, Procuracy, CSRC, SAFE, SASAC, Shanghai/Beijing/Guangdong/Zhejiang). Three held (SCIO/NFRA/Customs) for follow-up. `pipeline/scraper/china_scrape.py` mirrors the akamai pattern, adds bespoke MFA discovery + custom selectors (`pages_content`, `detail`). First scrape captured 499 articles across 11 sources (the other 12 sources have URL-pattern regex misses to fix). See `CHINA_BRIEF.md` for full state.
-
-### 2026-05-09 (autonomous flow validated; world context added)
-
-1. **First fully autonomous run worked end-to-end.** 04:00 scrape, 07:00 synth, fresh brief at http://localhost. No manual intervention needed. **The Path A → Path B leap (manual brief → autonomous AI synth) happened ahead of plan.**
-2. **World-context layer added** as Stage 0 of `synthesize.sh`. `scripts/world_context.sh` runs Claude with WebSearch enabled (requires `--allowedTools WebSearch WebFetch Read Write Edit --permission-mode acceptEdits`). Output `~200 word` `world_context.md` is referenced by both picker and synthesizer prompts as **ambient signal, not directive**. The synthesizer can connect bullets to global narrative arcs without inventing facts.
-3. **Headline accessibility rule added to BRIEF_STYLE.md.** Old "no jargon like CENTCOM" was too narrow — synthesizer was letting through GAESA, FY27, DFARS, oil-graft, etc. New rule: *if you'd have to explain a term at a dinner party, rewrite it.* Explicit substitutions table baked into both BRIEF_STYLE.md and the synth prompt.
-
-### 2026-05-08 (autonomous launch + AWS infrastructure built)
-
-1. **Dark mode set as default.** `<body class="theme-ink">`, picker `.active` moved to Dark button, JS fallback theme = ink. Light still available via the toggle.
-2. **AWS deployment built.** S3 bucket `briefer-news-site` (us-east-1, private), OAC `E2XRSK5V6A89MY`, ACM cert for briefer.news + www.briefer.news, CloudFront distribution `EMV1VIFYTSI3U` at `d1sl4o5xm2ds0o.cloudfront.net`, Route 53 alias A-records pre-staged.
-3. **AWS account split discovered**. Domain registered in `026090521469` (max@max.goshay@gmail.com); deployment account is `462170975634` (max@ghanzo@gmail.com). Both stay; nameservers updated to point at the deployment account's hosted zone `Z07630701MT6TMX2WHCGE`.
-4. **AWS pipeline service profile-tagged.** `docker-compose.yml`'s `pipeline` service was originally `restart: unless-stopped` and got auto-started by nginx's `depends_on`, which fired the in-container APScheduler — competing with the LaunchAgent. Fix: `profiles: [manual]`, removed restart policy, removed nginx's depends_on. Pipeline image still used via `docker compose run --rm pipeline …`.
-5. **`scripts/synthesize.sh` Stage 6 publishes to S3 + CloudFront** automatically. Non-fatal on AWS errors (local site still publishes if AWS is down).
-6. **AWS Support upgrade required**: filing Technical cases requires Business+ ($29/mo). Subscribe → file → downgrade pattern is fine. **AWS rebranded "Developer Support" to "Business+"** at the same $29 price point.
-
-### 2026-05-07 (Akamai bypass + brief format + automation plan)
-
-(Preserved from prior CLAUDE.md — still relevant.)
-
-1. **Akamai bypass is curl_cffi + Chrome TLS impersonation, free.** Confirmed working from a residential IP for war.gov, centcom.mil, navy.mil, jcs.mil, af.mil. NOT working from cloud datacenter IPs. See `pipeline/scraper/akamai_bypass.py`.
-2. **DoD subdomains use DotNetNuke ArticleCS GetList API**. Module IDs: war.gov=2842, centcom.mil=1144, navy.mil=4025, jcs.mil=8253, af.mil=811.
-3. **Rate limiting per Akamai domain: 90-180s** between fetches. See `_DOMAIN_INTERVALS` in `akamai_bypass.py`.
-4. **Brief format locked at 9 bullets, 3 voices** (down from initial 16-bullet attempts).
-5. **International audience by default** — domestic-only items capped at 3 of 9 bullets; DOJ items capped at 2 of 9.
-6. **Gov-only sourcing chosen for trust posture** (vs. gov+news A/B in `research/brief_2026-05-07.5_wider-lens.md`).
-7. **Original AWS infrastructure cleaned up.** Account dropped from $5.67/mo to $0.50/mo.
-
-### 2026-05-05 (initial source foundation)
-
-1. **WH URL was rebased** from `/briefing-room/` → `/news/` (covers all 4 content sections).
-2. **DOJ Antitrust at `/atr/press-room-0`** (trailing `-0` is Drupal node-disambiguation).
-3. **ARPA-E `link_pattern` MUST have trailing slash** (`/news-and-insights/`).
-4. **`scraper/browser.py` `playwright_fetch` only waits for `networkidle`** — sites with perpetual background JS time out at 30s.
-
----
-
-## Where to start reading (priority order, for new agents)
-
-### If you have time for 3 docs:
-1. **`CLAUDE.md`** (this file) — orientation
-2. **`BRIEF_STYLE.md`** — editorial style guide; mandatory before any synthesis
-3. **`CHINA_BRIEF.md`** — if your work touches the China side
-
-### If you have time for more:
-4. `lens.md` — interpretive framework (still load-bearing)
-5. `scripts/synthesize.sh` — current synth pipeline (skim Stage 0-6 structure)
-6. `scripts/daily.sh` — current scrape pipeline
-7. `MIGRATION.md` — historical deployment runbook + Postmortem at bottom
-8. `pipeline/main.py` — orchestrator entry point (--scrape-only / --akamai-only / --china-only)
-9. `pipeline/scraper/akamai_bypass.py` + `akamai_scrape.py` — Akamai-source layer
-10. `pipeline/scraper/china_scrape.py` — China-source layer (NEW)
-11. `pipeline/db/models.py` — DB schema
-12. `research/brief_2026-05-07.md` — example hand-written brief
-
-### Skip unless specifically relevant:
-- `PLAN_AUTOMATION.md`, `PLAN_PROCESSING.md`, `PLAN_SUMMARIZATION.md` (historical / superseded)
-- `pipeline/processor/` (legacy AI integrations not used in production)
-- `pipeline/builder/` (legacy Jinja2 path not used in production)
-
----
-
-## Operational notes
-
-### Running things manually
 ```bash
-# Standard scrape (39 RSS, ~10 min):
-docker compose run --rm pipeline python main.py --scrape-only
-
-# Akamai-protected scrape (6 sources, ~30-60 min):
-docker compose run --rm pipeline python main.py --akamai-only
-
-# China gov scrape (23 sources, ~2-3h on first run):
-docker compose run --rm pipeline python main.py --china-only
-
-# Manual brief synthesis (the autonomous LaunchAgent at 07:00 calls this):
-scripts/synthesize.sh
-
-# Manual cleanup (7-day retention; runs as part of daily.sh):
-scripts/cleanup.sh
-
-# Generate world context (Stage 0 of synth):
-scripts/world_context.sh
-
-# Inspect a LaunchAgent's status:
-launchctl list | grep briefer
-launchctl print gui/$(id -u)/news.briefer.daily
-
-# Manually trigger a LaunchAgent (skips schedule wait):
-launchctl start news.briefer.daily
-launchctl start news.briefer.synthesize
-launchctl start news.briefer.synthesize.china
-
-# Manual China brief synthesis:
-scripts/synthesize_china.sh
+make agents-status     # diff repo launchd/ vs live ~/Library/LaunchAgents
+make agents-export     # live -> repo (after editing an agent by hand; then commit)
+make agents-install    # repo -> live (fresh machine / disk loss recovery)
 ```
 
-### Docker stack
-- `docker compose up -d` brings up `postgres` (5433) + `adminer` (5050) + `nginx` (80). The `pipeline` service is profile-tagged (`profiles: [manual]`) so it does NOT auto-start; only ephemeral `docker compose run --rm pipeline …` invocations.
-- Pipeline image needs `curl_cffi` (in `requirements.txt`).
-- nginx serves the local site at `http://localhost`; same content also published to S3 + CloudFront for `https://briefer.news`.
+| Time (PDT) | LaunchAgent | Target | What it does |
+|---|---|---|---|
+| boot / login | `news.briefer.boot` | `boot.sh` | bring-up at login (docker, nginx) |
+| boot, KeepAlive | `news.briefer.email_api` | `email_api_server.py` | long-running subscriber API (signup/unsubscribe) |
+| every 10 min | `news.briefer.email_bounce_handler` | `email_bounce_handler.py` | poll SQS for SES bounces/complaints |
+| 04:00 | `news.briefer.daily` | `daily.sh` | 3 scrapes in parallel (rss + akamai + china) + cleanup |
+| 07:00 | `news.briefer.synthesize` | `synthesize.sh` | **autonomous US synth → /usa/** |
+| 07:30 | `news.briefer.synthesize.china` | `synthesize_china.sh` | **autonomous China synth → /china/** |
+| 08:00 | `news.briefer.digests` | `daily_digests.sh` | refresh rolling 7-day digest pages |
+| 08:30 | `news.briefer.morningbrief` | `morning_brief.sh` | daily site-state report |
+| 08:30 | `news.briefer.email_send` | `email_send.py` | daily email send pipeline |
+| 09:00 | `news.briefer.drafter` | `drafter.sh` | draft + auto-post growth/social copy |
+| 09:30 | `news.briefer.healthcheck` | `healthcheck.py` | verify both briefs published today; alert if stale |
+| 10:00 | `news.briefer.engagement` | `x_engagement_collector.py` | snapshot X-post engagement (10:00 + 16:00) |
+| 10:00 | `news.briefer.trafficreport` | `traffic_report_daily.sh`* | daily CloudFront traffic snapshot |
+| 18:00 | `news.briefer.researcher` | `researcher.sh` | research what's driving traffic / channels |
+| Sun 10:00 | `news.briefer.analyzer` | `analyzer.sh` | weekly growth analysis |
+| Mon 09:00 | `news.briefer.searchreport` | `search_report_weekly.sh` | weekly Search Console snapshot |
 
-### YAML validation
-Always validate after editing source yamls:
+\* `news.briefer.trafficreport` runs `scripts/traffic_report_daily.sh`, which wraps `traffic_report.py`.
+
+Logs land in `logs/` (gitignored): `daily-YYYYMMDD.log`, `synthesize-*.log`,
+plus per-agent `*.out.log` / `*.err.log`, and `alerts.log`.
+
+**Why the M4 mini specifically:** Akamai bot detection on DoD `.mil` subdomains
+blocks cloud datacenter IPs. The mini's residential ISP makes the curl_cffi
+Chrome-impersonation bypass work. Production cannot move off-mini without paid
+residential proxies (~$50-100/mo).
+
+---
+
+## Brief pipeline overview
+
+1. **Scrape (04:00).** `daily.sh` runs three scrapes concurrently — standard
+   RSS, Akamai-protected DoD (`pipeline/scraper/akamai_bypass.py` curl_cffi TLS
+   impersonation), and China gov (`pipeline/scraper/china_scrape.py`) — then
+   7-day cleanup. Articles land in Postgres.
+2. **Pre-filter.** SQL ranks candidates per edition (China uses a two-pool
+   design: internal-evolution slots + reserved MFA voice slots).
+3. **Pick.** Claude picker selects ~50 of the most consequential items.
+4. **Synthesize.** Claude renders the brief HTML to the `prototype_*_2026-05-12.html`
+   template, following `BRIEF_STYLE.md` (US) / `CHINA_BRIEF.md` + `DEK.md` (China-side voice).
+5. **Validate + deploy.** `validate_brief.py` gates structure; deploy to nginx
+   + S3 + CloudFront invalidation.
+
+Brief structure (both editions, **as of 2026-05-28**):
+Headline → **Today's events** → **This week** → **Allied Governments** (US only)
+→ **Voices** → **Sources**.
+
+> **The on-page dek and the continuity / thread "chip" strip were REMOVED
+> 2026-05-27 and are staying removed.** The dek's plain-English, outcome-over-
+> process rules in `DEK.md` now apply to the **top-3 event ledes**, not to a
+> separate dek element. Any doc still describing a live `<ul class="dek-bullets">`
+> or a Day-N thread strip is describing removed UI (see `INDEX.md` tags).
+
+---
+
+## Ops tooling (new this session)
+
+| Tool | Purpose |
+|---|---|
+| `Makefile` (`make status`) | operator entry point — one-screen orientation + standard verbs |
+| `scripts/brief_parser.py` | single source of truth for reading a rendered brief into structured data (~12 consumers) |
+| `scripts/validate_brief.py` | post-synth editorial-contract gate (stamp, headline, structure) |
+| `scripts/alert.sh` | the single off-box notifier (the only alerting that leaves the mini) |
+| `scripts/install_launchagents.sh` | sync `launchd/` ⇄ live agents; rebuild schedule from git |
+| `scripts/post_guard.py` | shared lock + length budget for the X posting path |
+| `scripts/x_cost_log.py` | append-only X API credit ledger (`make x-costs`) |
+| `scripts/preflight.sh` | pre-synth health check (`make preflight`) |
+| `tests/` | `python3 -m unittest discover -s tests` — brief_parser regression tests against frozen renders |
+
+---
+
+## Deploy model
+
+Static site → **S3 + CloudFront**, in AWS account `462170975634`. Synth scripts
+deploy automatically (Stage 6): copy to S3 (`briefer-news-site`, us-east-1,
+private, OAC), invalidate CloudFront (`EMV1VIFYTSI3U`). Non-fatal on AWS errors —
+the local nginx site still publishes.
+
+- The domain is **registered in a separate AWS account** (`026090521469`); the
+  `registrar` AWS CLI profile holds its creds. Deployment infra is all in
+  `462170975634` (`default` profile).
+- Root `/` is the selector; `/usa/` and `/china/` are the briefs; a CloudFront
+  Function (`briefer-news-index-rewrite`, viewer-request) rewrites `/<dir>/` →
+  `/<dir>/index.html`.
+
+```bash
+make synth          # run US synth + deploy   ** DEPLOYS LIVE **
+make synth-china    # run China synth + deploy ** DEPLOYS LIVE **
+make preview        # validate live briefs (read-only)
+make healthcheck    # stale-brief check
+```
+
+---
+
+## Docker stack
+
+`docker compose up -d` brings up `postgres` (5433) + `adminer` (5050) + `nginx`
+(80). The `pipeline` service is profile-tagged (`profiles: [manual]`) so it does
+NOT auto-start; it's invoked on demand via `docker compose run --rm pipeline …`.
+Validate source yamls after editing:
+
 ```bash
 python -c "import yaml; yaml.safe_load(open('pipeline/config/sources.yaml'))"
 python -c "import yaml; yaml.safe_load(open('pipeline/config/akamai_sources.yaml'))"
 python -c "import yaml; yaml.safe_load(open('pipeline/config/china_sources.yaml'))"
 ```
 
-### AWS profiles
-- `~/.aws/credentials` has two profiles: `default` (deployment account `462170975634`, user `maxbriefer`) and `registrar` (registrar account `026090521469`, user `max`).
-- For Route 53 / S3 / CloudFront / ACM in the deployment account: default profile.
-- For Route 53 Domains (the registrar) operations: `--profile registrar`.
+---
 
-### Headless `claude -p` requirements
-The synth and world-context scripts use Claude Code in headless mode. Required flags:
-- `--allowedTools` — explicit list. WebSearch, WebFetch, Read, Write, Edit at minimum for world_context.sh; Read, Write, Edit for synthesize.sh.
-- `--permission-mode acceptEdits` — auto-accepts file writes
-- `--max-turns 40` (synth) or `25` (world_context) — enough budget for chunked file reads
-- Files outside `${REPO}/.run/` may not be readable by headless Claude (sandbox limit) — keep all intermediates in `.run/`.
+## Where to start reading
 
-### Git status as of 2026-05-12
-Multi-edition restructure shipped in commit `bc68be1 China brief edition + multi-edition restructure (/, /usa/, /china/)`. Includes `synthesize_china.sh`, parallelized `daily.sh`, US synth moved to `/usa/` deploy, three new prototypes (`prototype_us_2026-05-12.html`, `prototype_china_2026-05-12.html`, `prototype_selector_2026-05-12.html`), and 4 new China sources in `china_sources.yaml`. LaunchAgent `news.briefer.synthesize.china.plist` lives in `~/Library/LaunchAgents/` (not in repo). CloudFront Function `briefer-news-index-rewrite` lives in AWS (not in repo).
+1. **`CLAUDE.md`** (this file) + `make status` + **`INDEX.md`**
+2. **`BRIEF_STYLE.md`** — US editorial style guide; mandatory before any US synth
+3. **`CHINA_BRIEF.md`** + **`DEK.md`** — if your work touches the China side / event-lede voice
+4. `lens.md` — interpretive framework (still load-bearing)
+5. `scripts/synthesize.sh` / `scripts/synthesize_china.sh` — current synth pipelines
+6. `pipeline/main.py` — orchestrator (`--scrape-only` / `--akamai-only` / `--china-only`)
+
+Marketing/growth session? Start with `MARKETING.md` + `GROWTH.md` instead.
+Historical plans + the M4 deployment runbook now live under `archive/docs/`.

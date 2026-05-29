@@ -119,8 +119,8 @@ never mixed into the U.S.-government Events list.
 1. **Masthead** — `BRIEFER NEWS` + trust-signal tagline (`All sourcing from the U.S. government · Everything cited · News without opinion`). Small monochrome flag glyph above title.
 2. **Date stamp** — small, mono caps, top-right of body column. Format: `MAY 7, 2026`.
 3. **Headline** — one short sentence framing the day.
-4. **Dek** — the day's narrative shape, 30–55 words.
-5. **Thread strip** — small monospace chips of active long-running threads (Day 76 · Iran war, Year 5 · etc.). Omitted when there are no active threads.
+4. **Dek** — the day's narrative shape, 30–55 words. *(As of 2026-05-28: the standalone on-page dek was REMOVED 2026-05-27 and is staying removed; the dek's plain-English rules now apply to the top-3 event ledes — see `DEK.md`.)*
+5. **Thread strip** — small monospace chips of active long-running threads (Day 76 · Iran war, Year 5 · etc.). Omitted when there are no active threads. *(As of 2026-05-28: the continuity/thread chip strip was REMOVED 2026-05-27 and no longer renders.)*
 6. **Top events** — 3 bullets in priority order, the day's most consequential items. Always visible. Cite numerals 1–3.
 7. **Voices** — 3 pull-quotes visible + 3 in a `<details class="voices-extras">` drop-down inside the Voices section. Mix of registers; verbatim from articles only.
 8. **Allied Governments** — up to 3 allied-government bullets with lowercase-letter cites (a, b, c). Omitted on days with no allied material.

@@ -85,7 +85,7 @@ Verified working in v3 brief — May 12 Guo Jiakun quote correctly rendered 坚�
 | Element | Cap | Notes |
 |---|---|---|
 | Headline | **12 words max** | Single action only, no semicolons, plain English (CAC → "internet regulator", NDRC → "central planners", etc.) |
-| Dek (Day's Narrative) | 30–55 words, ≤2 sentences | Stance over scope; see `DEK.md` for the full voice spec |
+| Dek (Day's Narrative) | 30–55 words, ≤2 sentences | Stance over scope; see `DEK.md` for the full voice spec. **As of 2026-05-28: the standalone on-page dek was REMOVED 2026-05-27; the `DEK.md` rules now apply to the top-3 event ledes.** |
 | Bullet body | **25 words max** | Bold lead + one clear sentence + cite. No clause-stacking with em-dashes. No comma-chain enumeration of every measure in a policy |
 | Voices | **6** (3 visible + 3 in `<details class="voices-extras">`) | English-only; Xi-first rule; ≤30-day recency rule with strategy-anchor exception |
 | MFA spokesperson bullets | ≤2 routine denials | Picker quota guarantees MFA candidates exist |
@@ -192,7 +192,11 @@ Shanghai, Guangdong
               ├─ Stage 3: SQL fetch full text (5000 char LEFT)
               ├─ Stage 4: Claude synthesizer
               │     ├─ Headline ≤12 words; dek per DEK.md (present-tense voice)
+              │     │     [as of 2026-05-28: on-page dek REMOVED 2026-05-27;
+              │     │      DEK.md rules now apply to the top-3 event ledes]
               │     ├─ Thread strip (chips from .run/threads_china.txt)
+              │     │     [as of 2026-05-28: thread/continuity chip strip
+              │     │      REMOVED 2026-05-27; no longer renders]
               │     ├─ TOP EVENTS — 3 bullets (most consequential; cites 1-3)
               │     ├─ 6 voices (English-only); Xi-first; ≤30-day recency
               │     │   • First 3 visible

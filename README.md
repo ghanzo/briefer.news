@@ -40,7 +40,7 @@ flowchart LR
     CF --> RDR(["Reader"])
 ```
 
-**Why the mini specifically:** Akamai bot-detection on DoD `.mil` subdomains blocks cloud datacenter IPs. The mini's residential ISP is what makes the curl_cffi Chrome-impersonation bypass actually work. Verified live for war.gov, centcom.mil, navy.mil, jcs.mil, af.mil. See [`research/dod_bypass_findings_2026-05-07.md`](research/dod_bypass_findings_2026-05-07.md).
+**Why the mini specifically:** Akamai bot-detection on DoD `.mil` subdomains blocks cloud datacenter IPs. The mini's residential ISP is what makes the curl_cffi Chrome-impersonation bypass actually work. Verified live for war.gov, centcom.mil, navy.mil, jcs.mil, af.mil. See [`archive/research/dod_bypass_findings_2026-05-07.md`](archive/research/dod_bypass_findings_2026-05-07.md).
 
 ## Daily flow
 
@@ -58,13 +58,17 @@ Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesiz
 |---|---|
 | [`BRIEF_STYLE.md`](BRIEF_STYLE.md) | Style rules: 9 bullets, 3 voices, 12–16-word headline, plain English, ≤2 DOJ items, ≤3 purely-domestic items, named actors, sourced citations |
 | [`lens.md`](lens.md) | Interpretive framework: energy/resources, US-China axis, tech chokepoints, financial currents, human systems, innovation signals |
-| [`AIMS.md`](AIMS.md) | Long-arc themes and predictions |
-| [`COVERAGE.md`](COVERAGE.md) | Thematic dimensions / categories |
+| [`archive/docs/AIMS.md`](archive/docs/AIMS.md) | Long-arc themes and predictions (archived) |
+| [`archive/docs/COVERAGE.md`](archive/docs/COVERAGE.md) | Thematic dimensions / categories (archived) |
 | [`CLAUDE.md`](CLAUDE.md) | Orientation for Claude sessions working in this repo |
 
 ## Setup on a new machine
 
-For the full Mac mini deployment runbook (LaunchAgents, AWS infra, monitoring), see [`MIGRATION.md`](MIGRATION.md).
+The full schedule of **16 LaunchAgents** is committed in [`launchd/`](launchd/);
+[`scripts/install_launchagents.sh`](scripts/install_launchagents.sh) (`make
+agents-install`) reconstructs the live schedule from git on a fresh machine. The
+historical Mac mini deployment runbook is archived at
+[`archive/docs/MIGRATION.md`](archive/docs/MIGRATION.md).
 
 For local development:
 
@@ -116,7 +120,10 @@ briefer.news/
 ├── BRIEF_STYLE.md                  # editorial style guide
 ├── lens.md                         # interpretive framework
 ├── CLAUDE.md                       # orientation for Claude sessions
-└── MIGRATION.md                    # M4 mini deployment runbook
+├── INDEX.md                        # root-doc map (purpose + freshness tag)
+├── Makefile                        # operator entry point (`make status`)
+├── launchd/                        # the 16 LaunchAgents (source of truth)
+└── archive/docs/MIGRATION.md       # historical M4 mini deployment runbook
 ```
 
 ## Status snapshot

@@ -1,5 +1,10 @@
 # DEK.md — The day's synopsis (v3, 2026-05-27)
 
+> **As of 2026-05-28:** the standalone on-page dek element (`<ul class="dek-bullets">`)
+> was **removed 2026-05-27** and is staying removed. These rules are still
+> binding, but they now apply to the **top-3 visible event ledes** rather than
+> to a separate dek block. Read every "dek bullet" below as "top-3 event lede."
+
 The dek is the brief's short factual synopsis of the day. It names the
 day's most consequential events as a tight bullet list, each bullet a
 plain-English statement of fact.
