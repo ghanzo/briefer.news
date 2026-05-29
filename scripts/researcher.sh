@@ -130,20 +130,21 @@ for line in sys.stdin:
     fi
     if [ -s "$HTML_PATH" ]; then
       /usr/bin/python3 -c "
-import re
-html = open('$HTML_PATH').read()
-h = re.search(r'<h2 class=\"headline\">([\s\S]+?)</h2>', html)
-ul = re.search(r'<ul class=\"dek-bullets\">([\s\S]+?)</ul>', html)
-if ul:
-    bullets = [re.sub(r'<[^>]+>','',b).strip() for b in re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))]
-    dek = ' · '.join(b for b in bullets if b)
-else:
-    d = re.search(r'<p class=\"dek\">([\s\S]+?)</p>', html)
-    dek = re.sub(r'<[^>]+>','',d.group(1)).strip() if d else '(no dek)'
+import sys
+sys.path.insert(0, '/Users/maxgoshay/code/briefernewsapp/scripts')
+from brief_parser import parse_brief
+d = parse_brief(open('$HTML_PATH').read())
 print('### $EDITION')
-print('**' + (re.sub(r'<[^>]+>','',h.group(1)).strip() if h else '(no headline)') + '**')
+print('**' + (d['headline'] or '(no headline)') + '**')
 print('')
-print(dek)
+visible = [e for e in d['events'] if e['tier'] == 'visible']
+if visible:
+    for e in visible:
+        lead = (e['lead'] or '').strip()
+        body = (e['body'] or '').strip()
+        print('- **' + lead + '** ' + body if body else '- **' + lead + '**')
+else:
+    print('(no events)')
 print('')
 "
     fi

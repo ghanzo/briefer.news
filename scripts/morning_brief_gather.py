@@ -23,6 +23,8 @@ import urllib.request
 from pathlib import Path
 from collections import Counter
 
+from brief_parser import parse_brief
+
 
 REPO = Path(__file__).resolve().parent.parent
 LOGS = REPO / "logs"
@@ -69,7 +71,13 @@ def parse_pipeline_log(name: str) -> dict:
 # ── Live brief structure check (what actually rendered) ────────────────────
 
 def check_live_brief(edition: str) -> dict:
-    """Curl the live brief and check key structural elements rendered."""
+    """Curl the live brief and check key structural elements rendered.
+
+    Structural fields are read through the shared brief_parser so the
+    next markup change breaks in one tested place rather than here. The
+    output keys below are the contract score_brief() + the morning_brief.sh
+    prompt consume — keep them stable.
+    """
     url = f"https://briefer.news/{edition}/"
     try:
         with urllib.request.urlopen(url, timeout=15) as r:
@@ -77,56 +85,39 @@ def check_live_brief(edition: str) -> dict:
     except Exception as e:
         return {"reachable": False, "error": str(e)}
 
-    # Extract date stamp to confirm it's today
-    stamp_m = re.search(r'<div class="stamp">([^<]+)</div>', html)
-    stamp = stamp_m.group(1) if stamp_m else "(none)"
+    p = parse_brief(html)
 
-    # Headline
-    head_m = re.search(r'<h2 class="headline">([^<]+)</h2>', html)
-    headline = head_m.group(1).strip() if head_m else "(none)"
+    stamp = p["date"] or "(none)"
+    headline = p["headline"] or "(none)"
 
-    # Dek length — new bulleted form (post 2026-05-27) preferred; legacy
-    # paragraph as fallback for pre-cutover archives.
-    ul_m = re.search(r'<ul class="dek-bullets">([\s\S]+?)</ul>', html)
-    if ul_m:
-        bullets = [re.sub(r"<[^>]+>", "", b).strip()
-                   for b in re.findall(r"<li[^>]*>([\s\S]+?)</li>", ul_m.group(1))]
-        dek_text = " · ".join(b for b in bullets if b)
-        dek_word_count = len(dek_text.split())
-    else:
-        dek_m = re.search(r'<p class="dek">([\s\S]+?)</p>', html)
-        if dek_m:
-            dek_text = re.sub(r"<[^>]+>", "", dek_m.group(1)).strip()
-            dek_word_count = len(dek_text.split())
-        else:
-            dek_text, dek_word_count = "(none)", 0
-
-    # Structural checks
-    h3s = re.findall(r'<h3 class="section-label">([^<]+)</h3>', html)
-    visible_events = len(re.findall(r'<ul class="items">[\s\S]*?</ul>', html))
-    more_events_present = bool(re.search(r'<details class="more-events">', html))
-    voices_present = bool(re.search(r'<div class="voices">', html))
-    allied_present = "Allied Governments" in h3s
-    outside_gate_present = "Outside the Gate" in h3s
-    this_week_present = "This week" in h3s
-    canonical_m = re.search(r'<link rel="canonical" href="([^"]+)">', html)
-    canonical = canonical_m.group(1) if canonical_m else "(none)"
+    # dek: removed from the body 2026-05-27 → parser returns None. Carry the
+    # presence flag through so score_brief() can mark the word-count check
+    # N/A instead of hard-failing an intentionally dek-less brief.
+    dek_present = p["dek"] is not None
+    dek_text = p["dek"] if dek_present else "(none)"
+    dek_word_count = len(p["dek"].split()) if dek_present else 0
 
     return {
         "reachable": True,
         "stamp": stamp,
         "stamp_is_today": TODAY.strftime("%b ").upper().rstrip(" ") in stamp or TODAY.strftime("%B").upper() in stamp,
         "headline": headline[:200],
-        "headline_words": len(headline.split()),
+        "headline_words": p["headline_words"],
+        "dek_present": dek_present,
+        "dek_text": dek_text,
         "dek_first_120": dek_text[:120],
         "dek_word_count": dek_word_count,
-        "section_labels": h3s,
-        "voices_present": voices_present,
-        "allied_present": allied_present,
-        "outside_gate_present": outside_gate_present,
-        "this_week_present": this_week_present,
-        "more_events_collapsible_present": more_events_present,
-        "canonical": canonical,
+        "section_labels": p["section_labels"],
+        "events_visible_count": p["events_visible_count"],
+        "events_more_count": p["events_more_count"],
+        "voices_present": p["has_voices"],
+        "voices_count": len(p["voices"]),
+        "sources_count": len(p["sources"]),
+        "allied_present": p["has_allied"],
+        "outside_gate_present": p["has_outside_gate"],
+        "this_week_present": p["has_this_week"],
+        "more_events_collapsible_present": p["has_more_events"],
+        "canonical": p["canonical"] or "(none)",
         "size_bytes": len(html),
     }
 
@@ -398,25 +389,34 @@ def score_brief(brief: dict, edition: str) -> dict:
 
     checks = {}
 
-    # 1) Dek factual-framing check — scan first 600 chars for banned patterns
-    dek_text = brief.get("dek_first_120", "") + " "  # ideally the full dek, but first_120 is what we capture
-    # If we have a fuller dek excerpt, prefer it
-    full_dek = brief.get("dek_text") or dek_text
-    hits = []
-    for pattern, label in DEK_BANNED_PATTERNS:
-        if re.search(pattern, full_dek, re.IGNORECASE):
-            hits.append(label)
-    checks["dek_no_banned_patterns"] = {
-        "pass": len(hits) == 0,
-        "hits": hits,
-    }
+    # The dek was removed from the body 2026-05-27 (progressive disclosure).
+    # When it's absent there's nothing to score: mark the dek checks N/A
+    # (skipped) and drop them from the denominator rather than hard-failing
+    # a brief that is correct-by-design. Legacy/archived briefs that still
+    # carry a dek are scored as before.
+    dek_present = brief.get("dek_present", brief.get("dek_word_count", 0) > 0)
+
+    # 1) Dek factual-framing check — scan the dek for banned patterns
+    full_dek = brief.get("dek_text") or brief.get("dek_first_120", "")
+    if dek_present:
+        hits = [label for pattern, label in DEK_BANNED_PATTERNS
+                if re.search(pattern, full_dek, re.IGNORECASE)]
+        checks["dek_no_banned_patterns"] = {"pass": len(hits) == 0, "hits": hits}
+    else:
+        checks["dek_no_banned_patterns"] = {
+            "skipped": True, "reason": "no dek in body (removed 2026-05-27)"}
 
     # 2) Dek word count in DEK.md range (30-55)
     dwc = brief.get("dek_word_count", 0)
-    checks["dek_word_count_30_55"] = {"pass": 30 <= dwc <= 55, "actual": dwc}
+    if dek_present:
+        checks["dek_word_count_30_55"] = {"pass": 30 <= dwc <= 55, "actual": dwc}
+    else:
+        checks["dek_word_count_30_55"] = {
+            "skipped": True, "reason": "no dek in body (removed 2026-05-27)"}
 
-    # 3) Headline word count per BRIEF_STYLE.md
-    # US: 12-16. China: ≤12 (per CHINA_BRIEF.md, HARD MAX 12 WORDS).
+    # 3) Headline word count per the binding specs.
+    # US: 12-16 words, two clauses (BRIEF_STYLE.md "Headline rules").
+    # China: ≤12 (CHINA_BRIEF.md — "12 words max").
     hwc = brief.get("headline_words", 0)
     if edition == "us":
         checks["headline_words_12_16"] = {"pass": 12 <= hwc <= 16, "actual": hwc}
@@ -446,10 +446,15 @@ def score_brief(brief: dict, edition: str) -> dict:
     checks["stamp_is_today"] = {"pass": brief.get("stamp_is_today", False),
                                 "actual": brief.get("stamp", "(none)")}
 
-    # Aggregate score — % of non-conditional checks passing
+    # Aggregate score — % of non-conditional checks passing. Conditional
+    # checks (allied/outside_gate) and skipped/N-A checks (those lacking a
+    # "pass" key, e.g. the dek checks on a dek-less brief) are excluded from
+    # the denominator so a correct-by-design brief can still score 100%.
     countable = [v for k, v in checks.items()
                  if k not in ("allied_present", "outside_gate_present")
                  and isinstance(v, dict) and "pass" in v]
+    skipped = [k for k, v in checks.items()
+               if isinstance(v, dict) and v.get("skipped")]
     passed = sum(1 for c in countable if c["pass"])
     score_pct = round(100 * passed / len(countable), 1) if countable else 0.0
 
@@ -459,6 +464,7 @@ def score_brief(brief: dict, edition: str) -> dict:
         "score_pct": score_pct,
         "passed": passed,
         "total_countable": len(countable),
+        "skipped_checks": skipped,
     }
 
 

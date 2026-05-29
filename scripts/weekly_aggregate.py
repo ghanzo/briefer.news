@@ -29,6 +29,12 @@ import sys
 from datetime import datetime, timedelta, date
 from pathlib import Path
 
+# Shared brief parser — the single source of truth for the (unversioned) daily
+# brief markup. extract_bullets/extract_voices route through this so the next
+# structural change breaks in one tested place, not here. Run as
+# `python3 scripts/weekly_aggregate.py …`, scripts/ is already on sys.path.
+from brief_parser import parse_brief
+
 REPO = Path(__file__).resolve().parent.parent
 RUN_DIR = REPO / ".run"
 NGINX_CONTAINER = "briefer_nginx"
@@ -169,23 +175,32 @@ def extract_threads(html: str) -> list[str]:
 
 
 def extract_bullets(html: str) -> list[dict]:
+    """Daily-brief Events bullets, via the shared parser.
+
+    Historically this matched only the bare <ul class="items"> (the daily
+    Events list). The 2026-05-27 progressive-disclosure change split that
+    list into visible (<ul class="items">) + more (<ul class="items
+    items-more">) tiers, so we take both — together they are the daily
+    Events list the synth aggregated before the split. The week/allied
+    tiers are separate sections this function never captured, so they stay
+    out. parse_brief()'s event keys (cite_url/cite_title/cite_marker/body)
+    are remapped to the internal shape the synth JSON expects
+    (url/src_title/marker/desc)."""
+    parsed = parse_brief(html)
     bullets: list[dict] = []
-    for items_m in ITEMS_BLOCK_RE.finditer(html):
-        block = items_m.group(1)
-        for li_m in BULLET_LI_RE.finditer(block):
-            when_match = WHEN_SPAN_RE.search(li_m.group("rest"))
-            when_raw = _clean_text(when_match.group(1)) if when_match else ""
-            date_label, source = _split_when(when_raw)
-            bullets.append({
-                "lead": _clean_text(li_m.group("lead")),
-                "desc": _clean_text(li_m.group("desc")),
-                "marker": _clean_text(li_m.group("marker")),
-                "url": html_lib.unescape(li_m.group("url")),
-                "src_title": _clean_text(li_m.group("src_title")),
-                "when_raw": when_raw,
-                "date_label": date_label,
-                "source": source,
-            })
+    for e in parsed["events"]:
+        if e["tier"] not in ("visible", "more"):
+            continue
+        bullets.append({
+            "lead": e["lead"],
+            "desc": e["desc"],
+            "marker": e["cite_marker"] or "",
+            "url": e["cite_url"] or "",
+            "src_title": e["cite_title"] or "",
+            "when_raw": e["when_raw"],
+            "date_label": e["date_label"],
+            "source": e["source"],
+        })
     return bullets
 
 
@@ -225,23 +240,8 @@ def extract_voices(html: str, today: Optional[date] = None,
     candidate the synth can verify than to silently drop signal).
     """
     voices: list[dict] = []
-    for pull_m in PULL_BLOCK_RE.finditer(html):
-        block = pull_m.group(1)
-        quote_m = PULL_QUOTE_RE.search(block)
-        cite_m = PULL_CITE_RE.search(block)
-        if not quote_m or not cite_m:
-            continue
-        quote = _clean_text(quote_m.group(1))
-        attribution_raw = cite_m.group("attribution")
-        # Attribution is typically "Speaker name &middot; DATE" — split on the middot
-        attribution_clean = _clean_text(attribution_raw)
-        parts = re.split(r"\s*(?:·|·)\s*", attribution_clean, maxsplit=1)
-        if len(parts) == 2:
-            speaker = parts[0].strip()
-            date_label = parts[1].strip()
-        else:
-            speaker = attribution_clean
-            date_label = ""
+    for v in parse_brief(html)["voices"]:
+        date_label = v["date_label"]
 
         if today and week_start and date_label:
             parsed = _parse_voice_date(date_label, today)
@@ -249,12 +249,12 @@ def extract_voices(html: str, today: Optional[date] = None,
                 continue  # outside the week — drop before synth picks
 
         voices.append({
-            "quote": quote,
-            "speaker": speaker,
+            "quote": v["quote"],
+            "speaker": v["speaker"],
             "date_label": date_label,
-            "url": html_lib.unescape(cite_m.group("url")),
-            "src_title": _clean_text(cite_m.group("src_title")),
-            "marker": _clean_text(cite_m.group("marker")),
+            "url": v["cite_url"] or "",
+            "src_title": v["cite_title"] or "",
+            "marker": v["cite_marker"] or "",
         })
     return voices
 

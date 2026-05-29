@@ -78,18 +78,18 @@ echo "--- Stage 1: gathering context ---"
     if [ -s "$HTML" ]; then
       LABEL=$([ "$EDITION" = "usa" ] && echo "U.S." || echo "China")
       /usr/bin/python3 -c "
-import re
+import re, sys
+sys.path.insert(0, '$REPO/scripts')
+from brief_parser import parse_brief
 html = open('$HTML').read()
-h = re.search(r'<h2 class=\"headline\">([\s\S]+?)</h2>', html)
-ul = re.search(r'<ul class=\"dek-bullets\">([\s\S]+?)</ul>', html)
-if ul:
-    bullets = [re.sub(r'<[^>]+>','',b).strip() for b in re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))]
-    dek = ' · '.join(b for b in bullets if b)
-else:
-    d = re.search(r'<p class=\"dek\">([\s\S]+?)</p>', html)
-    dek = re.sub(r'<[^>]+>','',d.group(1)).strip() if d else '(no dek)'
+# Headline + one-line summary come from the shared parser. The on-page dek
+# was removed 2026-05-27, so substitute meta_description (the synth's stable
+# one-line summary) where the dek used to be used.
+parsed = parse_brief(html)
+headline = parsed['headline'] or '(no headline)'
+dek = parsed['meta_description'] or '(no summary)'
 print('### $LABEL edition')
-print('**Headline:** ' + (re.sub(r'<[^>]+>','',h.group(1)).strip() if h else '(no headline)'))
+print('**Headline:** ' + headline)
 print('')
 print('**Dek:** ' + dek)
 print('')

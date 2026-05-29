@@ -21,23 +21,18 @@ Usage:
 
 from __future__ import annotations
 
-import html as html_lib
 import re
 import subprocess
 import sys
 from datetime import datetime, timedelta, date
 from pathlib import Path
 
+from brief_parser import parse_brief
+
 REPO = Path(__file__).resolve().parent.parent
 RUN_DIR = REPO / ".run"
 NGINX_CONTAINER = "briefer_nginx"
 ARCHIVE_BASE = "/usr/share/nginx/html"
-
-BULLET_LEAD_RE = re.compile(
-    r'<li>\s*<b>([^<]+)</b>\s*([^<]*)',
-    re.DOTALL,
-)
-HEADLINE_RE = re.compile(r'<h2 class="headline">\s*(.+?)\s*</h2>', re.DOTALL)
 
 
 def _list_archive(rel_path: str) -> list[str]:
@@ -64,10 +59,6 @@ def _read_archive(rel_path: str, filename: str) -> str:
         return ""
 
 
-def _clean(s: str) -> str:
-    return re.sub(r"\s+", " ", html_lib.unescape(s)).strip()
-
-
 def extract_briefs(rel_path: str, today: date, days: int) -> list[dict]:
     cutoff = today - timedelta(days=days - 1)
     out: list[dict] = []
@@ -81,18 +72,17 @@ def extract_briefs(rel_path: str, today: date, days: int) -> list[dict]:
         html = _read_archive(rel_path, fname)
         if not html:
             continue
-        headline_m = HEADLINE_RE.search(html)
-        bullets = []
-        # Scope bullet extraction to the items <ul> only
-        items_m = re.search(r'<ul class="items">(.+?)</ul>', html, re.DOTALL)
-        if items_m:
-            for m in BULLET_LEAD_RE.finditer(items_m.group(1)):
-                lead = _clean(m.group(1))
-                snippet = _clean(m.group(2))[:80]
-                bullets.append({"lead": lead, "snippet": snippet})
+        parsed = parse_brief(html)
+        # Scope bullet extraction to the visible items tier only (the old
+        # <ul class="items"> scope), now read via the shared parser.
+        bullets = [
+            {"lead": e["lead"], "snippet": e["body"][:80]}
+            for e in parsed["events"]
+            if e["tier"] == "visible"
+        ]
         out.append({
             "date": d.isoformat(),
-            "headline": _clean(headline_m.group(1)) if headline_m else "",
+            "headline": parsed["headline"],
             "bullets": bullets,
         })
     out.sort(key=lambda b: b["date"], reverse=True)
