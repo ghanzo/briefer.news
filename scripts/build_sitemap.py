@@ -33,7 +33,9 @@ SITE = "https://briefer.news"
 
 STATIC_PAGES = [
     # path,                  changefreq, priority
-    ("/",                    "daily",    "0.9"),
+    # NOTE: "/" is intentionally NOT listed — it 302-redirects to /usa/ or
+    # /china/ (edition routing), so listing it makes Google report it as
+    # "Page with redirect" (excluded). The real entry points are /usa/ + /china/.
     ("/about/",              "monthly",  "0.5"),
     ("/sources/",            "weekly",   "0.6"),
     ("/usa/",                "daily",    "1.0"),
