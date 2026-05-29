@@ -108,7 +108,7 @@ print('**Top 3 events:**')
 for e in events:
     print('- ' + e)
 print('')
-print('**URL:** https://briefer.news/$EDITION/')
+print('**URL:** https://briefer.news/$EDITION/?utm_source=brief')
 print('')
 "
     fi
@@ -146,7 +146,7 @@ The file MUST follow this structure exactly — each H2 is one channel:
 
 ## Bluesky
 <post text, ≤280 chars to be safe under the 300 limit>
-URL: https://briefer.news/usa/  (or /china/ — pick one based on which story is the lead)
+URL: https://briefer.news/usa/?utm_source=bluesky  (or https://briefer.news/china/?utm_source=bluesky — pick one based on which story is the lead; keep the ?utm_source=bluesky query)
 TITLE: <link-card title, ≤120 chars>
 DESCRIPTION: <link-card description, ≤200 chars>
 
@@ -156,17 +156,17 @@ URL: https://briefer.news/usa/?utm_source=x
 
 ## HN
 TITLE: <Show HN / Ask HN style if applicable, else a plain descriptive title — ≤80 chars, no clickbait>
-URL: <briefer.news URL most worth submitting today; archive permalink if today's brief is the strongest>
+URL: <briefer.news URL most worth submitting today; archive permalink if today's brief is the strongest. Append ?utm_source=hn to the URL (use &utm_source=hn if it already has a query string).>
 
 ## Reddit r/geopolitics
 TITLE: <≤300 chars; conform to sub conventions>
-BODY: <2-4 short paragraphs framing what's in today's brief + why it matters for that sub. End with the URL. No "thanks for reading" or self-promo cringe.>
+BODY: <2-4 short paragraphs framing what's in today's brief + why it matters for that sub. End with the URL, with ?utm_source=reddit appended (use &utm_source=reddit if the URL already has a query string). No "thanks for reading" or self-promo cringe.>
 
 ## LinkedIn
-<longer-form post, 3-6 short paragraphs, professional voice, lead with the most decision-useful claim from today's brief, end with the URL. ≤1500 chars.>
+<longer-form post, 3-6 short paragraphs, professional voice, lead with the most decision-useful claim from today's brief, end with the URL with ?utm_source=linkedin appended (use &utm_source=linkedin if it already has a query string). ≤1500 chars.>
 
 ## Threads
-<≤500 chars; similar to Bluesky but slightly punchier per the platform's vibe>
+<≤500 chars; similar to Bluesky but slightly punchier per the platform's vibe. End with the URL with ?utm_source=threads appended (use &utm_source=threads if it already has a query string).>
 
 Channel-specific tone:
 - Bluesky: matter-of-fact, journalistic, no hashtags.
@@ -190,6 +190,11 @@ UNIVERSAL RULES (brand-promise constraints):
 - Do not use dashes of any kind: no em-dashes, no en-dashes, no hyphen
   used as punctuation. Use commas, periods, or colons instead. Write
   like a person, not an AI.
+- UTM tagging: every briefer.news URL you emit MUST carry a utm_source that
+  identifies THIS channel (bluesky, x, hn, reddit, linkedin, threads). The
+  context "URL:" lines carry a placeholder ?utm_source=brief — replace that
+  placeholder with this channel's value (e.g. ?utm_source=bluesky). Never
+  leave a briefer.news URL untagged and never reuse another channel's tag.
 
 The Researcher's "Today's hooks" section is your primary guide for
 angles. If it suggested specific angles, USE THEM verbatim or close to
@@ -274,24 +279,19 @@ else
   echo "  bluesky: disabled (set BLUESKY_ENABLED=true to enable)"
 fi
 
-# Extract X / Twitter section, post it (skip if an X post already went out today)
-X_ALREADY_TODAY=$(/usr/bin/python3 -c "
-import json, datetime
-from pathlib import Path
-f = Path('$LOG_DIR') / ('posts-' + datetime.date.today().isoformat() + '.jsonl')
-n = 0
-if f.exists():
-    for line in f.read_text().splitlines():
-        try:
-            r = json.loads(line)
-        except Exception:
-            continue
-        if r.get('channel') == 'x' and r.get('type') != 'engagement':
-            n += 1
-print(n)
-" 2>/dev/null || echo 0)
-if [ "$X_ENABLED" = "true" ] && [ "${X_ALREADY_TODAY:-0}" != "0" ]; then
-  echo "  x: already posted today (${X_ALREADY_TODAY}); skipping to avoid a double-post."
+# Extract X / Twitter section, post it (skip if an X post already went out
+# today). The lock is shared with post_launch.py via scripts/post_guard.py:
+# x_posted_today() scans today's posts ledger for any real (non-engagement)
+# channel=="x" record. Both the launch tweet and this daily post consult the
+# SAME function, so they can no longer both fire on one day.
+X_POSTED_TODAY=$(/usr/bin/python3 -c "
+import sys
+sys.path.insert(0, '$REPO/scripts')
+from post_guard import x_posted_today
+print('1' if x_posted_today() else '0')
+" 2>/dev/null || echo 1)
+if [ "$X_ENABLED" = "true" ] && [ "${X_POSTED_TODAY:-1}" != "0" ]; then
+  echo "  x: already posted today, skipping"
 elif [ "$X_ENABLED" = "true" ]; then
   echo "Posting X..."
   /usr/bin/python3 <<PYEOF
@@ -313,6 +313,22 @@ url = url_m.group(1) if url_m else None
 
 print(f"  text: {text[:80]}…")
 print(f"  url:  {url or '(none)'}")
+
+from post_guard import x_posted_today, enforce_x_length
+
+# Shared lock, re-checked at the last moment (the shell already checked, but
+# this closes the gap between the shell check and the API call, and is the
+# same function post_launch.py consults).
+if x_posted_today():
+    print("  x: already posted today, skipping")
+    sys.exit(0)
+
+# Enforce the X section's 255-char pre-URL budget on the drafter path too
+# (x_post.post only caps at 4000). t.co counts the URL as 23 chars regardless,
+# so only the pre-URL text is budgeted here.
+if enforce_x_length(text, url) is None:
+    print(f"  x: composed text over the {255}-char budget ({len(text)} chars), skipping")
+    sys.exit(0)
 
 import x_post as x
 try:

@@ -54,6 +54,30 @@ BOT_PATTERNS = re.compile(
     re.IGNORECASE,
 )
 
+# Marketing channel tags emitted by drafter.sh on outbound links.
+KNOWN_UTM_SOURCES = ("x", "bluesky", "hn", "reddit", "linkedin", "threads")
+
+
+def parse_utm_source(cs_uri_query: str) -> str:
+    """Extract utm_source from a CloudFront cs-uri-query value.
+
+    CloudFront stores the raw query string (URL-encoded; "-" when empty).
+    Some pipelines also percent-encode the whole field a second time, so
+    unquote once before parsing handles both `utm_source=x` and the
+    double-encoded `utm_source%3Dx` form. Returns "" if absent.
+    """
+    if not cs_uri_query or cs_uri_query in ("-", ""):
+        return ""
+    decoded = urllib.parse.unquote(cs_uri_query)
+    try:
+        qs = urllib.parse.parse_qs(decoded, keep_blank_values=False)
+    except ValueError:
+        return ""
+    vals = qs.get("utm_source")
+    if not vals:
+        return ""
+    return vals[0].strip().lower()
+
 
 def list_log_files(date: dt.date) -> list[str]:
     """List all CloudFront log files for a given date (UTC).
@@ -110,6 +134,8 @@ def aggregate(rows: list[dict]) -> dict:
     uri_ips: dict[str, set[str]] = defaultdict(set)
     referrer_counts: Counter = Counter()
     status_counts: Counter = Counter()
+    utm_counts: Counter = Counter()
+    utm_ips: dict[str, set[str]] = defaultdict(set)
     bot_count = 0
     human_count = 0
 
@@ -166,6 +192,12 @@ def aggregate(rows: list[dict]) -> dict:
         except ValueError:
             pass
 
+        src = parse_utm_source(r.get("cs-uri-query", ""))
+        if src:
+            utm_counts[src] += 1
+            if bucket:
+                utm_ips[src].add(bucket)
+
         ua = r.get("cs-user-agent", "")
         if BOT_PATTERNS.search(ua):
             bot_count += 1
@@ -182,6 +214,8 @@ def aggregate(rows: list[dict]) -> dict:
         "uri_ips": {k: len(v) for k, v in uri_ips.items()},
         "referrer_counts": referrer_counts,
         "status_counts": status_counts,
+        "utm_counts": utm_counts,
+        "utm_ips": {k: len(v) for k, v in utm_ips.items()},
         "bot_count": bot_count,
         "human_count": human_count,
     }
@@ -235,6 +269,35 @@ def render(date: dt.date, agg: dict, log_count: int) -> str:
         out.append("")
     else:
         out.append("## Referrers\n\n_No external referrers in this window._\n")
+
+    # Channel attribution from utm_source (tagged by drafter.sh).
+    utm_counts = agg.get("utm_counts", Counter())
+    utm_ips = agg.get("utm_ips", {})
+    out.append("## Referrals by channel (utm_source)")
+    out.append("")
+    if utm_counts:
+        out.append("| Channel | Requests | Unique visitors |")
+        out.append("|---|---|---|")
+        # Known drafter.sh channels first (in tag order), then any extras.
+        seen = set()
+        ordered = []
+        for src in KNOWN_UTM_SOURCES:
+            if src in utm_counts:
+                ordered.append(src)
+                seen.add(src)
+        for src, _ in utm_counts.most_common():
+            if src not in seen:
+                ordered.append(src)
+                seen.add(src)
+        for src in ordered:
+            count = utm_counts[src]
+            ips = utm_ips.get(src, 0)
+            out.append(f"| {src} | {count:,} | {ips:,} |")
+        total_tagged = sum(utm_counts.values())
+        out.append(f"| **total tagged** | **{total_tagged:,}** | |")
+        out.append("")
+    else:
+        out.append("_No utm_source-tagged requests in this window._\n")
 
     out.append("## Status codes")
     out.append("")

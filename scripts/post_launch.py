@@ -24,6 +24,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import x_post
+from post_guard import x_posted_today, enforce_x_length
 
 REPO = Path(__file__).resolve().parent.parent
 LOGS = REPO / "logs"
@@ -101,6 +102,14 @@ def main(argv: list[str]) -> int:
         print(f"Launch tweet already posted ({SENTINEL.read_text().strip()}); skipping.")
         return 0
 
+    # Shared lock with drafter.sh (scripts/post_guard.py): if a real X post
+    # already went out today (the daily drafter post, or a prior launch), do
+    # not fire a second tweet. This is the coordination the sentinel alone
+    # lacked — the sentinel only knows about *this* script's own posts.
+    if x_posted_today() and not args.dry_run:
+        print("Launch tweet skipped: an X post already went out today (shared lock).")
+        return 0
+
     events = extract_events()
     if not events:
         print("ERROR: no events extracted from /usa/ (brief not live yet?). Not posting.")
@@ -109,8 +118,13 @@ def main(argv: list[str]) -> int:
     fragment = compose_fragment(events)
     text = OPENER + fragment
 
-    # Validate before we ever post: must fit and contain no dashes.
-    if not fragment or len(text) > MAX_TEXT or any(d in text for d in ("—", "–")) or " - " in text:
+    # Validate before we ever post: must fit the shared X budget (post_guard's
+    # enforce_x_length, the same 255-char pre-URL budget the drafter path uses)
+    # and contain no dashes.
+    if (not fragment
+            or enforce_x_length(text, URL) is None
+            or any(d in text for d in ("—", "–"))
+            or " - " in text):
         print(f"ERROR: composed text failed validation (len={len(text)}). Not posting.")
         print(f"  fragment: {fragment!r}")
         return 1

@@ -103,6 +103,17 @@ def main(argv: list[str]) -> int:
         return 0
 
     metrics = fetch_metrics(list(targets.keys()))
+
+    # Log the metered reads for this run (MARKETING.md cost mandate). Reads are
+    # ~free, but recording them keeps the credit ledger complete. One line per
+    # run; best-effort so a logging failure never drops the engagement data.
+    try:
+        from x_cost_log import append_cost
+        append_cost("read", units=len(targets),
+                    note=f"engagement_collector run: {len(targets)} tweet(s) read")
+    except Exception as e:
+        sys.stderr.write(f"x_cost_log append_cost failed (non-fatal): {e}\n")
+
     out_path = LOGS / f"posts-{now.date().isoformat()}.jsonl"
     snaps = []
     for tid, (rec, ts, age_h) in targets.items():

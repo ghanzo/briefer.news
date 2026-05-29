@@ -108,6 +108,16 @@ def post(text: str, url: str | None = None) -> dict:
         raise RuntimeError(f"create_tweet returned no data: {resp}")
 
     tweet_id = resp.data["id"]
+
+    # Log the per-post cost (MARKETING.md mandate). Pass resp so any usage /
+    # rate-limit headers get captured; falls back to the ~$0.20 estimate.
+    # Best-effort: a cost-logging failure must never lose the published tweet.
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from x_cost_log import append_cost
+        append_cost("post", units=1, note=f"tweet {tweet_id}", response=resp)
+    except Exception as e:
+        sys.stderr.write(f"x_cost_log append_cost failed (non-fatal): {e}\n")
     me = check_creds()
     username = me.get("username", "user")
     return {
