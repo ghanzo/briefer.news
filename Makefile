@@ -7,7 +7,8 @@ REPO  := $(CURDIR)
 PY    := /usr/bin/python3
 
 .PHONY: help status preflight test check-brief preview healthcheck \
-        synth synth-china clean-logs alert-test x-costs \
+        synth synth-china shadow shadow-us shadow-china \
+        clean-logs alert-test x-costs \
         agents-status agents-export agents-install
 
 help:
@@ -20,6 +21,9 @@ help:
 	@echo "  healthcheck   run the stale-brief healthcheck"
 	@echo "  synth         run the US synth + deploy (synthesize.sh)  ** DEPLOYS **"
 	@echo "  synth-china   run the China synth + deploy                ** DEPLOYS **"
+	@echo "  shadow        A/B preview BOTH editions vs live — NO DEPLOY (calls Claude)"
+	@echo "  shadow-us     A/B preview the US synth vs live — NO DEPLOY (calls Claude)"
+	@echo "  shadow-china  A/B preview the China synth vs live — NO DEPLOY (calls Claude)"
 	@echo "  clean-logs    rotate logs + DB cleanup (scripts/cleanup.sh)"
 	@echo "  alert-test    send a DRY-RUN alert (no email leaves the box)"
 	@echo "  x-costs       show X API credit spend / remaining"
@@ -63,6 +67,18 @@ synth:
 
 synth-china:
 	@bash "$(REPO)/scripts/synthesize_china.sh"
+
+# A/B SHADOW PREVIEW — runs the synth in BRIEFER_SHADOW=1 mode: renders to
+# .run/shadow_<edition>.html, validates it, and diffs vs the live brief.
+# NEVER deploys (no S3 / CloudFront / nginx write). Calls Claude = real cost.
+shadow:
+	@bash "$(REPO)/scripts/synth_shadow.sh" both
+
+shadow-us:
+	@bash "$(REPO)/scripts/synth_shadow.sh" us
+
+shadow-china:
+	@bash "$(REPO)/scripts/synth_shadow.sh" china
 
 clean-logs:
 	@bash "$(REPO)/scripts/cleanup.sh"

@@ -429,7 +429,20 @@ echo "Full text dumped: $(wc -c < "$FULL") bytes"
 
 # ── Stage 4: Claude SYNTHESIZER ─────────────────────────────────────────────
 SYNTH_PROMPT="$RUN_DIR/prompt_china_synth.txt"
-OUT="$RUN_DIR/china_today.html"
+# SHADOW MODE (additive): when $BRIEFER_SHADOW is non-empty the synth renders to
+# a SHADOW path so it never clobbers the real .run/china_today.html working file,
+# and skips every deploy below. When unset (the normal run), OUT is the EXACT
+# prior value and the script behaves byte-identically to before this guard.
+if [ -n "$BRIEFER_SHADOW" ]; then
+  OUT="$RUN_DIR/shadow_china.html"
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════"
+  echo "SHADOW MODE — no deploy. Rendering candidate to $OUT"
+  echo "  (nginx volume, archive copy, S3, and CloudFront are all SKIPPED)"
+  echo "═══════════════════════════════════════════════════════════════"
+else
+  OUT="$RUN_DIR/china_today.html"
+fi
 rm -f "$OUT"
 
 cat > "$SYNTH_PROMPT" <<EOF
@@ -607,17 +620,25 @@ fi
 # Google indexes each archive as unique content, not a dupe of today.
 echo "--- Stage 5: deploying to nginx volume /china/ ---"
 ARCHIVE_HTML="$RUN_DIR/china_today-archive.html"
-/usr/bin/sed "s|<link rel=\"canonical\" href=\"https://briefer.news/china/\">|<link rel=\"canonical\" href=\"https://briefer.news/china/archive/${TODAY}.html\">|" "$OUT" > "$ARCHIVE_HTML"
+# SHADOW MODE (additive): skip the archive write + nginx-volume deploy entirely.
+# In a normal (unset) run this guard is transparent — the wrapped commands run
+# exactly as before. The ARCHIVE_HTML variable above is still assigned so Stage
+# 6's shadow echo can name the path it WOULD have uploaded.
+if [ -z "$BRIEFER_SHADOW" ]; then
+  /usr/bin/sed "s|<link rel=\"canonical\" href=\"https://briefer.news/china/\">|<link rel=\"canonical\" href=\"https://briefer.news/china/archive/${TODAY}.html\">|" "$OUT" > "$ARCHIVE_HTML"
 
-"$DOCKER" run --rm \
-  -v "$RUN_DIR":/src:ro \
-  -v briefernewsapp_site_output:/dst \
-  alpine sh -c "
-    mkdir -p /dst/china /dst/china/archive
-    cp /src/china_today.html /dst/china/index.html
-    cp /src/china_today-archive.html /dst/china/archive/${TODAY}.html
-    ls -la /dst/china | head -5
-  "
+  "$DOCKER" run --rm \
+    -v "$RUN_DIR":/src:ro \
+    -v briefernewsapp_site_output:/dst \
+    alpine sh -c "
+      mkdir -p /dst/china /dst/china/archive
+      cp /src/china_today.html /dst/china/index.html
+      cp /src/china_today-archive.html /dst/china/archive/${TODAY}.html
+      ls -la /dst/china | head -5
+    "
+else
+  echo "SHADOW MODE — skipping nginx-volume deploy + archive write"
+fi
 
 # ── Stage 6: deploy to S3 /china/ + CloudFront invalidate ───────────────────
 # S3_BUCKET / DIST_ID / AWS now come from scripts/lib/env.sh (sourced via

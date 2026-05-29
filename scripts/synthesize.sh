@@ -315,7 +315,21 @@ echo "Full text dumped: $(wc -c < "$FULL") bytes"
 
 # ── Stage 4: Claude SYNTHESIZER ─────────────────────────────────────────────
 SYNTH_PROMPT="$RUN_DIR/prompt_synth.txt"
-OUT="$RUN_DIR/today.html"
+# SHADOW MODE (additive): when $BRIEFER_SHADOW is non-empty the synth renders to
+# a SHADOW path so it never clobbers the real .run/today.html working file the
+# drafter / researcher / email read, and skips every deploy below. When unset
+# (the normal 07:00 LaunchAgent run), OUT is the EXACT prior value and the
+# script behaves byte-identically to before this guard existed.
+if [ -n "$BRIEFER_SHADOW" ]; then
+  OUT="$RUN_DIR/shadow_us.html"
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════"
+  echo "SHADOW MODE — no deploy. Rendering candidate to $OUT"
+  echo "  (nginx volume, archive copy, S3, and CloudFront are all SKIPPED)"
+  echo "═══════════════════════════════════════════════════════════════"
+else
+  OUT="$RUN_DIR/today.html"
+fi
 rm -f "$OUT"
 
 cat > "$SYNTH_PROMPT" <<EOF
@@ -433,17 +447,26 @@ fi
 # than a duplicate of today's brief.
 echo "--- Stage 5: deploying to nginx volume ---"
 ARCHIVE_HTML="$RUN_DIR/today-archive.html"
-/usr/bin/sed "s|<link rel=\"canonical\" href=\"https://briefer.news/usa/\">|<link rel=\"canonical\" href=\"https://briefer.news/usa/archive/${TODAY}.html\">|" "$OUT" > "$ARCHIVE_HTML"
+# SHADOW MODE (additive): skip the archive write + nginx-volume deploy entirely.
+# In a normal (unset) run this guard is transparent — the wrapped commands run
+# exactly as before. Only the actions inside this if-block are gated; the
+# ARCHIVE_HTML variable above is still assigned so Stage 6's shadow echo can name
+# the path it WOULD have uploaded.
+if [ -z "$BRIEFER_SHADOW" ]; then
+  /usr/bin/sed "s|<link rel=\"canonical\" href=\"https://briefer.news/usa/\">|<link rel=\"canonical\" href=\"https://briefer.news/usa/archive/${TODAY}.html\">|" "$OUT" > "$ARCHIVE_HTML"
 
-"$DOCKER" run --rm \
-  -v "$RUN_DIR":/src:ro \
-  -v briefernewsapp_site_output:/dst \
-  alpine sh -c "
-    mkdir -p /dst/usa /dst/usa/archive
-    cp /src/today.html /dst/usa/index.html
-    cp /src/today-archive.html /dst/usa/archive/${TODAY}.html
-    ls -la /dst/usa | head -5
-  "
+  "$DOCKER" run --rm \
+    -v "$RUN_DIR":/src:ro \
+    -v briefernewsapp_site_output:/dst \
+    alpine sh -c "
+      mkdir -p /dst/usa /dst/usa/archive
+      cp /src/today.html /dst/usa/index.html
+      cp /src/today-archive.html /dst/usa/archive/${TODAY}.html
+      ls -la /dst/usa | head -5
+    "
+else
+  echo "SHADOW MODE — skipping nginx-volume deploy + archive write"
+fi
 
 # ── Stage 6: publish to AWS S3 + CloudFront invalidate (non-fatal on error) ─
 # Targets the deployment account's bucket via default ~/.aws credentials.
