@@ -25,6 +25,11 @@ import subprocess
 import sys
 from pathlib import Path
 
+# Single source of truth for infra constants (AWS path, S3_BUCKET, DIST_ID).
+# config.py parses scripts/lib/env.sh — same values the shell scripts source.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+import config
+
 REPO = Path(__file__).resolve().parent.parent
 RUN_DIR = REPO / ".run"
 NGINX_CONTAINER = "briefer_nginx"
@@ -79,7 +84,7 @@ def _docker_write(local_path: Path, dst_path: str) -> bool:
 
 def _s3_get(s3_path: str) -> str:
     return subprocess.check_output(
-        ["/Users/maxgoshay/.local/bin/aws", "s3", "cp", s3_path, "-"],
+        [config.AWS, "s3", "cp", s3_path, "-"],
         text=True,
     )
 
@@ -87,7 +92,7 @@ def _s3_get(s3_path: str) -> str:
 def _s3_put(local_path: Path, s3_path: str) -> bool:
     try:
         subprocess.check_call(
-            ["/Users/maxgoshay/.local/bin/aws", "s3", "cp", str(local_path), s3_path,
+            [config.AWS, "s3", "cp", str(local_path), s3_path,
              "--content-type", "text/html; charset=utf-8",
              "--cache-control", "no-store, no-cache"],
             timeout=60,
@@ -374,7 +379,7 @@ def process_edition(edition: str) -> bool:
     # manually patched between syntheses). Nginx is the source the morning
     # synth wrote to, which may be staler than S3 if the operator applied
     # post-synth fixes. Falls back to nginx if S3 is unreachable.
-    s3_url = f"s3://briefer-news-site/{edition_path}/index.html"
+    s3_url = f"s3://{config.S3_BUCKET}/{edition_path}/index.html"
     daily_html = _s3_get(s3_url)
     if not daily_html:
         print(f"  [{edition}] S3 unreachable; falling back to nginx volume")
@@ -386,7 +391,7 @@ def process_edition(edition: str) -> bool:
     out_path.write_text(patched, encoding="utf-8")
 
     nginx_ok = _docker_write(out_path, daily_path)
-    s3_ok = _s3_put(out_path, f"s3://briefer-news-site/{edition_path}/index.html")
+    s3_ok = _s3_put(out_path, f"s3://{config.S3_BUCKET}/{edition_path}/index.html")
     print(f"  [{edition}] nginx: {'ok' if nginx_ok else 'FAILED'}, s3: {'ok' if s3_ok else 'FAILED'}")
     return nginx_ok and s3_ok
 
@@ -400,8 +405,8 @@ def main() -> int:
 
     if any_changed:
         subprocess.run(
-            ["/Users/maxgoshay/.local/bin/aws", "cloudfront", "create-invalidation",
-             "--distribution-id", "EMV1VIFYTSI3U",
+            [config.AWS, "cloudfront", "create-invalidation",
+             "--distribution-id", config.DIST_ID,
              "--paths", "/usa/index.html", "/usa/", "/china/index.html", "/china/",
              "--query", "Invalidation.Id", "--output", "text"],
             check=False,

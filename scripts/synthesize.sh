@@ -20,6 +20,11 @@ set +e
 REPO=/Users/maxgoshay/code/briefernewsapp
 cd "$REPO"
 
+# Shared infra constants (DIST_ID, S3_BUCKET, AWS, DOCKER, ...) + deploy
+# helpers (deploy_artifact / invalidate_paths). deploy.sh sources env.sh.
+# shellcheck source=/dev/null
+. "$REPO/scripts/lib/deploy.sh"
+
 LOG_DIR="$REPO/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/synthesize-$(date +%Y%m%d).log"
@@ -445,31 +450,27 @@ ARCHIVE_HTML="$RUN_DIR/today-archive.html"
 # briefer.news public alias is gated on a CloudFront cross-account CNAME
 # transfer (case 177826301600063 with AWS Support); until that's done, content
 # still serves via https://d1sl4o5xm2ds0o.cloudfront.net.
-S3_BUCKET=briefer-news-site
-DIST_ID=EMV1VIFYTSI3U
-AWS=/Users/maxgoshay/.local/bin/aws
-
-if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
+# S3_BUCKET / DIST_ID / AWS now come from scripts/lib/env.sh (sourced via
+# deploy.sh at the top). The s3 cp + invalidation are the shared
+# deploy_artifact / invalidate_paths helpers — byte-identical to the prior
+# inline commands, and honoring BRIEFER_SHADOW for the no-deploy shadow run.
+if aws_ready; then
   echo ""
   echo "--- Stage 6: publishing to S3 + CloudFront ---"
-  "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/usa/index.html" \
-    --content-type "text/html; charset=utf-8" \
-    --cache-control "no-store, no-cache" \
-    && echo "S3: usa/index.html uploaded" \
-    || echo "S3: usa/index.html upload FAILED (non-fatal)"
+  deploy_artifact "$OUT" "usa/index.html" \
+    "text/html; charset=utf-8" "no-store, no-cache" \
+    "S3: usa/index.html uploaded" \
+    "S3: usa/index.html upload FAILED (non-fatal)"
 
-  "$AWS" s3 cp "$ARCHIVE_HTML" "s3://${S3_BUCKET}/usa/archive/${TODAY}.html" \
-    --content-type "text/html; charset=utf-8" \
-    --cache-control "public, max-age=31536000, immutable" \
-    && echo "S3: usa/archive uploaded (with archive canonical)" \
-    || echo "S3: usa/archive upload FAILED (non-fatal)"
+  deploy_artifact "$ARCHIVE_HTML" "usa/archive/${TODAY}.html" \
+    "text/html; charset=utf-8" "public, max-age=31536000, immutable" \
+    "S3: usa/archive uploaded (with archive canonical)" \
+    "S3: usa/archive upload FAILED (non-fatal)"
 
-  "$AWS" cloudfront create-invalidation \
-    --distribution-id "$DIST_ID" \
-    --paths "/usa/index.html" "/usa/archive/${TODAY}.html" \
-    --query 'Invalidation.Id' --output text \
-    && echo "CloudFront: invalidation created" \
-    || echo "CloudFront: invalidation FAILED (non-fatal)"
+  invalidate_paths \
+    "CloudFront: invalidation created" \
+    "CloudFront: invalidation FAILED (non-fatal)" \
+    -- "/usa/index.html" "/usa/archive/${TODAY}.html"
 else
   echo "--- Stage 6: skipped — AWS CLI unavailable or unauthenticated ---"
 fi

@@ -19,6 +19,11 @@ set +e
 REPO=/Users/maxgoshay/code/briefernewsapp
 cd "$REPO"
 
+# Shared infra constants (DIST_ID, S3_BUCKET, AWS, DOCKER, ...) + deploy
+# helpers (deploy_artifact / invalidate_paths). deploy.sh sources env.sh.
+# shellcheck source=/dev/null
+. "$REPO/scripts/lib/deploy.sh"
+
 LOG_DIR="$REPO/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/weekly-$(date +%Y%m%d).log"
@@ -164,22 +169,20 @@ EOF
     "
 
   # Stage 4: deploy S3 + CloudFront
-  local S3_BUCKET=briefer-news-site
-  local DIST_ID=EMV1VIFYTSI3U
-  local AWS=/Users/maxgoshay/.local/bin/aws
-  if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
+  # S3_BUCKET / DIST_ID / AWS now come from scripts/lib/env.sh (sourced via
+  # deploy.sh at the top). The s3 cp + invalidation are the shared
+  # deploy_artifact / invalidate_paths helpers — byte-identical to the prior
+  # inline commands, and honoring BRIEFER_SHADOW for the no-deploy shadow run.
+  if aws_ready; then
     echo "--- Stage 4: publishing to S3 + CloudFront ---"
-    "$AWS" s3 cp "$OUT" "s3://${S3_BUCKET}/${edition_path}/weekly/index.html" \
-      --content-type "text/html; charset=utf-8" \
-      --cache-control "no-store, no-cache" \
-      && echo "S3: ${edition_path}/weekly uploaded" \
-      || echo "S3: ${edition_path}/weekly upload FAILED (non-fatal)"
-    "$AWS" cloudfront create-invalidation \
-      --distribution-id "$DIST_ID" \
-      --paths "/${edition_path}/weekly/index.html" "/${edition_path}/weekly/" \
-      --query 'Invalidation.Id' --output text \
-      && echo "CloudFront: invalidation created" \
-      || echo "CloudFront: invalidation FAILED (non-fatal)"
+    deploy_artifact "$OUT" "${edition_path}/weekly/index.html" \
+      "text/html; charset=utf-8" "no-store, no-cache" \
+      "S3: ${edition_path}/weekly uploaded" \
+      "S3: ${edition_path}/weekly upload FAILED (non-fatal)"
+    invalidate_paths \
+      "CloudFront: invalidation created" \
+      "CloudFront: invalidation FAILED (non-fatal)" \
+      -- "/${edition_path}/weekly/index.html" "/${edition_path}/weekly/"
   else
     echo "--- Stage 4: skipped — AWS CLI unavailable ---"
   fi

@@ -2,7 +2,8 @@
 """
 traffic_report.py — Daily traffic snapshot from CloudFront access logs.
 
-Reads CloudFront standard logs from s3://briefer-news-cf-logs/cflogs/,
+Reads CloudFront standard logs from s3://<CF_LOGS_BUCKET>/cflogs/ (bucket
+name from scripts/lib/env.sh via config.CF_LOGS_BUCKET),
 aggregates yesterday's requests, and writes a markdown report (totals,
 edition split, top pages, top referrers, status codes, bot vs human).
 
@@ -27,11 +28,16 @@ import urllib.parse
 from collections import Counter, defaultdict
 from pathlib import Path
 
+# Single source of truth for infra constants (AWS path, CF_LOGS_BUCKET,
+# DIST_ID). config.py parses scripts/lib/env.sh — same values the shell
+# scripts source.
+sys.path.insert(0, str(Path(__file__).resolve().parent / "lib"))
+import config
 
-AWS = "/Users/maxgoshay/.local/bin/aws"
-BUCKET = "briefer-news-cf-logs"
+AWS = config.AWS
+BUCKET = config.CF_LOGS_BUCKET
 PREFIX = "cflogs/"
-DIST_ID = "EMV1VIFYTSI3U"
+DIST_ID = config.DIST_ID
 
 # CloudFront standard-log field order (matches "#Fields:" header)
 FIELDS = [

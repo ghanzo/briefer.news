@@ -39,6 +39,11 @@ set +e
 REPO=/Users/maxgoshay/code/briefernewsapp
 cd "$REPO"
 
+# Shared infra constants (DIST_ID, S3_BUCKET, AWS, DOCKER, ...) + deploy
+# helpers (deploy_artifact_quiet / invalidate_paths). deploy.sh sources env.sh.
+# shellcheck source=/dev/null
+. "$REPO/scripts/lib/deploy.sh"
+
 LOG_DIR="$REPO/logs"
 mkdir -p "$LOG_DIR"
 LOG_FILE="$LOG_DIR/daily-digests-$(date +%Y%m%d).log"
@@ -55,8 +60,7 @@ echo "── Stage 1/6: weekly.sh ──"
 
 echo ""
 echo "── Stage 2/6: archive_index ──"
-DOCKER=/usr/local/bin/docker
-AWS=/Users/maxgoshay/.local/bin/aws
+# DOCKER / AWS now come from scripts/lib/env.sh (sourced via deploy.sh).
 RUN_DIR="$REPO/.run"
 python3 "$REPO/scripts/archive_index.py"
 
@@ -68,15 +72,13 @@ if [ -s "$RUN_DIR/archive_index_usa.html" ] && [ -s "$RUN_DIR/archive_index_chin
       cp /src/archive_index_usa.html   /dst/usa/archive/index.html
       cp /src/archive_index_china.html /dst/china/archive/index.html
     "
-  if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
-    "$AWS" s3 cp "$RUN_DIR/archive_index_usa.html"   s3://briefer-news-site/usa/archive/index.html   --content-type "text/html; charset=utf-8" --cache-control "no-store, no-cache" >/dev/null && echo "S3: usa/archive/index uploaded"
-    "$AWS" s3 cp "$RUN_DIR/archive_index_china.html" s3://briefer-news-site/china/archive/index.html --content-type "text/html; charset=utf-8" --cache-control "no-store, no-cache" >/dev/null && echo "S3: china/archive/index uploaded"
-    "$AWS" cloudfront create-invalidation \
-      --distribution-id EMV1VIFYTSI3U \
-      --paths "/usa/archive/index.html" "/usa/archive/" "/china/archive/index.html" "/china/archive/" \
-      --query 'Invalidation.Id' --output text \
-      && echo "CloudFront: invalidation created" \
-      || echo "CloudFront: invalidation FAILED (non-fatal)"
+  if aws_ready; then
+    deploy_artifact_quiet "$RUN_DIR/archive_index_usa.html"   "usa/archive/index.html"   "text/html; charset=utf-8" "no-store, no-cache" "S3: usa/archive/index uploaded"
+    deploy_artifact_quiet "$RUN_DIR/archive_index_china.html" "china/archive/index.html" "text/html; charset=utf-8" "no-store, no-cache" "S3: china/archive/index uploaded"
+    invalidate_paths \
+      "CloudFront: invalidation created" \
+      "CloudFront: invalidation FAILED (non-fatal)" \
+      -- "/usa/archive/index.html" "/usa/archive/" "/china/archive/index.html" "/china/archive/"
   else
     echo "AWS CLI unavailable — archive index deployed only to nginx volume"
   fi
@@ -90,21 +92,17 @@ python3 "$REPO/scripts/inject_weekly_preview.py"
 
 echo ""
 echo "── Stage 4/6: build_sitemap ──"
-AWS=/Users/maxgoshay/.local/bin/aws
 python3 "$REPO/scripts/build_sitemap.py"
 if [ -s "$RUN_DIR/sitemap.xml" ]; then
-  if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
-    "$AWS" s3 cp "$RUN_DIR/sitemap.xml" s3://briefer-news-site/sitemap.xml \
-      --content-type "application/xml" \
-      --cache-control "public, max-age=3600" >/dev/null \
-      && echo "S3: sitemap.xml uploaded" \
-      || echo "S3: sitemap.xml upload FAILED (non-fatal)"
-    "$AWS" cloudfront create-invalidation \
-      --distribution-id EMV1VIFYTSI3U \
-      --paths "/sitemap.xml" \
-      --query 'Invalidation.Id' --output text \
-      && echo "CloudFront: sitemap invalidation created" \
-      || echo "CloudFront: sitemap invalidation FAILED (non-fatal)"
+  if aws_ready; then
+    deploy_artifact_quiet "$RUN_DIR/sitemap.xml" "sitemap.xml" \
+      "application/xml" "public, max-age=3600" \
+      "S3: sitemap.xml uploaded" \
+      "S3: sitemap.xml upload FAILED (non-fatal)"
+    invalidate_paths \
+      "CloudFront: sitemap invalidation created" \
+      "CloudFront: sitemap invalidation FAILED (non-fatal)" \
+      -- "/sitemap.xml"
   else
     echo "AWS CLI unavailable — sitemap built but not deployed"
   fi
@@ -116,15 +114,13 @@ echo ""
 echo "── Stage 5/6: build_feeds ──"
 python3 "$REPO/scripts/build_feeds.py"
 if [ -s "$RUN_DIR/feed_usa.xml" ] && [ -s "$RUN_DIR/feed_china.xml" ]; then
-  if [ -x "$AWS" ] && "$AWS" sts get-caller-identity >/dev/null 2>&1; then
-    "$AWS" s3 cp "$RUN_DIR/feed_usa.xml"   s3://briefer-news-site/usa/feed.xml   --content-type "application/rss+xml; charset=utf-8" --cache-control "public, max-age=1800" >/dev/null && echo "S3: usa/feed.xml uploaded"
-    "$AWS" s3 cp "$RUN_DIR/feed_china.xml" s3://briefer-news-site/china/feed.xml --content-type "application/rss+xml; charset=utf-8" --cache-control "public, max-age=1800" >/dev/null && echo "S3: china/feed.xml uploaded"
-    "$AWS" cloudfront create-invalidation \
-      --distribution-id EMV1VIFYTSI3U \
-      --paths "/usa/feed.xml" "/china/feed.xml" \
-      --query 'Invalidation.Id' --output text \
-      && echo "CloudFront: feeds invalidation created" \
-      || echo "CloudFront: feeds invalidation FAILED (non-fatal)"
+  if aws_ready; then
+    deploy_artifact_quiet "$RUN_DIR/feed_usa.xml"   "usa/feed.xml"   "application/rss+xml; charset=utf-8" "public, max-age=1800" "S3: usa/feed.xml uploaded"
+    deploy_artifact_quiet "$RUN_DIR/feed_china.xml" "china/feed.xml" "application/rss+xml; charset=utf-8" "public, max-age=1800" "S3: china/feed.xml uploaded"
+    invalidate_paths \
+      "CloudFront: feeds invalidation created" \
+      "CloudFront: feeds invalidation FAILED (non-fatal)" \
+      -- "/usa/feed.xml" "/china/feed.xml"
   else
     echo "AWS CLI unavailable — feeds built but not deployed"
   fi
