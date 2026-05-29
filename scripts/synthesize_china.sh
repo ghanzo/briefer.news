@@ -557,6 +557,46 @@ if ! grep -q 'class="backdrop"' "$OUT"; then
 fi
 echo "Brief HTML produced: $(wc -c < "$OUT") bytes"
 
+# ── Stage 4b: editorial contract gate ───────────────────────────────────────
+# Post-synth validation of the RENDERED brief against the editorial contract
+# (scripts/validate_brief.py, built on brief_parser). Two tiers:
+#   ERRORS   — brief is structurally broken (bad stamp, empty headline, wrong
+#              event/voice/source counts, wrong canonical, missing meta
+#              description, a leaked REMOVED section incl. Strategic Backdrop /
+#              Five-Year Plan, a cite numeral past the bibliography). These
+#              BLOCK deploy — we follow the existing exit-0-leave-previous-live
+#              pattern and DO NOT upload, so a broken brief never reaches the
+#              nginx volume, S3, or CloudFront.
+#   WARNINGS — soft style misses (e.g. headline over 12 words). Publish anyway,
+#              but flag.
+# Exits non-zero ONLY on >=1 ERROR; warnings alone exit 0. It also writes
+# .run/brief_proof_china.txt for the operator to eyeball.
+echo ""
+echo "--- Stage 4b: editorial contract validation ---"
+VALIDATE_OUT=$(python3 "$REPO/scripts/validate_brief.py" "$OUT" --edition china 2>&1)
+VALIDATE_RC=$?
+echo "$VALIDATE_OUT"
+if [ "$VALIDATE_RC" -ne 0 ]; then
+  echo "ERROR: China brief failed editorial validation — leaving previous brief in place"
+  python3 - "$VALIDATE_OUT" <<'PYNOTIFY'
+import sys
+sys.path.insert(0, "/Users/maxgoshay/code/briefernewsapp/scripts")
+from notify import notify
+violations = sys.argv[1] if len(sys.argv) > 1 else ""
+notify("crit", "China brief failed validation — kept yesterday's brief live\n\n" + violations)
+PYNOTIFY
+  exit 0
+elif echo "$VALIDATE_OUT" | grep -q '\[WARN\]'; then
+  echo "WARN: China brief passed with warnings — deploying anyway"
+  python3 - "$VALIDATE_OUT" <<'PYNOTIFY'
+import sys
+sys.path.insert(0, "/Users/maxgoshay/code/briefernewsapp/scripts")
+from notify import notify
+violations = sys.argv[1] if len(sys.argv) > 1 else ""
+notify("warn", "China brief passed validation with warnings — deploying anyway\n\n" + violations)
+PYNOTIFY
+fi
+
 # ── Stage 5: deploy to local nginx /china/ subpath ─────────────────────────
 # Archive copy gets a rewritten canonical pointing to ITS dated URL so
 # Google indexes each archive as unique content, not a dupe of today.

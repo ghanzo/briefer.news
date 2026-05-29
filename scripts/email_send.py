@@ -52,6 +52,13 @@ AWS = "/Users/maxgoshay/.local/bin/aws"
 SES_REGION = "us-east-1"
 TODAY = dt.date.today()
 
+# Share the exact stamp rule + parser with the rest of the system so the
+# freshness gate can never drift from healthcheck.py / brief_parser.py.
+sys.path.insert(0, str(REPO / "scripts"))
+from healthcheck import expected_stamp  # noqa: E402  same "MAY 28, 2026" format
+from brief_parser import parse_brief  # noqa: E402  single source of truth
+from notify import notify  # noqa: E402  off-box operational alert (SES + log)
+
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -92,7 +99,36 @@ def fetch_brief(edition: str) -> dict:
         "headline": html_lib.unescape(re.sub(r"<[^>]+>", "", h.group(1)).strip()) if h else "(headline missing)",
         "events": events,
         "url": url,
+        # Keep the raw HTML so the freshness gate reuses this single fetch
+        # (via brief_parser.parse_brief) instead of curling the brief again.
+        "html": html,
     }
+
+
+def freshness_ok(edition: str, html: str, today: dt.date) -> tuple[bool, str]:
+    """Gate the subscriber send on brief freshness, using the shared parser.
+
+    Passes only when, for the fetched HTML:
+      (a) the stamp date == today, computed via healthcheck.expected_stamp so
+          the two scripts share one rule and cannot drift; and
+      (b) the brief is non-empty: events_visible_count >= 1 AND a headline is
+          present (parse_brief returns "" for a missing headline).
+
+    Returns (ok, detail). The detail string describes the failure for the alert/log.
+    """
+    parsed = parse_brief(html or "")
+    stamp = parsed.get("date") or ""
+    expected = expected_stamp(today)
+    visible = parsed.get("events_visible_count", 0)
+    headline = (parsed.get("headline") or "").strip()
+
+    if stamp != expected:
+        return False, f"{edition}: stamp='{stamp}' expected='{expected}'"
+    if visible < 1:
+        return False, f"{edition}: stamp OK ({stamp}) but 0 visible events (empty brief)"
+    if not headline:
+        return False, f"{edition}: stamp OK ({stamp}) but headline is missing (empty brief)"
+    return True, f"{edition}: fresh (stamp={stamp}, visible={visible}, headline present)"
 
 
 def today_send_count() -> int:
@@ -227,6 +263,29 @@ def main(argv: list[str]) -> int:
     china = fetch_brief("china")
     today_iso = TODAY.isoformat()
     subject = f"Briefer News — {first_clause(us['headline'])}"
+
+    # ── Freshness gate ───────────────────────────────────────────────────────
+    # IN ADDITION to the EMAIL_ENABLED / EMAIL_DAILY_CAP / unsubscribe gates
+    # above. The synth often finishes hours after the 08:30 send, so a stale or
+    # empty brief must never go to subscribers. Gated per edition (both ship in
+    # one email — if EITHER is stale/empty we skip the whole send).
+    stale = []
+    for edition, brief in (("USA", us), ("China", china)):
+        ok, detail = freshness_ok(edition, brief.get("html", ""), TODAY)
+        print(f"  freshness {detail}")
+        if not ok:
+            stale.append(detail)
+
+    if stale:
+        expected = expected_stamp(TODAY)
+        for detail in stale:
+            edition = detail.split(":", 1)[0]
+            msg = (f"{edition} brief is stale/empty ({detail}; expected={expected}) "
+                   f"— skipped the 08:30 send")
+            print(f"\nABORT (freshness): {msg}")
+            notify("crit", msg, dry_run=args.dry_run)
+        # Do NOT send to subscribers; exit non-zero so launchd records failure.
+        return 1
 
     # Render template (import lazily so syntax check is faster)
     sys.path.insert(0, str(REPO / "scripts"))
