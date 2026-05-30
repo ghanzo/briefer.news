@@ -63,9 +63,9 @@ publish" / "Path A only" is stale — it has been autonomous since 2026-05-09.)
 
 ---
 
-## The 16 LaunchAgents
+## The 17 LaunchAgents
 
-The running schedule is **16 LaunchAgents** on the M4 Mac mini at home. They
+The running schedule is **17 LaunchAgents** on the M4 Mac mini at home. They
 are now committed in **`launchd/`** (source of truth) and synced to
 `~/Library/LaunchAgents` via **`scripts/install_launchagents.sh`**:
 
@@ -80,6 +80,7 @@ make agents-install    # repo -> live (fresh machine / disk loss recovery)
 | boot / login | `news.briefer.boot` | `boot.sh` | bring-up at login (docker, nginx) |
 | boot, KeepAlive | `news.briefer.email_api` | `email_api_server.py` | long-running subscriber API (signup/unsubscribe) |
 | every 10 min | `news.briefer.email_bounce_handler` | `email_bounce_handler.py` | poll SQS for SES bounces/complaints |
+| 03:30 | `news.briefer.backup` | `backup_subscribers.sh` | off-box backup of email_subscribers → S3 (`briefer-news-backups`) |
 | 04:00 | `news.briefer.daily` | `daily.sh` | 3 scrapes in parallel (rss + akamai + china) + cleanup |
 | 07:00 | `news.briefer.synthesize` | `synthesize.sh` | **autonomous US synth → /usa/** |
 | 07:30 | `news.briefer.synthesize.china` | `synthesize_china.sh` | **autonomous China synth → /china/** |

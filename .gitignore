@@ -42,5 +42,8 @@ Thumbs.db
 .claude/
 .run/
 .gcp/
+
+# DB backups — subscriber PII + opt-in/unsubscribe tokens; never commit
+backups/
 CLEANUP.md
 HN_LAUNCH.md

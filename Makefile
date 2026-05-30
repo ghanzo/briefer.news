@@ -8,7 +8,7 @@ PY    := /usr/bin/python3
 
 .PHONY: help status preflight test check-brief preview healthcheck \
         synth synth-china shadow shadow-us shadow-china \
-        clean-logs alert-test x-costs \
+        clean-logs alert-test x-costs backup \
         agents-status agents-export agents-install
 
 help:
@@ -27,6 +27,7 @@ help:
 	@echo "  clean-logs    rotate logs + DB cleanup (scripts/cleanup.sh)"
 	@echo "  alert-test    send a DRY-RUN alert (no email leaves the box)"
 	@echo "  x-costs       show X API credit spend / remaining"
+	@echo "  backup        back up the subscriber DB off-box (local backups/ + S3)"
 	@echo "  agents-status | agents-export | agents-install   launchd schedule sync"
 
 status:
@@ -88,6 +89,9 @@ alert-test:
 
 x-costs:
 	@$(PY) "$(REPO)/scripts/x_cost_log.py" --summary 2>/dev/null || echo "  (x_cost_log.py not available yet)"
+
+backup:
+	@bash "$(REPO)/scripts/backup_subscribers.sh"
 
 agents-status:
 	@bash "$(REPO)/scripts/install_launchagents.sh" status
