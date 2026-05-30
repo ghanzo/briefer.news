@@ -186,15 +186,20 @@ def validate(d: dict, edition: str, today: datetime.date | None = None,
 
     # ── WARNINGS (publish anyway, but flag) ─────────────────────────────────
 
+    # Headline length: the synth prompt mandates 5-8 words (one event), and
+    # explicitly allows up to 10 when two events are joined by a semicolon. The
+    # band here MUST match that — an earlier 12-16 target was a stale pre-2026-05
+    # contract that made every prompt-compliant brief trip a false-positive WARN
+    # (which emailed the operator on the same channel as real crit failures).
     hw = d.get("headline_words", 0)
     if ed == "us":
-        if not (12 <= hw <= 16):
+        if not (5 <= hw <= 10):
             warnings.append(
-                f"US headline is {hw} words (style target 12-16) — publishing anyway")
+                f"US headline is {hw} words (style target 5-10) — publishing anyway")
     elif ed == "china":
-        if hw > 12:
+        if not (5 <= hw <= 10):
             warnings.append(
-                f"China headline is {hw} words (style target <=12) — publishing anyway")
+                f"China headline is {hw} words (style target 5-10) — publishing anyway")
 
     return errors, warnings
 

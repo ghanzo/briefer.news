@@ -135,9 +135,9 @@ never mixed into the U.S.-government Events list.
 ## Headline rules
 
 ### Target
-**12–16 words**, **two clauses** (separated by colon, semicolon, or "as/while"), each clause action-led, each clause anchored to a concrete fact (named actor, number, or named event).
+**5–8 words, one event** (updated 2026-05-30; the prior "12–16 words, two clauses" target was retired — the brief has shipped 5–8 word single-event headlines for weeks, and `validate_brief.py` now warns outside 5–10). A statement of fact, plain English, neutral verb. You MAY join two equally-dominant events with a semicolon up to 10 words total, but prefer one.
 
-**The first clause must anchor to a U.S.-government item** (see Source hierarchy). The second clause may carry an allied-sourced story for context, but the headline's verifiable spine is U.S.-gov — never lead with a story the reader can only trace to a foreign government.
+**The headline must anchor to a U.S.-government item** (see Source hierarchy). If a semicolon second event carries an allied-sourced story for context, the headline's verifiable spine is still U.S.-gov — never lead with a story the reader can only trace to a foreign government.
 
 ### Good ✓
 - "On Iran: U.S. drafts UN resolution; oil release reaches 172 million barrels." *(13w, two clauses, both anchored to specifics)*
@@ -420,7 +420,7 @@ The brief is written in the voice of a **clear-eyed analyst** with no incentive 
 
 Before publishing, the synthesizer should verify:
 
-- [ ] Headline is one sentence, ≤16 words, anchored to specifics.
+- [ ] Headline is one event, 5–8 words (up to 10 if two events joined by a semicolon), anchored to specifics.
 - [ ] 3 voice quotes (occasionally 4). Each between 12–30 words. Mix of registers.
 - [ ] All quotes are verbatim from source articles.
 - [ ] 9 bullets, ordered by significance.

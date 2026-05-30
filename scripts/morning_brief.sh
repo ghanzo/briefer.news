@@ -94,7 +94,7 @@ itemized checks). Format the score line like:
   failed (expected, sources parked)."
 If any non-conditional check failed, NAME IT and explain what it means.
 The mechanical checks cover: dek banned-patterns (DEK.md), dek 30-55
-word count, headline word count (US 12-16, China ≤12), voices /
+word count, headline word count (5-10 words, one event), voices /
 more-events / This week structural presence, canonical URL declares the
 live URL, stamp matches today. Conditional checks (allied_present for
 US, outside_gate_present for China) are NOT in the score denominator
