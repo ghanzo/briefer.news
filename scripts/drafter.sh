@@ -114,6 +114,32 @@ print('')
     fi
   done
 
+  echo "## Recent X openers to AVOID repeating"
+  echo ""
+  echo "These are the first lines of the last several X posts. Write a DIFFERENT"
+  echo "personal opener today. Do not reuse the wording, structure, or first verb."
+  echo ""
+  /usr/bin/python3 -c "
+import glob, json, os
+files = sorted(glob.glob(os.path.join('$REPO', 'logs', 'posts-*.jsonl')))[-7:]
+seen = []
+for f in files:
+    try:
+        fh = open(f)
+    except OSError:
+        continue
+    for ln in fh:
+        try:
+            r = json.loads(ln)
+        except Exception:
+            continue
+        if r.get('channel') == 'x' and r.get('type') != 'engagement' and r.get('text'):
+            first = r['text'].strip().splitlines()[0][:120]
+            seen.append(first)
+print('\n'.join('- ' + s for s in seen[-6:]) if seen else '(none yet — this is an early post)')
+" 2>/dev/null || echo "(could not read recent posts)"
+  echo ""
+
   echo "## Channel status"
   echo ""
   echo "| Channel | Autonomous | Status |"
@@ -151,7 +177,23 @@ TITLE: <link-card title, ≤120 chars>
 DESCRIPTION: <link-card description, ≤200 chars>
 
 ## X / Twitter
-<Write the post in this EXACT shape, keeping the opening three sentences verbatim: "I'm a builder, I've spent a few years on this. Briefer News is a government publications brief. A new kind of news. Today: EVENT1, EVENT2, EVENT3:" Replace EVENT1/2/3 with the U.S. edition's "Top 3 events" from the context, in order, each a short plain-English phrase of 4 to 10 words. Expand every acronym ("Quad" becomes "four nations"). Refer to any official who is not globally famous by country or institution. Everything before the URL must be 255 characters or fewer and end with a colon; use only 2 events if 3 will not fit. Do not use any dashes.>
+<Two parts: a SHORT personal opener, then "Today:" plus the events.
+PART 1: the opener (ONE short first-person sentence, about 6 to 14 words): make
+clear this is MY project that I build and run, in plain language. VARY it every
+day. Do NOT reuse the wording, structure, or opening verb of any line under
+"Recent X openers to AVOID repeating" in the context. Rotate the angle day to
+day: what I built / why I read government sources directly / what I do each
+morning / a dry first-person aside about running it. Examples of the RANGE (do
+not copy these verbatim, write a fresh one): "I build briefer.news, a daily
+read straight from government sources." / "Every morning I pull the government's
+own publications into one brief." / "I run briefer.news. No pundits, just the
+primary sources." Keep it to one sentence; the events are the substance.
+PART 2: then a space and "Today:" followed by the U.S. edition's "Top 3 events"
+from the context, in order, each a short plain-English phrase of 4 to 10 words,
+comma-separated, ending with a colon. Expand every acronym ("Quad" becomes
+"four nations"). Refer to any official who is not globally famous by country or
+institution. Everything before the URL must be 255 characters or fewer; use
+only 2 events if 3 will not fit. Do not use any dashes.>
 URL: https://briefer.news/usa/?utm_source=x
 
 ## HN
@@ -170,7 +212,7 @@ BODY: <2-4 short paragraphs framing what's in today's brief + why it matters for
 
 Channel-specific tone:
 - Bluesky: matter-of-fact, journalistic, no hashtags.
-- X / Twitter: use the fixed events format defined in the X section above. Plain and factual, no editorializing.
+- X / Twitter: a VARIED personal opener (this is my project) then "Today:" + the events, per the X section above. Plain and factual, no editorializing. The opener changes daily; the events stay factual.
 - HN: descriptive, no superlatives. The HN crowd downvotes hype.
 - Reddit: contextual, sub-aware. r/geopolitics readers want analysis;
   r/news wants the lede. Default to r/geopolitics; only switch if the
