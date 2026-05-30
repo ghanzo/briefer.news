@@ -51,23 +51,54 @@ sleep 5
 # ── Stage 1: parallel scrapes (RSS + Akamai + China) ────────────────────────
 # All three scrapes fire concurrently — each is mostly network-bound on a
 # different set of remote servers, so they don't compete for resources. Log
-# lines are prefixed so you can disentangle them. Cleanup waits for all to
-# finish via the wait calls below.
+# lines are prefixed so you can disentangle them.
+#
+# Capture each scraper's REAL exit code, not the prefixing sed's. Each scrape
+# is a `docker … | sed` pipeline; the old `wait $!; $?` returned the sed exit
+# (≈always 0), which on 2026-05-27 SILENTLY masked a total ingest failure —
+# the akamai+china containers failed to even launch (lens.md mount race) yet
+# the run reported "rss=0 akamai=0 china=0 … completed". We now run each scrape
+# in its own backgrounded subshell that records ${PIPESTATUS[0]} (the
+# docker/python exit, 127 if it never ran) to a file, then read those back and
+# alert off-box on any non-zero. No `set -o pipefail`: with `set -e` it would
+# abort the subshell before the code is recorded; PIPESTATUS[0] is the robust
+# capture instead.
 echo ""
 echo "--- Stage 1: parallel scrapes ---"
-"$DOCKER" compose run --rm pipeline python main.py --scrape-only 2>&1 | sed 's/^/[rss]    /' &
-RSS_PID=$!
-"$DOCKER" compose run --rm pipeline python main.py --akamai-only 2>&1 | sed 's/^/[akamai] /' &
-AKAMAI_PID=$!
-"$DOCKER" compose run --rm pipeline python main.py --china-only 2>&1 | sed 's/^/[china]  /' &
-CHINA_PID=$!
 
-wait $RSS_PID;    RSS_EXIT=$?
-wait $AKAMAI_PID; AKAMAI_EXIT=$?
-wait $CHINA_PID;  CHINA_EXIT=$?
+RC_DIR="$(mktemp -d "${TMPDIR:-/tmp}/briefer-scrape.XXXXXX")"
+
+run_scrape() {  # <label> <rc_file> <main.py args…>
+  local label="$1" rc_file="$2"; shift 2
+  "$DOCKER" compose run --rm pipeline python main.py "$@" 2>&1 | sed "s/^/[$label] /"
+  echo "${PIPESTATUS[0]}" > "$rc_file"
+}
+
+run_scrape rss    "$RC_DIR/rss"    --scrape-only &
+run_scrape akamai "$RC_DIR/akamai" --akamai-only &
+run_scrape china  "$RC_DIR/china"  --china-only  &
+wait
+
+RSS_EXIT="$(cat "$RC_DIR/rss"    2>/dev/null || echo 127)"
+AKAMAI_EXIT="$(cat "$RC_DIR/akamai" 2>/dev/null || echo 127)"
+CHINA_EXIT="$(cat "$RC_DIR/china"  2>/dev/null || echo 127)"
+rm -rf "$RC_DIR"
 
 echo ""
 echo "Scrape exit codes — rss=$RSS_EXIT  akamai=$AKAMAI_EXIT  china=$CHINA_EXIT"
+
+# Alert off-box on any scrape failure. 127 = the subshell never recorded a
+# code (container failed to launch) — also a failure. alert.sh always exits 0;
+# the `if` guard keeps `set -e` happy.
+SCRAPE_FAILED=""
+for pair in "rss=$RSS_EXIT" "akamai=$AKAMAI_EXIT" "china=$CHINA_EXIT"; do
+  if [ "${pair#*=}" != "0" ]; then SCRAPE_FAILED="$SCRAPE_FAILED ${pair%%=*}(exit=${pair#*=})"; fi
+done
+if [ -n "$SCRAPE_FAILED" ]; then
+  echo "ALERT: scrape failure —$SCRAPE_FAILED"
+  "$REPO/scripts/alert.sh" crit "Overnight scrape FAILED:$SCRAPE_FAILED" \
+    "daily.sh on the mini — a scraper exited non-zero (127 = container never launched). Corpus may be stale; the 07:00/07:30 synth keeps yesterday's brief if too few fresh articles land. See logs/daily-$(date +%Y%m%d).log." || true
+fi
 
 # ── Stage 2: cleanup old articles (7-day retention) ─────────────────────────
 echo ""
@@ -78,3 +109,10 @@ echo ""
 echo "═══════════════════════════════════════════════════════════════"
 echo "Daily run completed at $(date)"
 echo "═══════════════════════════════════════════════════════════════"
+
+# Surface scrape failure in the LaunchAgent's exit status (read by morning_brief
+# + launchctl) — after cleanup + the off-box alert have already run.
+if [ -n "$SCRAPE_FAILED" ]; then
+  echo "Exiting non-zero due to scrape failure(s):$SCRAPE_FAILED"
+  exit 1
+fi
