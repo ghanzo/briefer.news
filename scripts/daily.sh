@@ -1,30 +1,46 @@
 #!/bin/bash
-# briefer.news daily run — the overnight scrape stage.
-# Triggered by ~/Library/LaunchAgents/news.briefer.daily.plist at 04:00 local time.
+# briefer.news daily run — the scrape stage. Runs TWICE a day:
+#   MODE=full   (default) — overnight run via news.briefer.daily.plist (04:00).
+#                Scrapes, then runs Stage 2 cleanup (DB retention).
+#   MODE=midday           — bonus daytime refresh via news.briefer.midday.plist
+#                (~12:30). Same scrape block, NO cleanup (the window is
+#                re-enforced at the next full run), and failures alert at 'warn'
+#                not 'crit' because the morning brief already shipped.
 #
-# What this does:
+# What the scrape does:
 #   1. Ensures Postgres is up (no-op if already running)
 #   2. Runs the standard RSS scrape (~10-60 min, ~40 sources)
 #   3. Runs the Akamai-protected scrape (~30-150 min, 6 sources, rate-limited)
 #   (the China scrape runs in the same parallel block; see below.)
+# Dedup is by url_hash, so a second daily pass only adds genuinely-new articles.
 #
 # AI synthesis IS fully wired and autonomous (as of 2026-05-09): the separate
 # news.briefer.synthesize / .synthesize.china LaunchAgents call headless Claude
-# Code at 07:00 / 07:30 and deploy each brief on their own. No manual publish.
+# Code and deploy each brief on their own. No manual publish.
 
 set -e
+
+MODE="${1:-full}"
+case "$MODE" in
+  full|midday) ;;
+  *) echo "usage: daily.sh [full|midday]" >&2; exit 2 ;;
+esac
 
 REPO=/Users/maxgoshay/code/briefernewsapp
 cd "$REPO"
 
 LOG_DIR="$REPO/logs"
 mkdir -p "$LOG_DIR"
-LOG_FILE="$LOG_DIR/daily-$(date +%Y%m%d).log"
+if [ "$MODE" = "midday" ]; then
+  LOG_FILE="$LOG_DIR/daily-midday-$(date +%Y%m%d).log"
+else
+  LOG_FILE="$LOG_DIR/daily-$(date +%Y%m%d).log"
+fi
 exec >> "$LOG_FILE" 2>&1
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
-echo "Daily run starting at $(date)"
+echo "Daily run (mode=$MODE) starting at $(date)"
 echo "═══════════════════════════════════════════════════════════════"
 
 DOCKER=/usr/local/bin/docker
@@ -96,18 +112,31 @@ for pair in "rss=$RSS_EXIT" "akamai=$AKAMAI_EXIT" "china=$CHINA_EXIT"; do
 done
 if [ -n "$SCRAPE_FAILED" ]; then
   echo "ALERT: scrape failure —$SCRAPE_FAILED"
-  "$REPO/scripts/alert.sh" crit "Overnight scrape FAILED:$SCRAPE_FAILED" \
-    "daily.sh on the mini — a scraper exited non-zero (127 = container never launched). Corpus may be stale; the 07:00/07:30 synth keeps yesterday's brief if too few fresh articles land. See logs/daily-$(date +%Y%m%d).log." || true
+  if [ "$MODE" = "midday" ]; then
+    "$REPO/scripts/alert.sh" warn "Midday refresh scrape FAILED:$SCRAPE_FAILED" \
+      "daily.sh midday run on the mini — a scraper exited non-zero. The morning brief already shipped; today's corpus just did not get its bonus daytime refresh. See logs/daily-midday-$(date +%Y%m%d).log." || true
+  else
+    "$REPO/scripts/alert.sh" crit "Overnight scrape FAILED:$SCRAPE_FAILED" \
+      "daily.sh on the mini — a scraper exited non-zero (127 = container never launched). Corpus may be stale; the 07:00/07:30 synth keeps yesterday's brief if too few fresh articles land. See logs/daily-$(date +%Y%m%d).log." || true
+  fi
 fi
 
 # ── Stage 2: cleanup old articles (14-day retention) ────────────────────────
-echo ""
-echo "--- Stage 2: cleanup ---"
-"$REPO/scripts/cleanup.sh"
+# Only on the full overnight run. Midday is a bonus corpus refresh; the
+# retention window is re-enforced at the next full run, and a midday VACUUM x3
+# would be wasteful churn.
+if [ "$MODE" = "midday" ]; then
+  echo ""
+  echo "--- Stage 2: cleanup SKIPPED (midday mode) ---"
+else
+  echo ""
+  echo "--- Stage 2: cleanup ---"
+  "$REPO/scripts/cleanup.sh"
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
-echo "Daily run completed at $(date)"
+echo "Daily run (mode=$MODE) completed at $(date)"
 echo "═══════════════════════════════════════════════════════════════"
 
 # Surface scrape failure in the LaunchAgent's exit status (read by morning_brief
