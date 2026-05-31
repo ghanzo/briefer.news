@@ -453,7 +453,6 @@ sources:
     url: "https://www.darpa.mil/rss.xml"
     category: technology
     tier: 1
-    active: false
 
   - name: "OFAC — Sanctions Actions"
     type: rss
@@ -467,14 +466,12 @@ sources:
     url: "https://www.ftc.gov/feeds/press-release.xml"
     category: economy
     tier: 1
-    active: false
 
   - name: "FTC — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-trade-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: economy
     tier: 1
-    active: false
 
   - name: "BIS — Export Controls (Federal Register)"
     type: rss
@@ -488,35 +485,30 @@ sources:
     url: "https://www.sec.gov/rss/news/pressreleases.rss"
     category: economy
     tier: 1
-    active: false
 
   - name: "CFTC — Press Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=commodity-futures-trading-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: economy
     tier: 1
-    active: false
 
   - name: "FDIC — Press Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-deposit-insurance-corporation&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: economy
     tier: 1
-    active: false
 
   - name: "OCC — News Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=comptroller-of-the-currency&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: economy
     tier: 1
-    active: false
 
   - name: "FCC — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=federal-communications-commission&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: technology
     tier: 1
-    active: false
 
   # DOE Newsroom — moved to ACTIVE 2026-05-05. Real article URLs are at /articles/<slug>.
   # See SOURCE_NOTES.md "Department of Energy — Newsroom" for operational notes.
@@ -544,7 +536,6 @@ sources:
     url: "https://www.federalreserve.gov/feeds/speeches.xml"
     category: economy
     tier: 1
-    active: false
 
   - name: "NASA — Breaking News"
     type: rss
@@ -558,14 +549,12 @@ sources:
     url: "https://www.noaa.gov/rss.xml"
     category: science
     tier: 1
-    active: false
 
   - name: "EPA — News Releases"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=environmental-protection-agency&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: science
     tier: 1
-    active: false
 
   - name: "NIH — News Releases"
     type: rss
@@ -579,49 +568,42 @@ sources:
     url: "https://tools.cdc.gov/api/v2/resources/media/132608.rss"
     category: health
     tier: 1
-    active: false
 
   - name: "FDA — Press Announcements"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=food-and-drug-administration&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: health
     tier: 1
-    active: false
 
   - name: "HHS — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=health-and-human-services-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: health
     tier: 1
-    active: false
 
   - name: "USGS — News"
     type: rss
     url: "https://www.usgs.gov/news/all/feed"
     category: science
     tier: 1
-    active: false
 
   - name: "NSF — News"
     type: rss
     url: "https://www.nsf.gov/rss/rss_www_news.xml"
     category: science
     tier: 1
-    active: false
 
   - name: "NIST — News"
     type: rss
     url: "https://www.nist.gov/news-events/news/rss.xml"
     category: technology
     tier: 1
-    active: false
 
   - name: "Commerce Dept — Federal Register (Rules & Notices)"
     type: rss
     url: "https://www.federalregister.gov/articles/search.rss?conditions%5Bagencies%5D%5B%5D=commerce-department&conditions%5Btype%5D%5B%5D=RULE&conditions%5Btype%5D%5B%5D=PRORULE&conditions%5Btype%5D%5B%5D=NOTICE"
     category: economy
     tier: 1
-    active: false
 
   # NTIA — disabled: SSL CERTIFICATE_VERIFY_FAILED on 2026-05-02 probe.
   # Cert chain issue at ntia.gov — needs `verify=False` or updated CA bundle to use.
@@ -630,7 +612,6 @@ sources:
     url: "https://www.ntia.gov/rss.xml"
     category: technology
     tier: 1
-    active: false
 
   # ── Innovation tier-3 ───────────────────────────────────────────────────────
 
@@ -863,21 +844,18 @@ sources:
     url: "https://newscenter.lbl.gov/feed/"
     category: science
     tier: 1
-    active: false
 
   - name: "FNAL — Fermilab"
     type: rss
     url: "https://news.fnal.gov/feed/"
     category: science
     tier: 1
-    active: false
 
   - name: "SNL — Sandia"
     type: rss
     url: "https://newsreleases.sandia.gov/feed/"
     category: science
     tier: 1
-    active: false
 
   # — Other US Federal sources (working) —
   - name: "DOL — News Releases"
@@ -986,14 +964,12 @@ sources:
     url: "https://www.nlrb.gov/rss/rssPressReleases.xml"
     category: economy
     tier: 1
-    active: false
 
   - name: "NLRB — Weekly Summaries"
     type: rss
     url: "https://www.nlrb.gov/rss/rssWeeklySummaries.xml"
     category: economy
     tier: 1
-    active: false
 
   # — NY Fed Economic Policy Review (quarterly) —
   - name: "NY Fed — Economic Policy Review"
