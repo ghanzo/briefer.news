@@ -537,12 +537,34 @@ sources:
     category: economy
     tier: 1
 
-  - name: "NASA — Breaking News"
+  - name: "NASA — News Releases"
     type: rss
-    url: "https://www.nasa.gov/rss/dyn/breaking_news.rss"
+    url: "https://www.nasa.gov/news-release/feed/"
     category: science
     tier: 1
-    active: false
+    weight: low
+
+  - name: "Census — Economic Indicators"
+    type: rss
+    url: "https://www.census.gov/economic-indicators/indicator.xml"
+    category: economy
+    tier: 1
+    weight: medium
+    notes: "Retail/housing/durables/trade-balance/inventories. census.gov is Akamai-fronted; falls back to curl_cffi if plain httpx 403s."
+
+  - name: "CDC — MMWR (Morbidity & Mortality Weekly Report)"
+    type: rss
+    url: "https://tools.cdc.gov/api/v2/resources/media/342778.rss"
+    category: health
+    tier: 1
+    weight: low
+
+  - name: "USGS — Significant Earthquakes (Past Week)"
+    type: rss
+    url: "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_week.atom"
+    category: science
+    tier: 1
+    weight: low
 
   - name: "NOAA — News"
     type: rss
