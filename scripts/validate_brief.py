@@ -117,13 +117,15 @@ def validate(d: dict, edition: str, today: datetime.date | None = None,
     if not headline:
         errors.append("headline is empty")
 
-    # events visible / more counts
+    # events visible / more counts. 2026-05-30: all 9 events render in the
+    # single visible <ul class="items"> — the "Show 4 more events" expander was
+    # removed, so visible==9 and more==0.
     vis = d.get("events_visible_count", 0)
     more = d.get("events_more_count", 0)
-    if vis != 5:
-        errors.append(f"events_visible_count is {vis}, expected 5")
-    if more != 4:
-        errors.append(f"events_more_count is {more}, expected 4")
+    if vis != 9:
+        errors.append(f"events_visible_count is {vis}, expected 9 (all events visible, no expander)")
+    if more != 0:
+        errors.append(f"events_more_count is {more}, expected 0 (no 'Show 4 more' expander)")
 
     # voices count
     nv = len(d.get("voices") or [])

@@ -76,9 +76,20 @@ def _ul_inner(html: str, exact_class: str) -> str | None:
 
 
 def _parse_event_li(li: str, tier: str) -> dict:
-    lead = _text(_first(r"<summary[^>]*>(.*?)</summary>", li))
-    # Body = text after </summary> up to the first <sup> or <span class="when">.
-    after = li.split("</summary>", 1)[1] if "</summary>" in li else li
+    # Lead: the <summary> wrapper (old collapsible-event layout) OR the opening
+    # <b>...</b> (flat full-body layout, 2026-05-30: all events visible, no
+    # chevron). Support BOTH so frozen-fixture renders and new renders parse.
+    lead_html = _first(r"<summary[^>]*>(.*?)</summary>", li)
+    if not lead_html:
+        lead_html = _first(r"<b>(.*?)</b>", li)
+    lead = _text(lead_html)
+    # Body = text after the lead, up to the first <sup> or <span class="when">.
+    if "</summary>" in li:
+        after = li.split("</summary>", 1)[1]
+    elif "</b>" in li:
+        after = li.split("</b>", 1)[1]
+    else:
+        after = li
     body_html = re.split(r'<sup\b|<span class="when"', after, 1)[0]
     body = _text(body_html)
     cite_url = cite_title = cite_marker = None
