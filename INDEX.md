@@ -10,7 +10,7 @@ renders — read for context, not as live UI · `[PLANNED]` scoped but not built
 
 | Doc | Tag | Purpose |
 |---|---|---|
-| `CLAUDE.md` | [LIVE] | Session orientation: the 16 LaunchAgents, autonomous synth, brief pipeline, ops tooling, deploy model. Rewritten + dated 2026-05-28. |
+| `CLAUDE.md` | [LIVE] | Session orientation: the 17 LaunchAgents, autonomous synth, brief pipeline, ops tooling, deploy model. Rewritten + dated 2026-05-28. |
 | `INDEX.md` | [LIVE] | This file — the root-doc map. |
 | `README.md` | [LIVE] | Public-facing project overview: what it is, daily flow, architecture, status snapshot. |
 | `BRIEF_STYLE.md` | [LIVE] | US editorial style guide — mandatory before any US synth. Note: its "Page structure" still lists a Dek (item 4) and Thread strip (item 5); **both were removed 2026-05-27** (flagged inline). |

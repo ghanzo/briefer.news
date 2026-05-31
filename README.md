@@ -56,7 +56,7 @@ Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesiz
 
 | File | Purpose |
 |---|---|
-| [`BRIEF_STYLE.md`](BRIEF_STYLE.md) | Style rules: 9 bullets, 3 voices, 12–16-word headline, plain English, ≤2 DOJ items, ≤3 purely-domestic items, named actors, sourced citations |
+| [`BRIEF_STYLE.md`](BRIEF_STYLE.md) | Style rules: 9 events (all visible, each click-to-expand; no "show more" group expander), 6 voices, 5–8-word headline, plain English, ≤2 DOJ items, ≤3 purely-domestic items, named actors, sourced citations |
 | [`lens.md`](lens.md) | Interpretive framework: energy/resources, US-China axis, tech chokepoints, financial currents, human systems, innovation signals |
 | [`archive/docs/AIMS.md`](archive/docs/AIMS.md) | Long-arc themes and predictions (archived) |
 | [`archive/docs/COVERAGE.md`](archive/docs/COVERAGE.md) | Thematic dimensions / categories (archived) |
@@ -64,7 +64,7 @@ Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesiz
 
 ## Setup on a new machine
 
-The full schedule of **16 LaunchAgents** is committed in [`launchd/`](launchd/);
+The full schedule of **17 LaunchAgents** is committed in [`launchd/`](launchd/);
 [`scripts/install_launchagents.sh`](scripts/install_launchagents.sh) (`make
 agents-install`) reconstructs the live schedule from git on a fresh machine. The
 historical Mac mini deployment runbook is archived at
@@ -122,7 +122,7 @@ briefer.news/
 ├── CLAUDE.md                       # orientation for Claude sessions
 ├── INDEX.md                        # root-doc map (purpose + freshness tag)
 ├── Makefile                        # operator entry point (`make status`)
-├── launchd/                        # the 16 LaunchAgents (source of truth)
+├── launchd/                        # the 17 LaunchAgents (source of truth)
 └── archive/docs/MIGRATION.md       # historical M4 mini deployment runbook
 ```
 
