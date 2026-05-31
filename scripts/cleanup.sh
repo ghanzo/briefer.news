@@ -1,10 +1,10 @@
 #!/bin/bash
-# briefer.news DB cleanup — sliding 7-day retention on articles & filter logs.
+# briefer.news DB cleanup — sliding 14-day retention on articles & filter logs.
 #
 # Called from daily.sh after the scrape completes. Can also be run manually:
-#   scripts/cleanup.sh                 # default 7-day retention
+#   scripts/cleanup.sh                 # default 14-day retention (RETENTION_DAYS env-overridable)
 #   scripts/cleanup.sh --dry-run       # preview only, no DB writes
-#   scripts/cleanup.sh --days 14       # custom retention
+#   scripts/cleanup.sh --days 21       # custom retention
 #
 # What gets deleted (older than $RETENTION_DAYS):
 #   - article_summaries (deleted first to satisfy article_id FK)
@@ -26,7 +26,7 @@ LOG_FILE="$LOG_DIR/cleanup-$(date +%Y%m%d).log"
 exec >> "$LOG_FILE" 2>&1
 
 DOCKER=/usr/local/bin/docker
-RETENTION_DAYS=7
+RETENTION_DAYS="${RETENTION_DAYS:-14}"
 DRY_RUN=false
 
 while [ $# -gt 0 ]; do
@@ -37,6 +37,13 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
+
+# Guard: retention MUST be a positive integer. Rejects '--days 0' (which would
+# wipe the entire scrape corpus) and any non-numeric value.
+if ! printf '%s' "$RETENTION_DAYS" | grep -Eq '^[1-9][0-9]*$'; then
+  echo "ERROR: RETENTION_DAYS must be a positive integer, got '${RETENTION_DAYS}'" >&2
+  exit 2
+fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"

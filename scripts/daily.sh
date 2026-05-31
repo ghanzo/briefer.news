@@ -100,7 +100,7 @@ if [ -n "$SCRAPE_FAILED" ]; then
     "daily.sh on the mini — a scraper exited non-zero (127 = container never launched). Corpus may be stale; the 07:00/07:30 synth keeps yesterday's brief if too few fresh articles land. See logs/daily-$(date +%Y%m%d).log." || true
 fi
 
-# ── Stage 2: cleanup old articles (7-day retention) ─────────────────────────
+# ── Stage 2: cleanup old articles (14-day retention) ────────────────────────
 echo ""
 echo "--- Stage 2: cleanup ---"
 "$REPO/scripts/cleanup.sh"
