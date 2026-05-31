@@ -298,3 +298,39 @@ sources:
     tier: 1
     active: true
     notes: "Department of Energy articles — grid policy, secretary statements, fact sheets. /newsroom is the official news landing. Pattern /articles/<slug>. 142KB at listing with fresh secretary remarks + fact sheets."
+  - name: "BLS — Employment Situation"
+    domain: bls.gov
+    discovery_type: rss_curl_cffi
+    listing_url: "https://www.bls.gov/feed/empsit.rss"
+    link_pattern: "/news.release/"
+    category: economy
+    weight: high
+    notes: "bls.gov 403s plain fetch; curl_cffi path. link_pattern verify-after-first-scrape (BLS releases live at /news.release/*.htm)."
+
+  - name: "BLS — CPI"
+    domain: bls.gov
+    discovery_type: rss_curl_cffi
+    listing_url: "https://www.bls.gov/feed/cpi.rss"
+    link_pattern: "/news.release/"
+    category: economy
+    weight: high
+    notes: "Consumer Price Index release feed. curl_cffi; verify link_pattern after first scrape."
+
+  - name: "BLS — PPI"
+    domain: bls.gov
+    discovery_type: rss_curl_cffi
+    listing_url: "https://www.bls.gov/feed/ppi.rss"
+    category: economy
+    link_pattern: "/news.release/"
+    weight: medium
+    notes: "Producer Price Index release feed. curl_cffi; verify link_pattern after first scrape."
+
+  - name: "DOL — News Releases"
+    domain: dol.gov
+    discovery_type: rss_curl_cffi
+    listing_url: "https://www.dol.gov/rss/releases.xml"
+    link_pattern: "/newsroom/releases/"
+    category: economy
+    weight: medium
+    notes: "dol.gov 403s plain fetch; curl_cffi path. Releases live at /newsroom/releases/. Verify link_pattern after first scrape."
+
