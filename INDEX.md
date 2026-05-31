@@ -1,7 +1,12 @@
-# INDEX.md — root document map  *(as of 2026-05-28)*
+# INDEX.md — root document map  *(as of 2026-05-31)*
 
 Every `*.md` at the repo root, with a one-line purpose and a freshness tag.
 Start with **`CLAUDE.md`** and `make status`.
+
+> Layout note (2026-05-31): briefs render all **9 events + 6 voices** in their
+> lists — each event keeps its per-event click-to-expand chevron; only the
+> "Show 4 more events" / "Show 3 more voices" group expanders were removed.
+> Headline is **5–8 words**. China dropped Strategic Backdrop + Five-Year Plan.
 
 **Tags:** `[LIVE]` describes the running system / binding rules — trust it ·
 `[REFERENCE]` accurate background or a spec for an element that no longer
