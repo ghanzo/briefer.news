@@ -4,30 +4,30 @@
 <plist version="1.0">
 <dict>
   <key>Label</key>
-  <string>news.briefer.digests</string>
+  <string>news.briefer.synthcatchup</string>
 
   <key>ProgramArguments</key>
   <array>
     <string>/bin/bash</string>
-    <string>/Users/maxgoshay/code/briefernewsapp/scripts/daily_digests.sh</string>
+    <string>/Users/maxgoshay/code/briefernewsapp/scripts/synth_catchup.sh</string>
   </array>
 
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key>
-    <integer>5</integer>
+    <integer>13</integer>
     <key>Minute</key>
-    <integer>30</integer>
+    <integer>5</integer>
   </dict>
 
   <key>RunAtLoad</key>
   <false/>
 
   <key>StandardOutPath</key>
-  <string>/Users/maxgoshay/code/briefernewsapp/logs/launchd-digests.out</string>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/launchd.synthcatchup.out</string>
 
   <key>StandardErrorPath</key>
-  <string>/Users/maxgoshay/code/briefernewsapp/logs/launchd-digests.err</string>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/launchd.synthcatchup.err</string>
 
   <key>WorkingDirectory</key>
   <string>/Users/maxgoshay/code/briefernewsapp</string>
