@@ -222,18 +222,18 @@
     { "id":"launchagents", "label":"LaunchAgents", "sublabel":"macOS cron",
       "kind":"trigger", "zone":0,
       "file":"~/Library/LaunchAgents/news.briefer.*.plist",
-      "desc":"19 macOS LaunchAgents drive the pipeline on an early-morning schedule (spread to avoid Claude quota limits) — 00:30 overnight scrape, 02:30 US synth, 04:00 China synth, 05:30 weekly digests, plus a 12:30 midday scrape and a 13:05 synth-catchup safety net." },
+      "desc":"21 macOS LaunchAgents drive the pipeline on an early-morning schedule (spread to avoid Claude quota limits) — 00:30 overnight scrape, 02:30 US synth, 04:00 China synth, 05:30 weekly digests, a 07:15 feed-freshness watchdog, the 08:30 subscriber email, a 09:00 alert digest, plus a 12:30 midday scrape and a 13:05 synth-catchup safety net." },
 
     { "id":"config", "label":"Source config", "sublabel":"YAML",
       "kind":"data", "zone":1, "file":"pipeline/config/*.yaml",
       "desc":"Source lists and editorial config: china_sources.yaml, akamai_sources.yaml, threads.yaml, and the strategy/ doctrine library." },
     { "id":"daily_sh", "label":"daily.sh", "sublabel":"scrape orchestrator",
       "kind":"orchestrator", "zone":1, "file":"scripts/daily.sh",
-      "desc":"Brings Postgres up, fires the three scrapers in parallel, then runs the 7-day retention cleanup." },
+      "desc":"Brings Postgres up, fires the three scrapers in parallel, then runs the 14-day retention cleanup." },
 
     { "id":"external_sources", "label":"Gov sources", "sublabel":"RSS · Akamai · PRC",
       "kind":"external", "zone":2, "file":"—",
-      "desc":"~70 government sites — RSS feeds, Akamai-protected US defense sites, and PRC government pages — the only primary sources the brief draws from." },
+      "desc":"~125 active government sources — RSS feeds, Akamai-protected US defense/allied sites, and PRC government pages — the only primary sources the brief draws from." },
     { "id":"pipeline", "label":"Scraper engine", "sublabel":"main.py",
       "kind":"engine", "zone":2, "file":"pipeline/main.py + pipeline/scraper/",
       "desc":"Python scraper with three modes — RSS, Akamai (curl_cffi Chrome-TLS impersonation to bypass bot protection), and China. Extracts article text + metadata." },
@@ -241,9 +241,9 @@
     { "id":"postgres", "label":"Postgres", "sublabel":"article store",
       "kind":"store", "zone":3, "file":"docker: briefer_postgres",
       "desc":"The articles table — every scraped article with full_text, publish_date and source. Deduped by url_hash." },
-    { "id":"cleanup", "label":"cleanup.sh", "sublabel":"7-day retention",
+    { "id":"cleanup", "label":"cleanup.sh", "sublabel":"14-day retention",
       "kind":"helper", "zone":3, "file":"scripts/cleanup.sh",
-      "desc":"Prunes articles older than 7 days so the candidate pool stays current." },
+      "desc":"Prunes articles older than 14 days so the candidate pool stays current. (Daily archived brief HTML is kept forever, separately, on S3/nginx.)" },
 
     { "id":"preflight", "label":"preflight.sh", "sublabel":"health-check guard",
       "kind":"helper", "zone":4, "file":"scripts/preflight.sh",
@@ -293,10 +293,10 @@
   ],
   "flows": [
     { "id":"scrape", "label":"Overnight scrape",
-      "desc":"04:00 — pull fresh articles from ~70 government sources into Postgres, then prune anything older than 7 days.",
+      "desc":"00:30 — pull fresh articles from ~125 government sources into Postgres, then prune anything older than 14 days.",
       "steps":[
-        { "from":"launchagents", "to":"daily_sh", "label":"04:00 trigger",
-          "detail":"news.briefer.daily.plist fires daily.sh at 04:00 local time." },
+        { "from":"launchagents", "to":"daily_sh", "label":"00:30 trigger",
+          "detail":"news.briefer.daily.plist fires daily.sh at 00:30 local time." },
         { "from":"daily_sh", "to":"pipeline", "label":"3 scrape modes",
           "detail":"daily.sh launches main.py in --scrape-only, --akamai-only and --china-only concurrently — each is network-bound on a different set of hosts." },
         { "from":"config", "to":"pipeline", "label":"source lists",
@@ -307,15 +307,15 @@
           "detail":"Article title, URL, full_text and publish_date are upserted into the articles table, deduplicated by url_hash." },
         { "from":"daily_sh", "to":"cleanup", "label":"Stage 2",
           "detail":"Once all three scrapes finish, daily.sh runs cleanup.sh." },
-        { "from":"cleanup", "to":"postgres", "label":"prune >7d",
-          "detail":"Articles older than 7 days are deleted so the synthesizer's candidate pool only ever sees recent material." }
+        { "from":"cleanup", "to":"postgres", "label":"prune >14d",
+          "detail":"Articles older than 14 days are deleted so the synthesizer's candidate pool only ever sees recent material." }
       ]},
 
     { "id":"brief_us", "label":"Publish US daily brief",
-      "desc":"07:00 — synthesize the US edition in six stages and deploy it to S3 + CloudFront.",
+      "desc":"02:30 — synthesize the US edition in six stages and deploy it to S3 + CloudFront.",
       "steps":[
-        { "from":"launchagents", "to":"synth_us", "label":"07:00 trigger",
-          "detail":"news.briefer.synthesize.plist fires synthesize.sh at 07:00." },
+        { "from":"launchagents", "to":"synth_us", "label":"02:30 trigger",
+          "detail":"news.briefer.synthesize.plist fires synthesize.sh at 02:30." },
         { "from":"synth_us", "to":"preflight", "label":"health check",
           "detail":"synthesize.sh runs preflight.sh first. A hard failure (broken script, missing file, dead corpus) skips the synth entirely — yesterday's brief stays live, no Claude turns spent." },
         { "from":"synth_us", "to":"world_context", "label":"Stage 0",
@@ -341,10 +341,10 @@
       ]},
 
     { "id":"brief_china", "label":"Publish China daily brief",
-      "desc":"07:30 — synthesize the China edition. Same six stages, with PRC-specific editorial rules.",
+      "desc":"04:00 — synthesize the China edition. Same six stages, with PRC-specific editorial rules.",
       "steps":[
-        { "from":"launchagents", "to":"synth_china", "label":"07:30 trigger",
-          "detail":"news.briefer.synthesize.china.plist fires synthesize_china.sh at 07:30." },
+        { "from":"launchagents", "to":"synth_china", "label":"04:00 trigger",
+          "detail":"news.briefer.synthesize.china.plist fires synthesize_china.sh at 04:00." },
         { "from":"synth_china", "to":"preflight", "label":"health check",
           "detail":"The same preflight guard as the US synth — a hard failure skips the run." },
         { "from":"synth_china", "to":"world_context", "label":"Stage 0",
@@ -370,9 +370,9 @@
       ]},
 
     { "id":"digests", "label":"Refresh weekly + digests",
-      "desc":"08:00 — rebuild the rolling 7-day weekly digest and the secondary surfaces (archive index, sitemap, 'This week' preview).",
+      "desc":"05:30 — rebuild the rolling 7-day weekly digest and the secondary surfaces (archive index, sitemap, 'This week' preview).",
       "steps":[
-        { "from":"launchagents", "to":"digests", "label":"08:00 trigger",
+        { "from":"launchagents", "to":"digests", "label":"05:30 trigger",
           "detail":"news.briefer.digests.plist fires daily_digests.sh after both daily synths have finished." },
         { "from":"nginx", "to":"digests", "label":"7-day archives",
           "detail":"weekly_aggregate.py reads the past 7 days of archived briefs from the nginx Docker volume." },
