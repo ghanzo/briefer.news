@@ -162,9 +162,9 @@ def extract_weekly(html: str) -> dict:
         result["lead"] = re.sub(r"\s+", " ", m.group(1)).strip()
 
     # Extract up to 9 events with full body + cite from <ul class="week-bullets">.
-    # Inject() then dedupes against today's daily and caps the rendered list at 5.
-    # Pulling more than 5 here gives the dedupe headroom — if 2 of the week's
-    # top stories are today's lead stories, we still have 5 distinct items left.
+    # Inject() then dedupes against today's daily and renders the top 6 flat.
+    # Pulling more than 6 here gives the dedupe headroom — if some of the week's
+    # top stories are today's lead stories, we still have 6 distinct items left.
     bullets_m = re.search(r'<ul class="week-bullets">(.+?)</ul>', html, re.DOTALL)
     if bullets_m:
         for li_m in re.finditer(r'<li>([\s\S]+?)</li>', bullets_m.group(1)):
@@ -203,24 +203,16 @@ def render_preview(weekly: dict, edition_path: str) -> str:
         )
 
     if events:
-        # 5 visible, the rest in a "Show N more" expander matching the daily
-        # events more-events pattern (anchored to bottom of week section).
-        visible = events[:5]
-        extras = events[5:]
+        # All 6 visible in one list — no "Show N more" group expander (removed
+        # 2026-05-31 to match the daily Events + Voices flat layout). Each item
+        # keeps its per-event click-to-expand chevron. The "Read the full digest"
+        # link below still offers the complete weekly page.
+        visible = events[:6]
         body = (
             '    <ul class="items week-items">\n'
             + "\n".join(render_li(ev) for ev in visible)
             + "\n    </ul>\n"
         )
-        if extras:
-            body += (
-                f'    <details class="more-events more-week-events">\n'
-                f'      <summary class="more-events-summary">Show {len(extras)} more weekly events</summary>\n'
-                f'      <ul class="items items-more week-items">\n'
-                + "\n".join(render_li(ev) for ev in extras)
-                + "\n      </ul>\n"
-                f'    </details>\n'
-            )
     else:
         body = ""
 
