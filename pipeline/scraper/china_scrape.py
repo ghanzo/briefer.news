@@ -287,9 +287,17 @@ def _discover_json_list(listing_url: str, link_pattern: str) -> list[str]:
     for it in items:
         if not isinstance(it, dict):
             continue
-        u = (it.get("URL") or it.get("url") or it.get("link") or "").strip()
+        val = it.get("URL") or it.get("url") or it.get("link")
+        if not isinstance(val, str):   # a non-string url field would crash .strip() and zero the whole source
+            continue
+        u = val.strip()
         if u and pattern.search(u):
             urls.add(urljoin(listing_url, u))
+    if not urls:
+        # parsed but matched nothing — surface it instead of a silent discovered=0
+        # (this is the same blind spot the discovery.py guard kills for RSS).
+        keys = list(data)[:8] if isinstance(data, dict) else "array"
+        logger.warning(f"  json_list: parsed {len(items)} item(s) but 0 matched — data keys={keys}: {listing_url}")
     return sorted(urls, reverse=True)
 
 
@@ -334,12 +342,10 @@ def scrape_source(session, cfg: dict, run_id: int, dry_run: bool = False, limit:
     # listing_url may be a single URL or a list (e.g. per-leader index pages
     # where no combined hub exists). Discover across all, union, newest first.
     listing_urls = listing_url if isinstance(listing_url, list) else [listing_url]
-    urls, seen = [], set()
+    seen = set()
     for lu in listing_urls:
-        for u in discover_fn(lu, link_pattern):
-            if u not in seen:
-                seen.add(u)
-                urls.append(u)
+        seen.update(discover_fn(lu, link_pattern))
+    urls = sorted(seen, reverse=True)   # global newest-first so a --limit cap samples evenly across listings
     counts = {"discovered": len(urls), "extracted": 0, "existing": 0, "failed": 0, "blocked": False}
     logger.info(f"  discovered {len(urls)} candidate URLs")
 

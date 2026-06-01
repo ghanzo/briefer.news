@@ -8,6 +8,7 @@ Does NOT fetch full article text — that is extractor.py's job.
 
 import hashlib
 import logging
+import socket
 import time
 from datetime import datetime, timezone
 from typing import Generator
@@ -103,31 +104,42 @@ def fetch_rss(source: dict, delay: float = 0.5) -> Generator[dict, None, None]:
     url = source["url"]
     logger.info(f"Fetching RSS: {source['name']} ({url})")
 
-    # Fetch with one retry on an EMPTY result. A feed comes back with zero
-    # entries two ways: malformed (feed.bozo set), or — the silent case that hid
-    # the State Dept soft-block for weeks — a 200 that parses cleanly to 0 entries
-    # (an HTML "technical difficulties"/challenge page, or a genuinely stale feed)
-    # WITHOUT setting bozo. The old `bozo and not entries` guard caught only the
-    # first kind and swallowed the second with NO log line, so a multi-week stall
-    # looked identical to a quiet news day. Now every empty feed is logged (a
-    # breadcrumb for the freshness watchdog) and retried once, which clears the
-    # intermittent soft-block.
+    # Fetch with a bounded timeout, retrying once ONLY when there is evidence of
+    # breakage. Zero entries arises three ways:
+    #   • malformed (feed.bozo) or a soft-block HTTP status (403/429/5xx) — the
+    #     intermittent CF/Akamai "technical difficulties" page that hid the State
+    #     Dept stall for weeks: worth one retry.
+    #   • a clean 200 with simply no items — a legitimately quiet/stale feed: log
+    #     one breadcrumb (so the freshness watchdog has a trail) and return,
+    #     WITHOUT a wasted second fetch or sleep.
+    # The old `bozo and not entries` guard swallowed the clean-empty case with no
+    # log at all. feedparser does its own fetch with no timeout, so bound it via
+    # the socket default to stop a half-open host from hanging the run (and the
+    # retry from doubling that hang).
     feed = None
     for attempt in (1, 2):
+        old_timeout = socket.getdefaulttimeout()
+        socket.setdefaulttimeout(20)
         try:
             feed = feedparser.parse(url, request_headers=HEADERS)
         except Exception as e:
             logger.error(f"feedparser error for {url}: {e}")
             return
+        finally:
+            socket.setdefaulttimeout(old_timeout)
         if feed.entries:
             break
-        why = "malformed (bozo)" if feed.bozo else "0 entries (stale feed or soft-block?)"
-        if attempt == 1:
+        status = feed.get("status")
+        broken = feed.bozo or (isinstance(status, int) and status in (403, 429, 500, 502, 503, 504))
+        why = ("malformed (bozo)" if feed.bozo
+               else f"HTTP {status}" if (isinstance(status, int) and status != 200)
+               else "0 entries (quiet or stale feed)")
+        if broken and attempt == 1:
             logger.warning(f"RSS feed {why}: {url} — retrying once")
             time.sleep(1.0)
-        else:
-            logger.warning(f"RSS feed still empty after retry — {why}: {url}")
-            return
+            continue
+        logger.warning(f"RSS feed empty — {why}: {url}")
+        return
 
     for entry in feed.entries:
         raw_url = entry.get("link", "").strip()
