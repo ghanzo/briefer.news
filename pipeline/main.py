@@ -1,24 +1,23 @@
 """
-main.py — Pipeline orchestrator.
+main.py — Scrape orchestrator.
 
-Two independent stages:
+Discovers + extracts government-source articles into PostgreSQL. Three scrape
+modes, each driven by daily.sh as a separate parallel job:
 
-  STAGE 1 — scrape   (no API key needed)
-    - Load sources from config/sources.yaml
-    - Discover article URLs via RSS + Google News
-    - Extract full text with trafilatura → BS4 fallback
-    - Store everything in PostgreSQL
+  --scrape-only   RSS / web sources       (config/sources.yaml)
+  --akamai-only   Akamai-protected gov     (config/akamai_sources.yaml)
+  --china-only    Chinese-government        (config/china_sources.yaml)
 
-  STAGE 2 — process  (requires ANTHROPIC_API_KEY)
-    - Summarize articles with Claude Haiku
-    - Generate category summaries + meta story with Claude Sonnet
-    - Build static HTML site
+The brief itself is produced downstream by the synth scripts (synthesize.sh /
+synthesize_china.sh) reading from this article store — NOT here.
 
-Usage:
-  python main.py                        # scheduler mode — full pipeline daily at SCHEDULE_TIME
-  python main.py --scrape-only          # run scrape stage now, skip AI
-  python main.py --scrape-only --limit 20  # scrape only, cap at 20 articles (for testing)
-  python main.py --run-now              # run full pipeline now (scrape + process)
+  python main.py --scrape-only             # RSS/web scrape
+  python main.py --scrape-only --limit 20  # cap at 20 (testing)
+  python main.py --akamai-only --dry-run   # discover only, no DB writes
+
+The legacy Stage-2 "process" path (per-article Grok/Gemini/Claude summarizers +
+the Jinja build_site) was removed 2026-06-01 — it was never invoked in
+production. Archived at archive/pipeline/ if ever needed.
 """
 
 import argparse
@@ -72,8 +71,6 @@ from db.models import (
 )
 from scraper.discovery import discover_articles
 from scraper.extractor import extract_article
-from builder.site import build_site
-from scheduler import start_scheduler
 from processor.filter import create_groq_client, is_filter_enabled, filter_stub, _load_filter_criteria
 
 TOP_ARTICLES_COUNT = int(os.getenv("TOP_ARTICLES_COUNT", "5"))
@@ -279,246 +276,12 @@ def run_scrape(limit: int = 0) -> list[Article]:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 2 + 3 — Process (Gemini Flash for articles, Claude Sonnet for synthesis)
-# ─────────────────────────────────────────────────────────────────────────────
-
-def run_process() -> None:
-    """
-    Stage 2: Summarize unprocessed articles.
-    Stage 3: Generate world brief (PDB-style).
-    Builds static HTML site.
-
-    Provider priority: Grok (XAI_API_KEY) > Gemini (GEMINI_API_KEY) > Claude (ANTHROPIC_API_KEY)
-    """
-    from processor.grok import create_grok_client
-    from processor.gemini import create_gemini_client, summarize_articles_parallel as gemini_summarize
-
-    grok_client = create_grok_client()
-    use_gemini = create_gemini_client() if not grok_client else False
-    anthropic_key = os.getenv("ANTHROPIC_API_KEY", "")
-    has_anthropic = anthropic_key and anthropic_key != "your_anthropic_api_key_here"
-
-    if not grok_client and not use_gemini and not has_anthropic:
-        logger.warning("No AI API key set (XAI_API_KEY / GEMINI_API_KEY / ANTHROPIC_API_KEY) -- skipping process stage")
-        return
-
-    logger.info("=" * 60)
-    logger.info(f"STAGE 2 + 3 -- PROCESS -- {datetime.utcnow().isoformat()}")
-
-    if grok_client:
-        logger.info("Provider: Grok (xAI) -- all stages")
-    elif use_gemini:
-        logger.info("Stage 2: Gemini Flash | Stage 3: Claude Sonnet")
-    else:
-        logger.info("Provider: Claude -- all stages")
-
-    engine  = get_engine()
-    session = get_session(engine)
-    today   = str(date.today())
-
-    try:
-        # Find articles without summaries — only from today's scrape
-        from sqlalchemy import func
-        today_start = datetime.combine(date.today(), datetime.min.time())
-        unprocessed = (
-            session.query(Article)
-            .outerjoin(ArticleSummary, Article.id == ArticleSummary.article_id)
-            .filter(
-                ArticleSummary.id.is_(None),
-                Article.extraction_failed == False,
-                Article.full_text.isnot(None),
-                Article.scraped_at >= today_start,
-            )
-            .all()
-        )
-
-        # Cap articles to summarize — only the most recent, to control API costs
-        MAX_SUMMARIZE = 30
-        if len(unprocessed) > MAX_SUMMARIZE:
-            # Sort by publish_date desc (newest first), fallback to id desc
-            unprocessed.sort(key=lambda a: (a.publish_date or a.created_at or datetime.min), reverse=True)
-            unprocessed = unprocessed[:MAX_SUMMARIZE]
-
-        logger.info(f"Processing {len(unprocessed)} articles (capped at {MAX_SUMMARIZE})...")
-        summaries_created = 0
-
-        if grok_client and unprocessed:
-            from processor.grok import summarize_articles_parallel as grok_summarize
-            article_dicts = [
-                {"id": a.id, "title": a.title, "full_text": a.full_text}
-                for a in unprocessed
-            ]
-            batch_results = grok_summarize(grok_client, article_dicts)
-
-            for article in unprocessed:
-                result = batch_results.get(article.id, {})
-                summary = ArticleSummary(
-                    article_id=article.id,
-                    summary=result.get("summary"),
-                    headline=result.get("headline"),
-                    importance_score=result.get("importance_score", 0.5),
-                    category=result.get("category"),
-                    subcategory=result.get("subcategory"),
-                    tags=result.get("tags", []),
-                    entities=result.get("entities", []),
-                    time_sensitivity=result.get("time_sensitivity"),
-                    model_used=result.get("model_used"),
-                    failed=result.get("failed", False),
-                )
-                session.add(summary)
-                summaries_created += 1
-            session.commit()
-
-        elif use_gemini and unprocessed:
-            article_dicts = [
-                {"id": a.id, "title": a.title, "full_text": a.full_text}
-                for a in unprocessed
-            ]
-            batch_results = gemini_summarize(article_dicts)
-
-            for article in unprocessed:
-                result = batch_results.get(article.id, {})
-                summary = ArticleSummary(
-                    article_id=article.id,
-                    summary=result.get("summary"),
-                    headline=result.get("headline"),
-                    importance_score=result.get("importance_score", 0.5),
-                    category=result.get("category"),
-                    subcategory=result.get("subcategory"),
-                    tags=result.get("tags", []),
-                    entities=result.get("entities", []),
-                    time_sensitivity=result.get("time_sensitivity"),
-                    model_used=result.get("model_used"),
-                    failed=result.get("failed", False),
-                )
-                session.add(summary)
-                summaries_created += 1
-            session.commit()
-
-        elif has_anthropic and unprocessed:
-            import anthropic
-            from processor.claude import summarize_article
-            claude = anthropic.Anthropic(api_key=anthropic_key)
-            for article in unprocessed:
-                result = summarize_article(claude, article.title, article.full_text)
-                summary = ArticleSummary(
-                    article_id=article.id,
-                    summary=result.get("summary"),
-                    headline=result.get("headline"),
-                    importance_score=result.get("importance_score", 0.5),
-                    category=result.get("category"),
-                    tags=result.get("tags", []),
-                    model_used=result.get("model_used"),
-                    failed=result.get("failed", False),
-                )
-                session.add(summary)
-                session.commit()
-                summaries_created += 1
-
-        logger.info(f"Summaries created: {summaries_created}")
-
-        # Pull all scored articles, sorted by importance
-        scored = (
-            session.query(ArticleSummary, Article, Source)
-            .join(Article, ArticleSummary.article_id == Article.id)
-            .outerjoin(Source, Article.source_id == Source.id)
-            .filter(
-                ArticleSummary.failed == False,
-                ArticleSummary.importance_score.isnot(None),
-            )
-            .order_by(ArticleSummary.importance_score.desc())
-            .limit(100)
-            .all()
-        )
-
-        all_articles = []
-        for summ, art, src in scored:
-            all_articles.append({
-                "id":               art.id,
-                "title":            art.title,
-                "url":              art.url,
-                "headline":         summ.headline or art.title,
-                "summary":          summ.summary or "",
-                "importance_score": summ.importance_score,
-                "category":         summ.category or "general",
-                "region":           getattr(summ, "subcategory", None) or "global",
-                "source_name":      src.name if src else "Unknown",
-                "publish_date":     str(art.publish_date) if art.publish_date else None,
-            })
-
-        # Count unique sources
-        source_count = session.query(Source).filter(Source.active == True).count()
-
-        # Stage 3: Generate world brief
-        if grok_client:
-            from processor.grok import generate_world_brief
-            brief = generate_world_brief(grok_client, all_articles, today, source_count)
-        else:
-            # Fallback: build a simple brief from the scored articles
-            brief = {
-                "date": today,
-                "headline": f"World Brief -- {today}",
-                "bullets": [
-                    {"bullet": a["headline"] + ": " + a["summary"], "region": a.get("region", "global"), "severity": "high" if a["importance_score"] >= 0.7 else "medium"}
-                    for a in all_articles[:10]
-                ],
-                "watch": "AI synthesis unavailable -- showing top articles by importance score.",
-            }
-
-        # Build site first (before DB save, so it works even if save fails)
-        build_site(
-            brief=brief,
-            top_articles=all_articles[:50],
-        )
-
-        # Save to DB (upsert — replace if today's briefing already exists)
-        import json as _json
-        existing = session.query(DailyBriefing).filter_by(briefing_date=date.today()).first()
-        if existing:
-            existing.meta_headline = brief.get("headline")
-            existing.meta_story = _json.dumps(brief)
-            existing.top_article_ids = [a["id"] for a in all_articles[:TOP_ARTICLES_COUNT]]
-            existing.total_articles_scraped = len(all_articles)
-            existing.total_articles_processed = summaries_created
-        else:
-            briefing = DailyBriefing(
-                briefing_date=date.today(),
-                meta_headline=brief.get("headline"),
-                meta_story=_json.dumps(brief),
-                top_article_ids=[a["id"] for a in all_articles[:TOP_ARTICLES_COUNT]],
-                total_articles_scraped=len(all_articles),
-                total_articles_processed=summaries_created,
-            )
-            session.add(briefing)
-        session.commit()
-
-        logger.info(f"Process stage complete -- world brief for {today} built.")
-
-    except Exception as e:
-        logger.exception(f"Process stage failed: {e}")
-        raise
-
-    finally:
-        session.close()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
-# Full pipeline (scrape + process)
-# ─────────────────────────────────────────────────────────────────────────────
-
-def run_pipeline() -> None:
-    run_scrape()
-    run_process()
-
-
-# ─────────────────────────────────────────────────────────────────────────────
 # Entry point
 # ─────────────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Briefer pipeline")
-    parser.add_argument("--run-now",     action="store_true", help="Run full pipeline now")
-    parser.add_argument("--scrape-only", action="store_true", help="Run scrape stage only (no AI)")
+    parser = argparse.ArgumentParser(description="Briefer scrape pipeline")
+    parser.add_argument("--scrape-only", action="store_true", help="Run the RSS/web scrape stage")
     parser.add_argument("--akamai-only", action="store_true",
                         help="Run akamai-protected sources scrape only (use after --scrape-only)")
     parser.add_argument("--china-only", action="store_true",
@@ -548,10 +311,6 @@ if __name__ == "__main__":
         run_scrape(limit=args.limit)
         sys.exit(0)
 
-    if args.run_now:
-        logger.info("--run-now flag set: running full pipeline")
-        run_pipeline()
-        sys.exit(0)
-
-    logger.info("Starting scheduler…")
-    start_scheduler(run_pipeline)
+    # No scrape mode given. The legacy full-pipeline + scheduler modes were
+    # removed 2026-06-01 (the synth scripts produce the brief, not this file).
+    parser.error("specify a scrape mode: --scrape-only | --akamai-only | --china-only")

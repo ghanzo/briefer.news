@@ -111,9 +111,9 @@ briefer.news/
 │   ├── scraper/                    # discovery, extractor, akamai_bypass, browser
 │   │   ├── akamai_bypass.py        # curl_cffi TLS-impersonation fetcher
 │   │   └── akamai_scrape.py        # orchestrator for .mil sources
-│   ├── processor/                  # legacy AI integrations (Grok/Gemini/Claude API)
-│   ├── builder/                    # Jinja2 templates (older path)
+│   ├── processor/filter.py         # Groq scrape-time relevance pre-filter (only live processor code)
 │   └── db/models.py                # SQLAlchemy schema
+│   (legacy Grok/Gemini/Claude summarizers + Jinja builder archived 2026-06-01 → archive/pipeline/)
 ├── scripts/                        # operational scripts (LaunchAgent targets)
 │   ├── daily.sh                    # 00:30 — parallel scrapes (rss+akamai+china) + cleanup
 │   ├── synthesize.sh               # 02:30 — US synth → /usa/
