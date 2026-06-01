@@ -103,15 +103,31 @@ def fetch_rss(source: dict, delay: float = 0.5) -> Generator[dict, None, None]:
     url = source["url"]
     logger.info(f"Fetching RSS: {source['name']} ({url})")
 
-    try:
-        feed = feedparser.parse(url, request_headers=HEADERS)
-    except Exception as e:
-        logger.error(f"feedparser error for {url}: {e}")
-        return
-
-    if feed.bozo and not feed.entries:
-        logger.warning(f"Bozo feed (malformed) with no entries: {url}")
-        return
+    # Fetch with one retry on an EMPTY result. A feed comes back with zero
+    # entries two ways: malformed (feed.bozo set), or — the silent case that hid
+    # the State Dept soft-block for weeks — a 200 that parses cleanly to 0 entries
+    # (an HTML "technical difficulties"/challenge page, or a genuinely stale feed)
+    # WITHOUT setting bozo. The old `bozo and not entries` guard caught only the
+    # first kind and swallowed the second with NO log line, so a multi-week stall
+    # looked identical to a quiet news day. Now every empty feed is logged (a
+    # breadcrumb for the freshness watchdog) and retried once, which clears the
+    # intermittent soft-block.
+    feed = None
+    for attempt in (1, 2):
+        try:
+            feed = feedparser.parse(url, request_headers=HEADERS)
+        except Exception as e:
+            logger.error(f"feedparser error for {url}: {e}")
+            return
+        if feed.entries:
+            break
+        why = "malformed (bozo)" if feed.bozo else "0 entries (stale feed or soft-block?)"
+        if attempt == 1:
+            logger.warning(f"RSS feed {why}: {url} — retrying once")
+            time.sleep(1.0)
+        else:
+            logger.warning(f"RSS feed still empty after retry — {why}: {url}")
+            return
 
     for entry in feed.entries:
         raw_url = entry.get("link", "").strip()

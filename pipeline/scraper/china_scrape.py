@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import logging
 import os
 import random
@@ -198,10 +199,13 @@ def _load_sources_config() -> list[dict]:
 def _ensure_source_row(session, cfg: dict) -> Optional[int]:
     source = session.query(Source).filter_by(name=cfg["name"]).first()
     if source is None:
+        lu = cfg.get("listing_url")
+        if isinstance(lu, list):           # multi-URL listing (e.g. per-leader pages)
+            lu = lu[0] if lu else None
         source = Source(
             name=cfg["name"],
             type=cfg.get("discovery_type", "html_curl_cffi"),
-            url=cfg.get("listing_url"),
+            url=lu,
             category=cfg.get("category", "china_gov"),
             tier=1 if cfg.get("weight") == "high" else 2,
             active=cfg.get("active", True),
@@ -259,10 +263,41 @@ def _discover_xinhua_home(listing_url: str, link_pattern: str) -> list[str]:
     return sorted(set(matches), reverse=True)
 
 
+# ── JSON list-endpoint discovery (bespoke) ──────────────────────────────────
+
+def _discover_json_list(listing_url: str, link_pattern: str) -> list[str]:
+    """JSON list endpoint → article URLs matching pattern.
+
+    Some gov.cn index pages decayed into JS/AJAX shells that curl_cffi (no JS
+    engine) sees as empty, while the real article list is a static JSON the page
+    fetches client-side (e.g. gov.cn .../YAOWENLIEBIAO.json). Read that JSON
+    directly and keep each item's URL field that matches link_pattern.
+    """
+    raw = china_fetch(listing_url)
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        logger.warning(f"  json_list: response was not valid JSON: {listing_url}")
+        return []
+    items = data if isinstance(data, list) else (data.get("data") or data.get("list") or [])
+    pattern = re.compile(link_pattern)
+    urls = set()
+    for it in items:
+        if not isinstance(it, dict):
+            continue
+        u = (it.get("URL") or it.get("url") or it.get("link") or "").strip()
+        if u and pattern.search(u):
+            urls.add(urljoin(listing_url, u))
+    return sorted(urls, reverse=True)
+
+
 _DISCOVERY = {
     "mfa_press_conf": _discover_mfa,
     "html_curl_cffi": _discover_html,
     "xinhua_home": _discover_xinhua_home,
+    "json_list": _discover_json_list,
 }
 
 
@@ -296,7 +331,15 @@ def scrape_source(session, cfg: dict, run_id: int, dry_run: bool = False, limit:
         logger.error(f"  unknown discovery type: {discovery_type}")
         return {"discovered": 0, "extracted": 0, "existing": 0, "failed": 0, "blocked": False}
 
-    urls = discover_fn(listing_url, link_pattern)
+    # listing_url may be a single URL or a list (e.g. per-leader index pages
+    # where no combined hub exists). Discover across all, union, newest first.
+    listing_urls = listing_url if isinstance(listing_url, list) else [listing_url]
+    urls, seen = [], set()
+    for lu in listing_urls:
+        for u in discover_fn(lu, link_pattern):
+            if u not in seen:
+                seen.add(u)
+                urls.append(u)
     counts = {"discovered": len(urls), "extracted": 0, "existing": 0, "failed": 0, "blocked": False}
     logger.info(f"  discovered {len(urls)} candidate URLs")
 

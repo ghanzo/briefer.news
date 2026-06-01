@@ -200,6 +200,7 @@ sources:
     url: "https://www.bls.gov/feed/bls_latest.rss"
     category: economy
     tier: 1
+    active: false   # DEACTIVATED 2026-05-31: bls.gov 403s plain httpx (Akamai). Superseded by the akamai-edition BLS feeds (Employment Situation/CPI/PPI via curl_cffi), which discover 12 items each. This lean rss entry only 403s.
 
   - name: "BEA — Releases"
     type: rss
@@ -293,7 +294,7 @@ sources:
 
   - name: "ORNL — Oak Ridge News"
     type: web_scrape
-    url: "https://www.ornl.gov/news"
+    url: "https://www.ornl.gov/news/releases"   # /news hub is a static featured set (froze 5/14); /news/releases is the date-sorted live listing
     category: energy
     tier: 1
     extractor: playwright

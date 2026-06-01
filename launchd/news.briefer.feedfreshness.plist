@@ -12,6 +12,14 @@
     <string>/Users/maxgoshay/code/briefernewsapp/scripts/feed_freshness.py</string>
   </array>
 
+  <!-- Confirmed low-cadence gov sources (triage 2026-05-31): genuinely quiet,
+       not broken. Reported in the dated log but never alerted on. -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>BRIEFER_FRESHNESS_IGNORE</key>
+    <string>ARPA-E — News &amp; Insights, CFPB — Newsroom, Court of International Trade, Australia DFAT — Departmental Media Releases, Joint Chiefs of Staff, State Dept — Treaties (TIAS)</string>
+  </dict>
+
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key>

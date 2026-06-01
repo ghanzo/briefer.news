@@ -52,8 +52,8 @@ sources:
 
   - name: "State Council Yaowen (Top News)"
     domain: gov.cn
-    discovery_type: html_curl_cffi
-    listing_url: "https://www.gov.cn/yaowen/"
+    discovery_type: json_list   # gov.cn/yaowen/ decayed to a JS-redirect/AJAX shell (curl_cffi sees 0 links); the real list is this static JSON
+    listing_url: "https://www.gov.cn/yaowen/liebiao/YAOWENLIEBIAO.json"
     link_pattern: "/yaowen/liebiao/202[5-9]\\d{2}/content_\\d{7}\\.htm"
     category: state_council
     weight: high
@@ -75,7 +75,11 @@ sources:
   - name: "Xinhua Politics — Leaders"
     domain: news.cn
     discovery_type: html_curl_cffi
-    listing_url: "https://www.news.cn/politics/leaders/index.htm"
+    listing_url:                # the /leaders/index.htm hub is a dead static directory (0 dated links); discover from the per-leader index pages
+      - "https://www.news.cn/politics/leaders/xijinping/index.htm"
+      - "https://www.news.cn/politics/leaders/liqiang/index.htm"
+      - "https://www.news.cn/politics/leaders/zhaoleji/index.htm"
+      - "https://www.news.cn/politics/leaders/wanghuning/index.htm"
     link_pattern: "https://www\\.news\\.cn/politics/leaders/202[5-9]\\d{4}/[a-f0-9]+/c\\.html"
     category: leadership
     weight: high                  # Xi/Li internal activities
@@ -173,7 +177,7 @@ sources:
     category: party_press
     weight: high                  # Politburo coverage + editorial signal
     extractor: trafilatura
-    active: true
+    active: false   # DEACTIVATED 2026-05-31: politics.people.com.cn/ hard-403s (RMW-WEB) every run; html_playwright also returns only a 153-byte block page. CPC News already discovers politics.people.com.cn/n1/ articles under the same pattern (partial overlap). Re-enable only via an in-China egress.
     notes: "Politburo coverage. URL pattern: <sub>.people.com.cn/n1/YYYY/MMDD/cNNNN-NNNNNNNN.html"
 
   - name: "People's Daily Opinion (Commentary)"
@@ -267,12 +271,12 @@ sources:
     domain: court.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "https://www.court.gov.cn/"
-    link_pattern: "https?://www\\.court\\.gov\\.cn/[a-zA-Z0-9_/]+\\.html"
+    link_pattern: "/[a-zA-Z]+/xiangqing/\\d+\\.html"
     category: judicial
     weight: medium
     extractor: trafilatura
     active: true
-    notes: "Major rulings + judicial reports. Weekly cadence."
+    notes: "Major rulings + judicial reports. Weekly cadence. link_pattern matches the RELATIVE hrefs the homepage emits (e.g. /zixun/xiangqing/501491.html) — _discover_html runs pattern.search on the raw href before urljoin; the old absolute-URL pattern matched 0 anchors."
 
   - name: "Supreme People's Procuracy"
     domain: spp.gov.cn
@@ -346,7 +350,7 @@ sources:
     weight: medium                # monthly capacity / generation / fuel-mix stats
     extractor: trafilatura
     retries: 3
-    active: true
+    active: false   # DEACTIVATED 2026-05-31: www.cec.org.cn (211.160.76.55) refuses TCP from the mini's IP — every run logs curl (28) connection timeout, discovered=0. The block precedes TLS so curl_cffi can't help. Energy reg already covered by NEA/NDRC/Stats Bureau; re-enable only via an in-China egress. (sibling huiyi.cec.org.cn is reachable, so the domain is alive.)
     notes: "Flaky from cloud-IP probes; should work from mini residential IP via curl_cffi. Link pattern is a best-effort guess — verify after first scrape."
 
   - name: "SAFE (Foreign Exchange)"

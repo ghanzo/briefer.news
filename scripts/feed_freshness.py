@@ -60,6 +60,8 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 LOG_DIR = REPO / "logs"
 STATE_FILE = LOG_DIR / "feed-freshness-state.json"
+CONFIG_DIR = REPO / "pipeline" / "config"
+_CONFIG_FILES = ("sources.yaml", "akamai_sources.yaml", "china_sources.yaml")
 
 # PATH is not set under launchd, so hardcode absolutes (same reason alert.sh
 # hardcodes the aws path). docker exec into the running postgres is how the
@@ -112,6 +114,37 @@ ORDER BY days_since_newest DESC NULLS FIRST, s.name;
 
 class WatchdogError(RuntimeError):
     """The watchdog could not read the DB — alert crit, do not fail silently."""
+
+
+def yaml_active_names():
+    """Set of source names marked active in the YAML configs (the real source of
+    truth), or None if PyYAML/the configs can't be read.
+
+    The watchdog queries the DB's sources.active flag, but YAML-only prunes left
+    that flag stale (e.g. Beijing Gov was pruned 2026-05-12 yet the DB row is
+    still active=true), so deliberately-disabled sources were being flagged as
+    'never produced'. Excluding anything not active in YAML clears those false
+    positives. Returns None on any read/parse problem so the caller falls back to
+    not filtering — better to over-report than to silently hide a real source.
+    """
+    try:
+        import yaml  # PyYAML 6.x is present in the launchd python3
+    except Exception:
+        return None
+    active = set()
+    for fn in _CONFIG_FILES:
+        p = CONFIG_DIR / fn
+        if not p.exists():
+            continue
+        try:
+            doc = yaml.safe_load(p.read_text())
+        except Exception:
+            return None
+        srcs = doc.get("sources", []) if isinstance(doc, dict) else (doc or [])
+        for s in srcs:
+            if isinstance(s, dict) and s.get("name") and s.get("active", True):
+                active.add(s["name"])
+    return active or None
 
 
 def query_db() -> list[dict]:
@@ -245,6 +278,17 @@ def main() -> int:
         if not args.report_only:
             notify("crit", msg, dry_run=args.dry_run)
         return 2
+
+    # Drop DB rows for sources NOT active in the YAML configs (the real source of
+    # truth). YAML-only prunes leave the DB sources.active flag stale, so disabled
+    # sources would otherwise be flagged 'never produced'. Logged, never silent.
+    yaml_active = yaml_active_names()
+    if yaml_active is not None:
+        excluded = sorted(r["name"] for r in rows if r["name"] not in yaml_active)
+        rows = [r for r in rows if r["name"] in yaml_active]
+        if excluded:
+            print(f"[feed_freshness] excluded {len(excluded)} DB-active source(s) not active in "
+                  f"YAML (stale active flag): {', '.join(excluded)}")
 
     buckets = {b: [] for b in ("NEVER", "DEAD", "STALE", "OK", "GRACE", "IGNORED")}
     for r in rows:
