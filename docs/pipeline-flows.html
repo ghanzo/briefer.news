@@ -222,7 +222,7 @@
     { "id":"launchagents", "label":"LaunchAgents", "sublabel":"macOS cron",
       "kind":"trigger", "zone":0,
       "file":"~/Library/LaunchAgents/news.briefer.*.plist",
-      "desc":"21 macOS LaunchAgents drive the pipeline on an early-morning schedule (spread to avoid Claude quota limits) — 00:30 overnight scrape, 02:30 US synth, 04:00 China synth, 05:30 weekly digests, a 07:15 feed-freshness watchdog, the 08:30 subscriber email, a 09:00 alert digest, plus a 12:30 midday scrape and a 13:05 synth-catchup safety net." },
+      "desc":"22 macOS LaunchAgents drive the pipeline on an early-morning schedule (spread to avoid Claude quota limits) — 00:30 overnight scrape, 02:30 US synth, 04:00 China synth, 05:30 weekly digests, a 07:15 feed-freshness watchdog, a 07:30 DMARC report parser (SES→S3), the 08:30 subscriber email, a 09:00 alert digest, plus a 12:30 midday scrape and a 13:05 synth-catchup safety net." },
 
     { "id":"config", "label":"Source config", "sublabel":"YAML",
       "kind":"data", "zone":1, "file":"pipeline/config/*.yaml",

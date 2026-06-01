@@ -54,6 +54,7 @@ Claude calls are spread across the early-morning hours so the shared `claude` CL
 | 05:30 | `news.briefer.digests` | archive index + weekly "This week" injection + sitemap + per-edition RSS feeds |
 | 06:30 | `news.briefer.healthcheck` | verify both briefs published today; auto-recover (one synth/day) + alert if stale |
 | 07:15 | `news.briefer.feedfreshness` | per-source freshness watchdog — flags feeds that went silently stale |
+| 07:30 | `news.briefer.dmarc` | parse incoming DMARC reports (SES→S3) into a readable summary; flag possible spoofing |
 | 08:30 | `news.briefer.email_send` | US-only daily email to subscribers (gated on US-brief freshness) |
 | 09:00 | `news.briefer.alertdigest` | one daily digest of the day's operational alerts (no per-alert email spam) |
 | 12:30 | `news.briefer.midday` | bonus midday corpus refresh (scrape only — no synth, no cleanup) |
@@ -75,7 +76,7 @@ Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesiz
 
 ## Setup on a new machine
 
-The full schedule of **21 LaunchAgents** is committed in [`launchd/`](launchd/);
+The full schedule of **22 LaunchAgents** is committed in [`launchd/`](launchd/);
 [`scripts/install_launchagents.sh`](scripts/install_launchagents.sh) (`make
 agents-install`) reconstructs the live schedule from git on a fresh machine. The
 historical Mac mini deployment runbook is archived at
@@ -138,7 +139,7 @@ briefer.news/
 ├── CLAUDE.md                       # orientation for Claude sessions
 ├── INDEX.md                        # root-doc map (purpose + freshness tag)
 ├── Makefile                        # operator entry point (`make status`)
-├── launchd/                        # the 21 LaunchAgents (source of truth)
+├── launchd/                        # the 22 LaunchAgents (source of truth)
 └── archive/docs/MIGRATION.md       # historical M4 mini deployment runbook
 ```
 
