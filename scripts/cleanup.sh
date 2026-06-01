@@ -59,16 +59,20 @@ echo "════════════════════════�
 LOG_RETENTION_DAYS=14
 RUN_LOG_RETENTION_DAYS=7
 echo ""
-echo "--- Filesystem rotation (logs/ >${LOG_RETENTION_DAYS}d, .run/*.log >${RUN_LOG_RETENTION_DAYS}d) ---"
+echo "--- Filesystem rotation (logs/ >${LOG_RETENTION_DAYS}d, .run/ >${RUN_LOG_RETENTION_DAYS}d) ---"
 n_logs=$(find "$LOG_DIR" -type f -mtime +${LOG_RETENTION_DAYS} 2>/dev/null | wc -l | tr -d ' ')
-n_runlogs=$(find "$REPO/.run" -maxdepth 1 -type f -name '*.log' -mtime +${RUN_LOG_RETENTION_DAYS} 2>/dev/null | wc -l | tr -d ' ')
-echo "candidates — logs/: ${n_logs} file(s), .run/*.log: ${n_runlogs} file(s)"
+# Prune ALL transient .run/ scratch older than the window — not just *.log. The
+# synth + Claude write one-off helper scripts (extract_ids.py, dump.py, …) and
+# render artifacts (html/json/txt) here every run; they otherwise accumulate
+# forever. maxdepth 1 keeps any intentional subdir untouched.
+n_run=$(find "$REPO/.run" -maxdepth 1 -type f -mtime +${RUN_LOG_RETENTION_DAYS} 2>/dev/null | wc -l | tr -d ' ')
+echo "candidates — logs/: ${n_logs} file(s), .run/: ${n_run} file(s)"
 if [ "$DRY_RUN" = "true" ]; then
   echo "DRY RUN — no files deleted."
 else
   find "$LOG_DIR" -type f -mtime +${LOG_RETENTION_DAYS} -delete 2>/dev/null || true
-  find "$REPO/.run" -maxdepth 1 -type f -name '*.log' -mtime +${RUN_LOG_RETENTION_DAYS} -delete 2>/dev/null || true
-  echo "Pruned ${n_logs} log(s) + ${n_runlogs} run-log(s)."
+  find "$REPO/.run" -maxdepth 1 -type f -mtime +${RUN_LOG_RETENTION_DAYS} -delete 2>/dev/null || true
+  echo "Pruned ${n_logs} log(s) + ${n_run} .run file(s)."
 fi
 
 if ! "$DOCKER" ps --format '{{.Names}}' | grep -q briefer_postgres; then

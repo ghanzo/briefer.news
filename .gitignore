@@ -43,6 +43,9 @@ Thumbs.db
 .run/
 .gcp/
 
+# Autonomous research-loop daily outputs (transient scratch, regenerated daily)
+research/loop/
+
 # DB backups — subscriber PII + opt-in/unsubscribe tokens; never commit
 backups/
 CLEANUP.md
