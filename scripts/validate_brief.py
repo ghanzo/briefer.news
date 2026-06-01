@@ -81,14 +81,19 @@ _REMOVED_LABELS = ["Strategic Backdrop", "Five-Year Plan", "Five Year Plan"]
 
 
 def _expected_stamp_variants(today: datetime.date) -> list[str]:
-    """The synth renders the stamp in CAPS like 'MAY 28, 2026'. Allow both the
-    zero-padded (%d -> '08') and non-padded ('8') day forms, since the prompt
-    examples are inconsistent and either is acceptable."""
-    mon = today.strftime("%b").upper()
+    """The synth renders the stamp in CAPS like 'JUNE 1, 2026' — FULL month name
+    (%B), non-padded day. Accept the full-month form (what the synth + healthcheck
+    actually emit) AND the abbreviated form, plus both day forms, so a stamp-format
+    nuance can't silently block the deploy.
+
+    BUG THIS FIXES (2026-06-01): this used only the abbreviated %b form ('JUN').
+    That matched all through MAY — the one month where %b == %B — then rejected
+    every brief on JUNE 1 ('JUNE 1' != 'JUN 1'), blocking BOTH editions and
+    pinning the live site to MAY 31 until a human noticed via the alert flood."""
+    months = {today.strftime("%B").upper(), today.strftime("%b").upper()}  # JUNE + JUN
     yr = today.year
-    # dict.fromkeys dedupes while preserving order (the two forms collide for
-    # 2-digit days like the 28th, differ for single-digit days like the 8th).
-    return list(dict.fromkeys([f"{mon} {today.day:02d}, {yr}", f"{mon} {today.day}, {yr}"]))
+    days = {f"{today.day:02d}", str(today.day)}                            # 01 + 1
+    return list(dict.fromkeys(f"{m} {d}, {yr}" for m in months for d in days))
 
 
 def validate(d: dict, edition: str, today: datetime.date | None = None,
