@@ -58,6 +58,7 @@ sys.path.insert(0, str(REPO / "scripts"))
 from healthcheck import expected_stamp  # noqa: E402  same "MAY 28, 2026" format
 from brief_parser import parse_brief  # noqa: E402  single source of truth
 from notify import notify  # noqa: E402  off-box operational alert (SES + log)
+from email_template import extract_events  # noqa: E402  shared lead+desc extraction
 
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
@@ -81,23 +82,15 @@ def load_env() -> dict[str, str]:
 
 
 def fetch_brief(edition: str) -> dict:
-    """Pull headline + top 3 event leads (the <b>Lead.</b> prefix of each <li>
-    in the visible items list — NOT the items-more collapsed block)."""
+    """Pull headline + top 3 events ({lead, desc}) from the visible items list
+    (NOT the items-more collapsed block), via the shared email_template
+    extractor so the live send matches the CLI preview exactly."""
     url = f"https://briefer.news/{edition}/"
     html = urllib.request.urlopen(url, timeout=20).read().decode("utf-8", errors="replace")
     h = re.search(r'<h2 class="headline">([\s\S]+?)</h2>', html)
-    ul = re.search(r'<ul class="items"(?! items-more)[^>]*>([\s\S]+?)</ul>', html)
-    events = []
-    if ul:
-        items = re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))
-        for item in items[:3]:
-            lead = re.search(r'<b>([\s\S]+?)</b>', item)
-            if lead:
-                text = re.sub(r"<[^>]+>", "", lead.group(1)).strip().rstrip(".")
-                events.append(html_lib.unescape(text))
     return {
         "headline": html_lib.unescape(re.sub(r"<[^>]+>", "", h.group(1)).strip()) if h else "(headline missing)",
-        "events": events,
+        "events": extract_events(html),
         "url": url,
         # Keep the raw HTML so the freshness gate reuses this single fetch
         # (via brief_parser.parse_brief) instead of curling the brief again.
@@ -267,14 +260,17 @@ def main(argv: list[str]) -> int:
     # ── Freshness gate ───────────────────────────────────────────────────────
     # IN ADDITION to the EMAIL_ENABLED / EMAIL_DAILY_CAP / unsubscribe gates
     # above. The synth often finishes hours after the 08:30 send, so a stale or
-    # empty brief must never go to subscribers. Gated per edition (both ship in
-    # one email — if EITHER is stale/empty we skip the whole send).
+    # empty brief must never go to subscribers. The daily email is US-only
+    # (2026-06-01 redesign), so ONLY US freshness gates the send — a stale China
+    # must not block the US email (China staleness is covered by the feed-
+    # freshness watchdog + healthcheck). China freshness is printed for context.
     stale = []
-    for edition, brief in (("USA", us), ("China", china)):
-        ok, detail = freshness_ok(edition, brief.get("html", ""), TODAY)
-        print(f"  freshness {detail}")
-        if not ok:
-            stale.append(detail)
+    us_ok, us_detail = freshness_ok("USA", us.get("html", ""), TODAY)
+    print(f"  freshness {us_detail}")
+    if not us_ok:
+        stale.append(us_detail)
+    _, cn_detail = freshness_ok("China", china.get("html", ""), TODAY)
+    print(f"  freshness {cn_detail} (informational — does not gate the US-only email)")
 
     if stale:
         expected = expected_stamp(TODAY)

@@ -40,17 +40,59 @@ BLACK = "#14110F"          # masthead box background
 CREAM = "#F2EBD9"          # masthead text on dark background
 
 
-def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
-    """Compose the HTML email.
+def _bullet_parts(e) -> tuple[str, str]:
+    """Normalize an event to (lead, desc). Accepts the {lead, desc} dict the
+    extractors produce, or a bare string (legacy = lead only)."""
+    if isinstance(e, dict):
+        return (e.get("lead") or "").strip(), (e.get("desc") or "").strip()
+    return str(e).strip(), ""
 
-    Each edition dict needs: headline, url (full /usa/ or /china/), events
-    (list of 3 event lead strings). The dek is intentionally NOT used —
-    the email shows brief headline + 3 event leads per edition, nothing
-    else, per the operator's design call.
-    today is an ISO date string (e.g., '2026-05-26').
-    unsubscribe_url is the signed token URL specific to this subscriber.
+
+def extract_events(brief_html: str, n: int = 3) -> list[dict]:
+    """Top-n VISIBLE events from a rendered brief as {lead, desc} dicts.
+
+    lead = the <b>…</b> topic phrase; desc = the sentence(s) after </summary>,
+    with the citation <sup> and the <span class="when"> date/source tag removed.
+    Reads only the visible <ul class="items"> list, never the items-more
+    collapsed block. Shared by the live send (email_send.py) and the CLI preview
+    so the two can't drift."""
+    ul = re.search(r'<ul class="items"(?! items-more)[^>]*>([\s\S]+?)</ul>', brief_html)
+    if not ul:
+        return []
+    out = []
+    for item in re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))[:n]:
+        b = re.search(r'<b>([\s\S]+?)</b>', item)
+        lead = html_lib.unescape(re.sub(r'<[^>]+>', '', b.group(1))).strip().rstrip('.') if b else ''
+        after = item.split('</summary>', 1)[1] if '</summary>' in item else item
+        after = re.sub(r'<sup[\s\S]*?</sup>', '', after)                 # drop citation markers
+        after = re.sub(r'<span class="when"[\s\S]*?</span>', '', after)  # drop the date/source tag
+        desc = html_lib.unescape(re.sub(r'<[^>]+>', ' ', after))
+        desc = re.sub(r'\s+', ' ', desc).strip()
+        if lead or desc:
+            out.append({"lead": lead, "desc": desc})
+    return out
+
+
+def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
+    """Compose the daily HTML email — a deliberately simple, scannable layout
+    (operator's 2026-06-01 redesign): a one-line intro ("Briefer News —
+    government data, synthesized") and the day's top 3 U.S. event leads as
+    bullets, each on its own line, then a link to the full brief.
+
+    `us` needs: url (full /usa/) and events (list of event lead strings; the
+    first 3 are shown). `china` is accepted for backward compatibility with the
+    caller but intentionally NOT rendered — China still publishes on the site,
+    just not in the daily email. today is an ISO date string; unsubscribe_url is
+    the signed token URL for this subscriber.
     """
     today_pretty = dt.date.fromisoformat(today).strftime("%A · %B %-d, %Y").upper()
+
+    def _li(e):
+        lead, desc = _bullet_parts(e)
+        lead_html = f'<b>{html_lib.escape(lead)}.</b> ' if lead else ''
+        return f'<li style="margin:0 0 18px;padding:0;">{lead_html}{html_lib.escape(desc)}</li>'
+
+    bullets = "".join(_li(e) for e in us.get("events", [])[:3])
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -73,50 +115,40 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
     <td align="center" style="padding:24px 12px;">
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
 
-        <!-- Masthead — inset dark box with cream gutters -->
+        <!-- Masthead — inset dark box; tagline IS the intro -->
         <tr><td style="padding:8px 0 18px;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="background:{BLACK};color:{CREAM};padding:28px 28px 22px;text-align:center;border-radius:3px;">
+            <tr><td style="background:{BLACK};color:{CREAM};padding:30px 28px 26px;text-align:center;border-radius:3px;">
               <div style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:600;letter-spacing:0.01em;line-height:1;color:{CREAM};">Briefer News</div>
-              <div style="font-style:italic;font-size:12px;color:#C9BFA7;letter-spacing:0.02em;margin-top:10px;">All sourcing from government · Everything cited · News without opinion</div>
+              <div style="font-style:italic;font-size:14px;color:#C9BFA7;letter-spacing:0.02em;margin-top:12px;">Government data, synthesized.</div>
             </td></tr>
           </table>
         </td></tr>
 
         <!-- Date stamp -->
-        <tr><td style="padding:20px 24px 4px;text-align:right;font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.22em;color:{SEPIA};">
+        <tr><td style="padding:18px 28px 0;text-align:right;font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.22em;color:{SEPIA};">
           {today_pretty}
         </td></tr>
 
-        <!-- U.S. edition -->
-        <tr><td style="padding:8px 24px 0;">
-          <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:6px;margin-bottom:14px;font-weight:600;">U.S. Edition</div>
-          <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:500;color:{INK};margin:0 0 14px;">
-            <a href="{us['url']}" style="color:{INK};text-decoration:none;">{html_lib.escape(us['headline'])}</a>
-          </h2>
-          <ul style="margin:0 0 28px;padding:0 0 0 20px;font-size:16px;line-height:1.5;color:{INK_SOFT};">
-            {''.join(f'<li style="margin:0 0 8px;">{html_lib.escape(e)}</li>' for e in us.get('events', []))}
+        <!-- Lead-in label -->
+        <tr><td style="padding:16px 28px 0;">
+          <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:8px;font-weight:600;">Today · top developments</div>
+        </td></tr>
+
+        <!-- Three bullets, each on its own line -->
+        <tr><td style="padding:18px 28px 4px;">
+          <ul style="margin:0;padding:0 0 0 22px;font-size:18px;line-height:1.5;color:{INK};">
+            {bullets}
           </ul>
         </td></tr>
 
-        <!-- Divider -->
-        <tr><td style="padding:0 24px;">
-          <hr style="border:none;border-top:1px solid {INK_SOFT};margin:0;">
-        </td></tr>
-
-        <!-- China edition -->
-        <tr><td style="padding:24px 24px 0;">
-          <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:6px;margin-bottom:14px;font-weight:600;">China Edition</div>
-          <h2 style="font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.25;font-weight:500;color:{INK};margin:0 0 14px;">
-            <a href="{china['url']}" style="color:{INK};text-decoration:none;">{html_lib.escape(china['headline'])}</a>
-          </h2>
-          <ul style="margin:0 0 28px;padding:0 0 0 20px;font-size:16px;line-height:1.5;color:{INK_SOFT};">
-            {''.join(f'<li style="margin:0 0 8px;">{html_lib.escape(e)}</li>' for e in china.get('events', []))}
-          </ul>
+        <!-- Read the full brief -->
+        <tr><td style="padding:14px 28px 30px;">
+          <a href="{us['url']}" style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:13px;letter-spacing:0.08em;color:{SEPIA};text-decoration:none;font-weight:600;">Read today's full brief →</a>
         </td></tr>
 
         <!-- Footer -->
-        <tr><td style="padding:24px 24px 32px;border-top:1px solid {INK_SOFT};">
+        <tr><td style="padding:22px 28px 32px;border-top:1px solid {INK_SOFT};">
           <p style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.12em;color:{INK_LIGHT};line-height:1.6;margin:0 0 12px;text-align:center;">
             <a href="https://briefer.news/" style="color:{INK_LIGHT};text-decoration:none;">briefer.news</a>
             &nbsp;·&nbsp;
@@ -141,34 +173,26 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
 
 
 def render_text_fallback(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
-    """Plain-text version for clients that prefer/require text/plain. Some
-    spam filters and minimalist clients show this instead of the HTML."""
+    """Plain-text version (US-only, matching the simplified HTML): intro + the
+    day's top 3 U.S. event leads as bullets. Some spam filters and minimalist
+    clients show this instead of the HTML. `china` is unused (see render_email)."""
     today_pretty = dt.date.fromisoformat(today).strftime("%A, %B %-d, %Y")
-    us_bullets = "\n".join(f"  • {e}" for e in us.get('events', []))
-    china_bullets = "\n".join(f"  • {e}" for e in china.get('events', []))
-    return f"""Briefer News — {today_pretty}
-All sourcing from government · Everything cited · News without opinion
 
-═══════════════════════════════════════════════════════════════
-U.S. EDITION  ·  {us['url']}
-═══════════════════════════════════════════════════════════════
+    def _tb(e):
+        lead, desc = _bullet_parts(e)
+        return f"  • {lead}. {desc}".rstrip() if (lead and desc) else f"  • {lead or desc}"
 
-{us['headline']}
+    bullets = "\n".join(_tb(e) for e in us.get('events', [])[:3])
+    return f"""Briefer News — Government data, synthesized.
+{today_pretty}
 
-{us_bullets}
+TODAY · TOP DEVELOPMENTS
 
+{bullets}
 
-═══════════════════════════════════════════════════════════════
-CHINA EDITION  ·  {china['url']}
-═══════════════════════════════════════════════════════════════
+Read today's full brief: {us['url']}
 
-{china['headline']}
-
-{china_bullets}
-
-
-═══════════════════════════════════════════════════════════════
-
+———————————————————————————————————————————————
 briefer.news · about: briefer.news/about · sources: briefer.news/sources
 
 You're getting this because you subscribed at briefer.news.
@@ -177,23 +201,12 @@ Unsubscribe (one click, no questions): {unsubscribe_url}
 
 
 def _fetch_live(edition: str) -> dict:
-    """Pull today's headline + top 3 event leads from the live brief for the CLI preview."""
+    """Pull today's headline + top 3 events from the live brief for the CLI preview."""
     html = urllib.request.urlopen(f"https://briefer.news/{edition}/", timeout=20).read().decode('utf-8', errors='replace')
     h = re.search(r'<h2 class="headline">([\s\S]+?)</h2>', html)
-    # Find the visible top-3 list (NOT the items-more collapsed list)
-    ul = re.search(r'<ul class="items"(?! items-more)[^>]*>([\s\S]+?)</ul>', html)
-    events = []
-    if ul:
-        items = re.findall(r'<li[^>]*>([\s\S]+?)</li>', ul.group(1))
-        for item in items[:3]:
-            # The event lead is the bolded prefix: <b>Lead phrase.</b>
-            lead = re.search(r'<b>([\s\S]+?)</b>', item)
-            if lead:
-                text = re.sub(r'<[^>]+>', '', lead.group(1)).strip().rstrip('.')
-                events.append(html_lib.unescape(text))
     return {
         'headline': html_lib.unescape(re.sub(r'<[^>]+>', '', h.group(1)).strip()) if h else "(no headline)",
-        'events': events,
+        'events': extract_events(html),
         'url': f"https://briefer.news/{edition}/",
     }
 
