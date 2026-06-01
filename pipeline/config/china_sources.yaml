@@ -449,3 +449,48 @@ sources:
     extractor: trafilatura
     active: false
     notes: "Probed 2026-05-14: HTTP 412 IS a JS bot-detection challenge (cookies AV7KYchI7HHaS / __jsluid_h; obfuscated $_ts script + /Qy6J...c7790ff.js validator — Akamai Bot Manager family). Playwright + stealth SOLVES the challenge (cookies set on visit 1), but subsequent article-URL requests return HTTP 400 / empty bodies — bot-detection appears to have a second layer fingerprinting headless Chrome, OR YAML listing URL is stale. English mirror english.customs.gov.cn works fine with plain curl_cffi but publishes only ~2-4 narrative items/year (mostly trade-data tables, not press releases). Trade-data signal we wanted from Customs is already covered editorially by Stats Bureau + NDRC + State Council Yaowen. Decision 2026-05-14: park indefinitely. Not worth the engineering."
+
+  - name: "MOFCOM News (商务部 新闻发布)"
+    domain: mofcom.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.mofcom.gov.cn/xwfb/"
+    link_pattern: "/xwfb/art/20\\d{2}/art_[0-9a-f]+\\.html"
+    category: trade_policy
+    weight: high
+    extractor: pages_content
+    active: true
+    notes: "Commerce Ministry — the trade-war/export-control/anti-dumping/FDI primary (no current PRC trade primary; Customs parked). Probed 2026-05-31: HTTP 200, no CF, art_*.html hrefs. link_pattern verify-after-first-scrape."
+
+  - name: "MOST Work Dynamics (科技部 工作动态)"
+    domain: most.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.most.gov.cn/kjbgz/"
+    link_pattern: "202[5-9]\\d{2}/t20\\d{6}_\\d+\\.html"
+    category: science_tech
+    weight: high
+    extractor: pages_content
+    active: true
+    notes: "Ministry of Science & Technology — S&T self-reliance policy primary (CSTC office). Probed 2026-05-31: HTTP 200, no CF, ./YYYYMM/t20YYMMDD_*.html relative hrefs. link_pattern verify-after-first-scrape."
+
+  - name: "CAS Research Progress (中国科学院 科研进展)"
+    domain: cas.cn
+    discovery_type: html_curl_cffi
+    listing_url: "http://www.cas.cn/syky/"
+    link_pattern: "202[5-9]\\d{2}/t20\\d{6}_\\d+\\.shtml"
+    category: science_tech
+    weight: high
+    extractor: pages_content
+    active: true
+    notes: "Chinese Academy of Sciences — richest basic-science breakthrough feed (state academy, 正部级). Probed 2026-05-31: HTTP 200, no CF, ./YYYYMM/t20YYMMDD_*.shtml relative hrefs (.shtml not .html). link_pattern verify-after-first-scrape."
+
+  - name: "SAMR News (市场监管总局 新闻)"
+    domain: samr.gov.cn
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.samr.gov.cn/xw/"
+    link_pattern: "/xw/[a-z]+/art/20\\d{2}/art_[0-9a-f]+\\.html"
+    category: market_regulation
+    weight: medium
+    extractor: pages_content
+    active: true
+    notes: "Market Regulation Admin — antitrust/anti-monopoly/platform enforcement (no current PRC antitrust primary). Probed 2026-05-31: HTTP 200, no CF, /xw/zj/... art paths. link_pattern best-effort, verify-after-first-scrape."
+

@@ -93,6 +93,11 @@ ALLOWLIST_SQL="
     ('NEA (国家能源局)', 2),
     ('China Electricity Council (中国电力企业联合会)', 4),
     -- E: MFA — voices source, lower selection priority but high voice value
+    -- S5 2026-05-31: trade/science/market-reg additions
+    ('MOFCOM News (商务部 新闻发布)', 2),
+    ('MOST Work Dynamics (科技部 工作动态)', 2),
+    ('CAS Research Progress (中国科学院 科研进展)', 3),
+    ('SAMR News (市场监管总局 新闻)', 2),
     ('MFA Daily Press Conference', 5),
     ('MFA News (Foreign Minister Activities)', 5),
     -- F: Xinhua aggregation
