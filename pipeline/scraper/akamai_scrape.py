@@ -113,7 +113,13 @@ def _discover_dnn_articlecs(cfg: dict) -> list[dict]:
 
 
 def _discover_rss_curl_cffi(cfg: dict) -> list[dict]:
-    rss_url = cfg["rss_url"]
+    # Accept the feed URL under either key. Mirrors the defensive
+    # cfg.get(...) or cfg.get(...) pattern used for the article-source URL
+    # above — a source mis-keyed as listing_url (e.g. BLS/DOL, added
+    # 2026-05-31) would otherwise KeyError and get swallowed as 0-discovered.
+    rss_url = cfg.get("rss_url") or cfg.get("listing_url")
+    if not rss_url:
+        return []
     body = akamai_fetch(rss_url)
     if not body:
         return []
