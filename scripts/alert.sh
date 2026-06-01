@@ -87,6 +87,32 @@ if [ "$DRY_RUN" = "true" ]; then
   exit 0
 fi
 
+# ── Delivery mode ──────────────────────────────────────────────────────────
+# Every alert is ALWAYS logged to alerts.log (above) regardless of mode. This
+# gates only the IMMEDIATE email, to end alert-email fatigue. The once-a-day
+# digest (scripts/alert_digest.sh) then emails ONE readable summary of the day.
+#   digest : never email immediately — log only            (the quiet default)
+#   crit   : email immediately only when severity is crit  (safety net)
+#   all    : email every alert immediately                 (legacy; used by the
+#            digest itself, which sets ALERT_EMAIL_MODE=all to force its send)
+MODE="${ALERT_EMAIL_MODE:-$(get_env ALERT_EMAIL_MODE digest)}"
+SEV_LC="$(printf '%s' "$SEVERITY" | tr '[:upper:]' '[:lower:]')"
+case "$MODE" in
+  all) ;;  # fall through to the immediate send
+  crit)
+    if [ "$SEV_LC" != "crit" ]; then
+      log_line "log-only(mode=crit)"
+      echo "alert logged (mode=crit, severity=$SEVERITY) — no immediate email; in the daily digest"
+      exit 0
+    fi
+    ;;
+  digest|*)
+    log_line "log-only(mode=$MODE)"
+    echo "alert logged (mode=$MODE) — no immediate email; in the daily digest"
+    exit 0
+    ;;
+esac
+
 # Primary channel: SES email (off-box).
 if OUT="$("$AWS" sesv2 send-email --region "$REGION" \
         --cli-input-json "file://$PAYLOAD" --output json 2>&1)"; then
