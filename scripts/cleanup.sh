@@ -108,7 +108,13 @@ fi
 # ── Delete in a single transaction ──────────────────────────────────────────
 echo ""
 echo "--- Deleting (transaction) ---"
-"$DOCKER" exec briefer_postgres psql -U briefer -d briefer -v ON_ERROR_STOP=1 <<SQL
+# NOTE the -i: this psql reads its SQL from the heredoc on STDIN, and `docker
+# exec` does NOT forward stdin to the container process without -i. Without it,
+# psql got empty input, ran nothing, and exited 0 — so retention SILENTLY never
+# deleted anything (the DB grew unbounded; 5k+ stale rows survived) while the log
+# printed "Cleanup complete". The -c calls above don't use stdin, which is why
+# only this DELETE block was broken.
+"$DOCKER" exec -i briefer_postgres psql -U briefer -d briefer -v ON_ERROR_STOP=1 <<SQL
 BEGIN;
 
 DELETE FROM article_summaries
