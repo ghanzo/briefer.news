@@ -4,9 +4,9 @@ A daily intelligence platform on multi-government output. Autonomously scraped, 
 
 ## What it is
 
-Every morning, this pipeline scrapes ~72 sources of government output across two editions:
-- **US edition** — 45 sources (State Dept, CENTCOM, DOJ, Treasury, CISA, Federal Register, UK MoD, etc.) → brief at **https://briefer.news/usa/**
-- **China edition** — 27 Chinese-government sources (MFA, State Council, Xinhua, NDRC, PBOC, MIIT, CAC, Qiushi, CCDI, NPC, judicial, provincial, etc.) → brief at **https://briefer.news/china/**
+Every morning, this pipeline scrapes ~125 active sources of government output across two editions:
+- **US edition** — ~93 sources (65 standard RSS/web + 28 Akamai-protected .mil/allied: State Dept, CENTCOM, DOJ, Treasury, CISA, Federal Register, UK MoD, DFAT, Japan MoFA, NATO, etc.) → brief at **https://briefer.news/usa/**
+- **China edition** — 32 Chinese-government sources (MFA, State Council, Xinhua, NDRC, PBOC, MIIT, CAC, Qiushi, CCDI, NPC, judicial, provincial, etc.) → brief at **https://briefer.news/china/**
 
 A few hours after each scrape, Claude curates the most consequential ~50 items per edition and synthesizes them into a 9-bullet daily brief in the style of [`BRIEF_STYLE.md`](BRIEF_STYLE.md). The China brief follows additional editorial rules in [`CHINA_BRIEF.md`](CHINA_BRIEF.md) (bilingual voices, diplomatic-vocabulary calibration, internal-evolution priority).
 
@@ -44,13 +44,24 @@ flowchart LR
 
 ## Daily flow
 
-| Time (PDT) | LaunchAgent | Stages |
-|---|---|---|
-| 04:00 | `news.briefer.daily` | **3 scrapes in parallel** — RSS (39 sources) + Akamai (6 sources) + China (27 sources) — then DB cleanup (7-day retention) |
-| 07:00 | `news.briefer.synthesize` | World-context (Claude WebSearch) → SQL pre-filter (200 candidates) → Claude picker (~50) → SQL fetch full text → Claude synthesizer → deploy to `/usa/` + S3 + CloudFront invalidation |
-| 07:30 | `news.briefer.synthesize.china` | SQL pre-filter (175 internal + 25 reserved MFA) → Claude picker (≥6 MFA required) → SQL fetch full text → Claude synthesizer (bilingual voices, diplomatic-glossary calibration) → deploy to `/china/` + S3 + CloudFront invalidation |
+Claude calls are spread across the early-morning hours so the shared `claude` CLI quota is never contended. Core publishing flow (PDT):
 
-Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesize-china-YYYYMMDD.log`. Failures are non-fatal — yesterday's brief stays live until the next successful synth.
+| Time | LaunchAgent | What |
+|---|---|---|
+| 00:30 | `news.briefer.daily` | **3 scrapes in parallel** — RSS (65) + Akamai (28) + China (32) → Postgres, then DB cleanup (**14-day retention**) |
+| 02:30 | `news.briefer.synthesize` | World-context (Claude WebSearch) → SQL pre-filter → Claude picker (~50) → SQL fetch full text → Claude synthesizer → `validate_brief` gate → deploy `/usa/` + S3 + CloudFront |
+| 04:00 | `news.briefer.synthesize.china` | SQL pre-filter (internal + reserved MFA) → Claude picker (≥6 MFA) → synthesizer (bilingual voices, diplomatic-glossary calibration) → `validate_brief` gate → deploy `/china/` + S3 + CloudFront |
+| 05:30 | `news.briefer.digests` | archive index + weekly "This week" injection + sitemap + per-edition RSS feeds |
+| 06:30 | `news.briefer.healthcheck` | verify both briefs published today; auto-recover (one synth/day) + alert if stale |
+| 07:15 | `news.briefer.feedfreshness` | per-source freshness watchdog — flags feeds that went silently stale |
+| 08:30 | `news.briefer.email_send` | US-only daily email to subscribers (gated on US-brief freshness) |
+| 09:00 | `news.briefer.alertdigest` | one daily digest of the day's operational alerts (no per-alert email spam) |
+| 12:30 | `news.briefer.midday` | bonus midday corpus refresh (scrape only — no synth, no cleanup) |
+| 13:05 | `news.briefer.synthcatchup` | resynthesize if the morning brief is missing/stale (self-limited to one real synth/day) |
+
+Plus growth/ops agents (researcher, drafter, morning-brief, traffic + engagement reports, search-console report, subscriber backup, email API/bounce handlers). Full list: [`launchd/`](launchd/).
+
+Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesize-china-YYYYMMDD.log`, `logs/feed-freshness-YYYYMMDD.log`, `logs/alerts.log`. Failures are non-fatal — `validate_brief` keeps yesterday's brief live until the next successful synth, and a feed-freshness watchdog + daily alert digest surface silent degradation off-box.
 
 ## Editorial framework
 
@@ -64,7 +75,7 @@ Logs: `logs/daily-YYYYMMDD.log`, `logs/synthesize-YYYYMMDD.log`, `logs/synthesiz
 
 ## Setup on a new machine
 
-The full schedule of **17 LaunchAgents** is committed in [`launchd/`](launchd/);
+The full schedule of **21 LaunchAgents** is committed in [`launchd/`](launchd/);
 [`scripts/install_launchagents.sh`](scripts/install_launchagents.sh) (`make
 agents-install`) reconstructs the live schedule from git on a fresh machine. The
 historical Mac mini deployment runbook is archived at
@@ -94,8 +105,9 @@ The `pipeline` container is profile-tagged (`profiles: [manual]`) so it doesn't 
 ```
 briefer.news/
 ├── pipeline/                       # scraping + DB
-│   ├── config/sources.yaml         # ← source of truth for active feeds (39 standard)
-│   ├── config/akamai_sources.yaml  # ← Akamai-protected feeds (6 active)
+│   ├── config/sources.yaml         # ← standard RSS/web feeds (65 active)
+│   ├── config/akamai_sources.yaml  # ← Akamai-protected .mil/allied feeds (28 active)
+│   ├── config/china_sources.yaml   # ← Chinese-government feeds (32 active)
 │   ├── scraper/                    # discovery, extractor, akamai_bypass, browser
 │   │   ├── akamai_bypass.py        # curl_cffi TLS-impersonation fetcher
 │   │   └── akamai_scrape.py        # orchestrator for .mil sources
@@ -103,10 +115,14 @@ briefer.news/
 │   ├── builder/                    # Jinja2 templates (older path)
 │   └── db/models.py                # SQLAlchemy schema
 ├── scripts/                        # operational scripts (LaunchAgent targets)
-│   ├── daily.sh                    # 04:00 — parallel scrapes (rss+akamai+china) + cleanup
-│   ├── synthesize.sh               # 07:00 — US synth → /usa/
-│   ├── synthesize_china.sh         # 07:30 — China synth → /china/
-│   ├── cleanup.sh                  # 7-day article retention
+│   ├── daily.sh                    # 00:30 — parallel scrapes (rss+akamai+china) + cleanup
+│   ├── synthesize.sh               # 02:30 — US synth → /usa/
+│   ├── synthesize_china.sh         # 04:00 — China synth → /china/
+│   ├── cleanup.sh                  # 14-day article retention (DB + log rotation)
+│   ├── feed_freshness.py           # per-source staleness watchdog (07:15)
+│   ├── alert.sh / alert_digest.sh  # off-box alerts → one daily digest (09:00)
+│   ├── email_send.py / email_template.py  # US-only daily subscriber email (08:30)
+│   ├── redeploy_today.sh           # re-publish today's brief without re-synthesizing
 │   └── world_context.sh            # Claude WebSearch → ambient global-narrative file
 ├── research/                       # design references, sample briefs, probe scripts
 │   ├── prototype_us_2026-05-12.html      # CURRENT US template (dark default, nav strip)
@@ -122,7 +138,7 @@ briefer.news/
 ├── CLAUDE.md                       # orientation for Claude sessions
 ├── INDEX.md                        # root-doc map (purpose + freshness tag)
 ├── Makefile                        # operator entry point (`make status`)
-├── launchd/                        # the 17 LaunchAgents (source of truth)
+├── launchd/                        # the 21 LaunchAgents (source of truth)
 └── archive/docs/MIGRATION.md       # historical M4 mini deployment runbook
 ```
 
@@ -130,12 +146,12 @@ briefer.news/
 
 | | |
 |---|---|
-| Source pool | **72 active feeds** — 45 US (39 RSS + 6 Akamai-protected) + 27 Chinese-government |
-| Daily article volume | ~200-300 net new articles/day after dedup across both editions |
+| Source pool | **~125 active feeds** — ~93 US (65 RSS/web + 28 Akamai-protected) + 32 Chinese-government |
+| Daily article volume | ~200-300 net new articles/day after dedup; 14-day rolling DB retention |
 | Local site | Live at http://localhost on the mini |
 | Public domain | **Live** at https://briefer.news (multi-edition) since 2026-05-12 |
-| US edition | Live at https://briefer.news/usa/ — autonomous synth 07:00 PDT |
-| China edition | Live at https://briefer.news/china/ — autonomous synth 07:30 PDT (since 2026-05-12). Bilingual voices, internal-evolution framing |
+| US edition | Live at https://briefer.news/usa/ — autonomous synth 02:30 PDT |
+| China edition | Live at https://briefer.news/china/ — autonomous synth 04:00 PDT (since 2026-05-12). Bilingual voices, internal-evolution framing |
 | Selector | Live at https://briefer.news/ — JS-fetched headlines from each edition |
 | AWS cost | ~$0.50/mo (Route 53 zone only) |
 | Mini cost | ~$3/yr electricity (M4 idles at ~3W) |
