@@ -24,6 +24,11 @@ RUN_DIR="$REPO/.run"
 TODAY=$(date +%Y-%m-%d)
 DOCKER=/usr/local/bin/docker
 
+# deploy.sh references $BRIEFER_SHADOW (its no-deploy shadow flag). Define it
+# empty BEFORE sourcing so `set -u` doesn't abort on an unset var. Empty = a
+# real deploy; non-empty would make the helpers echo-and-skip (shadow mode).
+: "${BRIEFER_SHADOW:=}"
+
 # Shared infra constants + deploy helpers (deploy_artifact / invalidate_paths /
 # aws_ready), same source of truth the synth scripts use.
 . "$REPO/scripts/lib/deploy.sh"
