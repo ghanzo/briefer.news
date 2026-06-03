@@ -379,6 +379,19 @@ except Exception:
 " 2>/dev/null || true)"
 echo "Previous live US headline (to avoid repeating): ${PREV_HEADLINE:-(unavailable)}"
 
+# ── Phase 2 of the editorial critique loop ──────────────────────────────────
+# Inject yesterday's automated critique notes (scripts/editorial_critique.sh ->
+# research/editorial_notes.md) as SOFT guidance. BRIEF_STYLE.md + the instructions
+# below WIN any conflict. Empty (and byte-identical to before) when the file is
+# absent, so this is purely additive.
+NOTES_SECTION=""
+if [ -s "$REPO/research/editorial_notes.md" ]; then
+  NOTES_SECTION="
+Recent editorial feedback (from yesterday's automated critique — apply where it is consistent with BRIEF_STYLE.md and the instructions below; the style guide and these instructions WIN any conflict; ignore any note that contradicts a current rule):
+$(cat "$REPO/research/editorial_notes.md")
+"
+fi
+
 cat > "$SYNTH_PROMPT" <<EOF
 You are the synthesizer for briefer.news.
 
@@ -392,7 +405,7 @@ Ambient signal (reference only, NEVER published):
 @${REPO}/.run/world_context.md if it exists. What non-US-gov sources (Reuters, AP, FT, Bloomberg, BBC, etc.) are reporting about today's stories. Use this to frame your bullets in their wider narrative arc when natural (e.g., anchoring a CENTCOM-sourced bullet to "the deteriorating April 8 ceasefire" if that is the global frame). **Every claim and citation in the bullets must come from the US-gov articles in the candidates list — the world context informs framing, not facts.** Do NOT cite the world context anywhere in the rendered HTML; do NOT quote it; do NOT render any non-gov source on the page. The brand promise is primary-government-sources-only.
 
 Today is ${TODAY}.
-
+${NOTES_SECTION}
 Your job:
 - From the U.S.-federal-government candidates, select the **9 most consequential items** for the EVENTS list per BRIEF_STYLE.md priority order. **ALL 9 render in a single <ul class="items"> block — there is NO "Show 4 more events" group expander (removed 2026-05-30) and NO collapsed/more tier.** Order them by significance, items 1-9. **KEEP the per-event click-to-expand chevron**: each event is still a <li><details class="event-details"><summary class="event-summary"><b>Lede.</b></summary> body…</details></li> — the reader sees all 9 ledes and clicks any one to drop down its summary. Only the "show 4 more" grouping was removed, NOT the per-event disclosure.
 - **ONE STORY = ONE BULLET (anti-redundancy).** If several candidates cover facets of the SAME event, collapse them into a single bullet. Example: a Quad ministers' meeting, the joint statement it produced, a bilateral critical-minerals deal signed at it, and a related Hormuz line are all ONE story — they get ONE bullet ("Four nations launch a $20 billion critical-minerals framework and back open Hormuz shipping"), not three or four. Never spend multiple top-5 slots on a single cluster. After picking, scan your 5 visible bullets: if two share the same core event, actors, or document, merge them and pull up a distinct story to fill the freed slot. The 5 visible events should be 5 DISTINCT stories. **DISTINCT LEDES:** the bold lede that opens each event is what a skimming reader sees — every lede across all 9 events must be visibly different from the others (different words, not just a different body). Never give two events near-identical ledes (e.g. two "North Korea sanctions." openers); if two stories are about the same actor, make each lede name what is specific to it.
