@@ -81,6 +81,21 @@ Critique on these axes, each with concrete examples quoted from the brief/pool:
 - BALANCE: <=2 DOJ, <=3 purely-domestic, a mix of registers across the 6 voices,
   not over-indexed on a single agency?
 - WRITING: plain English, named actors, no hedging or editorializing?
+- FRESHNESS (per the Freshness principle in BRIEF_STYLE.md): every US event dated
+  within 4 days of the brief stamp, every China event within 7 days — compare each
+  event's <span class="when"> date to the stamp. FLAG: (a) any FUTURE-dated when (a
+  date-parse bug); (b) any event past threshold lacking a named still-developing
+  thread; (c) more than 2 over-threshold events; (d) name any within-window item in
+  the pool (@${META}) that outranks a stale pick.
+- WORLD-ALIGNMENT (per the World-alignment principle in BRIEF_STYLE.md): does the
+  brief track the day's consequential developments, but ONLY via government primary
+  sources? (a) CHASING — flag any event whose citation is not a government primary
+  source. (b) BURYING — from the pool (@${META}) name the day's top ~5 gov-sourced
+  developments and flag any the brief omitted or buried under routine releases.
+  (c) WORLD-SCAN — use WebSearch (2-3 queries: top US news, top world news today)
+  for what the world is discussing; flag any major story that HAS a government
+  primary source but is ABSENT from the brief, and note trending stories correctly
+  excluded for lacking a gov source (do not fault those).
 
 THEN write TWO files (you have edit permission — use it):
 1. Write the FULL critique to: ${CRIT_FILE}
@@ -102,7 +117,8 @@ Do NOT edit BRIEF_STYLE.md or lens.md. Only the two files above.
 EOF
 
 echo "Running editorial critique for ${TODAY}…"
-"$CLAUDE" -p "$(cat "$PROMPT")" --max-turns 30 --permission-mode acceptEdits 2>&1 | tail -15
+"$CLAUDE" -p "$(cat "$PROMPT")" --max-turns 40 --permission-mode acceptEdits \
+  --allowedTools WebSearch WebFetch Read Write Edit 2>&1 | tail -15
 
 # ── Verify both files were written; only then set the sentinel ──────────────
 ok=true

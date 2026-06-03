@@ -442,3 +442,90 @@ Before publishing, the synthesizer should verify:
 - **Bad first draft, then corrected (May 7, 2026):** `research/brief_2026-05-07.md` — first version had 51-word bullets and 38-word quotes; corrected to May 6 cadence.
 
 When in doubt, model on May 6.
+
+---
+
+## Editorial principle: Freshness (event-age thresholds)
+
+> Added 2026-06-03. Mechanically checkable from `pub_date` in
+> `.run/candidates_meta.json` (ISO `YYYY-MM-DD`) and from each bullet's
+> `<span class="when">` event-date tag. Complements — does not replace —
+> the China voices ≤30-day recency rule (`CHINA_BRIEF.md`).
+
+A brief is a record of **what the day was**, not an archive. Stale events read as
+a brief that wasn't paying attention. Each event must clear an age threshold
+measured from its **event date** (the date in the bullet's `· Agency` tag),
+against the brief's publish date.
+
+### Thresholds (by edition)
+
+| Edition | Events | Voices / quotes |
+|---|---|---|
+| **US** | event date within **the last 3–4 days** (≤4d) | quote date within ~7d preferred; ≤14d hard |
+| **China** | event date within **the last ~7 days** (≤7d), reflecting slower PRC source cadence | ≤30 days (per `CHINA_BRIEF.md` HARD recency rule) |
+
+The wider China window is deliberate: PRC ministries publish on a slower, batchier
+cadence than U.S. agencies, so a 7-day window is the China equivalent of the U.S.
+3–4-day window — not a license to run older items.
+
+### The justified exception (must be earned, not asserted)
+
+An event older than its threshold may run **only** if it is a genuinely
+**still-developing major development** — meaning ALL of:
+
+1. **Continuity, not a re-post.** There is a *new* government action, filing,
+   statement, or data point dated within the threshold that materially advances
+   the story. Cite that fresh action's date in the tag — not the old kickoff date.
+2. **Top-tier consequence.** It would rank in the top ~3 events of the day on
+   significance alone. Routine releases and national-day items **cannot** use it.
+3. **Named as a thread.** The bullet explicitly signals the arc ("the fifth such
+   filing," "Day N," "the next step in…").
+
+Fail any of the three → it is stale; drop it for a fresher pool item. The
+exception caps at **2 events per brief**.
+
+### Date-integrity guard (the 2026-06-03 lesson)
+
+The bullet `when` date MUST be the article's publish date — DB `publish_date`,
+falling back to `scraped_at` — **never** a date parsed from the article body.
+Body-parsed signing/effective/filing dates produce both stale-looking ("May 5")
+and impossible future ("Jul 1") stamps. **Reject any `when` that is future-dated
+or that disagrees with `publish_date`/`scraped_at` by more than the edition
+threshold.**
+
+---
+
+## Editorial principle: World-alignment (government-filtered)
+
+> Added 2026-06-03. The brief tracks the day's genuinely consequential
+> developments — but the verifiable spine stays government-primary-sourced (see
+> "Source hierarchy"). This governs the tension between "cover what matters" and
+> "gov-sources-only."
+
+The brief must read like it knows what mattered in the world today — yet every
+claim in its spine traces to a government primary source. Two failure modes, both
+violations:
+
+1. **Chasing.** Leading with or including a trending story that has **no
+   government primary source**, just because it dominated the cycle. Opinion
+   press, wire aggregation, and "officials are expected to" reporting are **not**
+   sources. If the day's biggest story has no .gov (US) / PRC-gov (China)
+   document behind it, the brief does not cover it. Silence is correct.
+
+2. **Burying.** A major development **does** have a government primary source but
+   is demoted below routine releases — or omitted — because the picker
+   over-indexed on volume (five DOJ items, a stack of proclamations) instead of
+   consequence. A gov-sourced top-tier development must take a top slot.
+
+### The balance rule
+
+> **Cover what matters, to the extent the government record reaches it.**
+> Significance sets the priority order; the government-source requirement sets the
+> eligibility gate. An item passes the gate first, then competes on significance.
+> Never lower the gate to chase relevance; never let routine volume crowd out a
+> gated-in major item.
+
+In practice: start from the day's consequential developments (the `lens.md`
+frame), ask of each "is there a government primary source for it today?" — yes →
+eligible, competes on significance; no → out, no matter how big (covered when the
+record lands). Then order eligible items by consequence, not agency volume.

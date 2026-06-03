@@ -321,6 +321,42 @@ def _extract_title(html: str) -> str:
     return ""
 
 
+# ── Publish-date from URL ───────────────────────────────────────────────────
+
+def _url_publish_date(url: str):
+    """Extract the publish date encoded in a China gov URL path; else None.
+
+    China gov pages do NOT expose a publish_date in their HTML, so before this
+    every China article stored publish_date=NULL — which forced the synth to
+    PARSE the brief's date tag out of the article body, where it grabbed decree
+    signing/effective/filing dates and produced stale-looking ("May 5") and even
+    future ("Jul 1") stamps (2026-06-03 audit). The URL path is the reliable
+    signal:
+      fmprc / CCDI / Xinhua : .../t20260603_...  or  .../20260531/...  (YYYYMMDD)
+      CAC                    : .../2026-06/03/...                       (YYYY-MM/DD)
+      People's Daily        : .../2026/0603/...                        (/YYYY/MMDD/)
+    gov.cn content URLs carry only year-month (.../202606/content_...), no day —
+    those return None and the caller falls back to the scrape time.
+    """
+    # YYYYMMDD as 8 consecutive digits at a path/underscore/t boundary
+    m = re.search(r'(?:^|[/_t])(\d{4})(\d{2})(\d{2})(?:[_./]|$)', url)
+    if m:
+        y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        if 2020 <= y <= 2035 and 1 <= mo <= 12 and 1 <= d <= 31:
+            try:
+                return datetime(y, mo, d)
+            except ValueError:
+                pass
+    for pat in (r'/(\d{4})-(\d{2})/(\d{2})/', r'/(\d{4})/(\d{2})(\d{2})/'):
+        m = re.search(pat, url)
+        if m:
+            try:
+                return datetime(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+            except ValueError:
+                pass
+    return None
+
+
 # ── Per-source scrape ───────────────────────────────────────────────────────
 
 def scrape_source(session, cfg: dict, run_id: int, dry_run: bool = False, limit: int = 0) -> dict:
@@ -391,6 +427,11 @@ def scrape_source(session, cfg: dict, run_id: int, dry_run: bool = False, limit:
             extraction_method=method,
             extraction_failed=False,
             language="zh",
+            # Populate publish_date from the URL path (China HTML has none), so the
+            # synth dates the brief from a real date instead of body-parsing a
+            # decree's signing/effective date. Fall back to now() (~scrape time,
+            # accurate for fresh items) so it is NEVER null again.
+            publish_date=_url_publish_date(url) or datetime.utcnow(),
             raw_metadata={},
         )
         try:
