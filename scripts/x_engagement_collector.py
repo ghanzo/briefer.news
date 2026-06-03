@@ -96,6 +96,14 @@ def main(argv: list[str]) -> int:
                     help="print metrics without appending to the log")
     args = ap.parse_args(argv)
 
+    # Master X switch: when X is paused (X_ENABLED!=true in .env), skip the
+    # engagement reads too — no point spending X API credits snapshotting posts
+    # while posting is off. Mirrors drafter.sh's X_ENABLED gate so one flag
+    # controls all X activity.
+    if x_post.load_env().get("X_ENABLED", "false").strip().lower() != "true":
+        print("X disabled (X_ENABLED!=true) — skipping engagement collection.")
+        return 0
+
     now = dt.datetime.now()
     targets = collect_targets(now)
     if not targets:
