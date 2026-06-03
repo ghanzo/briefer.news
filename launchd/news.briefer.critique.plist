@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>news.briefer.critique</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/maxgoshay/code/briefernewsapp/scripts/editorial_critique.sh</string>
+  </array>
+
+  <!-- 14:00 PT: OFF-PEAK on purpose. The morning window (00:30-08:30) is already
+       contended for the single Claude CLI; the critique only needs to finish
+       before tomorrow's 02:30 synth, so it runs midday after the 12:30 scrape +
+       13:05 synth-catchup are done. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>14</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/critique-launchagent.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/critique-launchagent.log</string>
+
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

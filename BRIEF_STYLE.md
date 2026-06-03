@@ -121,11 +121,11 @@ never mixed into the U.S.-government Events list.
 3. **Headline** — one short sentence framing the day.
 4. **Dek** — the day's narrative shape, 30–55 words. *(As of 2026-05-28: the standalone on-page dek was REMOVED 2026-05-27 and is staying removed; the dek's plain-English rules now apply to the top-3 event ledes — see `DEK.md`.)*
 5. **Thread strip** — small monospace chips of active long-running threads (Day 76 · Iran war, Year 5 · etc.). Omitted when there are no active threads. *(As of 2026-05-28: the continuity/thread chip strip was REMOVED 2026-05-27 and no longer renders.)*
-6. **Top events** — 3 bullets in priority order, the day's most consequential items. Always visible. Cite numerals 1–3.
-7. **Voices** — 3 pull-quotes visible + 3 in a `<details class="voices-extras">` drop-down inside the Voices section. Mix of registers; verbatim from articles only.
+6. **Events** — all **9** in priority order in a single `<ul class="items">` block, every lede visible, each a per-event click-to-expand chevron. *(Updated 2026-05-30: the old "3 top + items 4–9 in a `more-events` drop-down" split was flattened; the "Show 4 more events" group expander is gone.)* Cite numerals 1–9.
+7. **Voices** — **6** pull-quotes, all visible in a single flat block. *(Updated 2026-05-30: the `<details class="voices-extras">` drop-down was removed; all six render.)* Mix of registers; verbatim from articles only.
 8. **Allied Governments** — up to 3 allied-government bullets with lowercase-letter cites (a, b, c). Omitted on days with no allied material.
 9. **Transcript** — multi-view event coverage (used for summits, joint statements). Conditional; omitted on most days.
-10. **More events** — items 4–9 inside `<details class="more-events">`, collapsed by default at the BOTTOM of the brief just above Sources. Cite numerals 4–9; same bullet structure as Top events. Positioned low to reduce upfront clutter; the depth is available for readers who want it.
+10. *(REMOVED 2026-05-30)* — the "More events" `<details class="more-events">` collapsed block no longer exists; all 9 events render visibly in the single Events block (#6). Kept here only to mark the change.
 11. **This week** — a brief 2–3 sentence synopsis of the week's digest with a link to the full `/weekly/` page. Injected at runtime by `scripts/inject_weekly_preview.py` between the More events block and Sources.
 12. **Sources** — bibliography. Primary `<ol>` lists the 9 events with numbered cites (1–9). When Allied Governments material is present, a second `<ol type="a" class="sources-allied">` follows in the same `<section class="sources">`, listing the allied items with letter markers (a, b, c) matching their lowercase cite markers above.
 13. **Footer** — brand, nav, theme toggle.
@@ -201,7 +201,7 @@ The point: a smart friend who reads the New York Times but has never opened the 
 ## Voices rules
 
 ### Target
-**Three voices**, occasionally four. Each quote **12–30 words**.
+**Six voices**, all visible in one flat block. *(Updated 2026-05-30 from the old "3 visible + 3 in a drop-down" design.)* Each quote **12–30 words**.
 
 ### Composition
 Aim for a **mix of registers**:
@@ -209,7 +209,7 @@ Aim for a **mix of registers**:
 2. **Technical / bureaucratic** — substantive policy language, longer. Quote text that ANCHORS a specific item in the bullets.
 3. **Political / ideological** — administration framing, often longer. Reveals the day's posture.
 
-If a fourth voice is included, it should be **a fourth register** (e.g., a document or court speaking, not a fourth person).
+Across the six, vary the register — include at least one **non-person voice** (a document, court, or agency statement speaking), not six individual officials.
 
 ### Good ✓
 - *"What is an act of war? Putting mines in the water."* — 12w, rhetorical, sharp.

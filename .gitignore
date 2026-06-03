@@ -46,6 +46,10 @@ Thumbs.db
 # Autonomous research-loop daily outputs (transient scratch, regenerated daily)
 research/loop/
 
+# Editorial self-critique loop outputs (auto-generated daily by editorial_critique.sh)
+research/critiques/
+research/editorial_notes.md
+
 # DB backups — subscriber PII + opt-in/unsubscribe tokens; never commit
 backups/
 CLEANUP.md
