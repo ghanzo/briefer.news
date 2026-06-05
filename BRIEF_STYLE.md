@@ -421,7 +421,7 @@ The brief is written in the voice of a **clear-eyed analyst** with no incentive 
 Before publishing, the synthesizer should verify:
 
 - [ ] Headline is one event, 5–8 words (up to 10 if two events joined by a semicolon), anchored to specifics.
-- [ ] 3 voice quotes (occasionally 4). Each between 12–30 words. Mix of registers.
+- [ ] 6 voice quotes, all visible in one flat block. Each between 12–30 words. Mix of registers.
 - [ ] All quotes are verbatim from source articles.
 - [ ] 9 bullets, ordered by significance.
 - [ ] Each bullet has bold lead (2–4 words), tight description (≤35 words), citation, date · agency tag.
@@ -438,10 +438,10 @@ Before publishing, the synthesizer should verify:
 
 ## Reference briefs
 
-- **Good (May 6, 2026):** `research/brief_2026-05-06.md` — Iran-Hormuz crisis dominant, ~23-word bullets, 3 voices, headline 13 words. Original draft had 16 bullets; under the 9-bullet target, would trim to top 9 by significance.
+- **Good (May 6, 2026):** `research/brief_2026-05-06.md` — Iran-Hormuz crisis dominant, ~23-word bullets, 3 voices, headline 13 words. Original draft had 16 bullets; under the 9-bullet target, would trim to top 9 by significance. *(Predates the 2026-05-30 rules: it shows 3 voices and a 13-word headline — the current standard is 6 voices and a 5–8 word headline. Model its bullet cadence and word discipline, not its voice count or headline length.)*
 - **Bad first draft, then corrected (May 7, 2026):** `research/brief_2026-05-07.md` — first version had 51-word bullets and 38-word quotes; corrected to May 6 cadence.
 
-When in doubt, model on May 6.
+When in doubt, model on May 6's cadence and discipline — but apply the current 6-voice / 5–8-word-headline rules above.
 
 ---
 
