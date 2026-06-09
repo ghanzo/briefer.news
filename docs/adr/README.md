@@ -32,3 +32,4 @@ architecture, editorial rules, tooling, cost/ops trade-offs. Not routine bugfixe
 - [0005](0005-editorial-self-critique-loop.md) — Editorial self-critique loop
 - [0006](0006-memex-context-graph.md) — Adopt ADRs + a Memex context graph *(superseded by 0007)*
 - [0007](0007-remove-memex-context-graph.md) — Remove the Memex context graph; keep ADRs
+- [0008](0008-harden-subscribe-endpoint.md) — Harden /subscribe against bot signups

@@ -31,10 +31,13 @@ import datetime as dt
 import http.server
 import json
 import os
+import re
 import socketserver
 import subprocess
 import sys
+import time
 import urllib.parse
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -73,6 +76,46 @@ UNSUB_BASE = ENV.get("EMAIL_UNSUBSCRIBE_BASE", "https://api.briefer.news/unsubsc
 CONFIRM_BASE = ENV.get("EMAIL_CONFIRM_BASE", "https://api.briefer.news/confirm?token=")
 FROM_ADDR = ENV.get("EMAIL_FROM_ADDRESS", "news@briefer.news")
 FROM_NAME = ENV.get("EMAIL_FROM_NAME", "Briefer News")
+
+
+# ── Abuse guards for /subscribe (added 2026-06-08 after bot signups) ─────────
+EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$")
+# Known disposable / junk domains seen abusing the open endpoint. Extend as needed.
+BLOCKED_DOMAINS = {
+    "immenseignite.info",
+}
+# Hidden form fields a real user never fills; a bot that fills one is dropped.
+HONEYPOT_FIELDS = ("website", "company", "url", "phone")
+RATE_PER_IP_HR = 3      # max accepted signups per client IP per rolling hour
+RATE_GLOBAL_HR = 15     # global backstop per hour (real volume is ~1/day)
+_ip_hits: dict[str, list[float]] = defaultdict(list)
+_global_hits: list[float] = []
+
+
+def _client_ip(handler) -> str:
+    """Real client IP behind Cloudflare Tunnel (CF-Connecting-IP), then XFF."""
+    return (handler.headers.get("CF-Connecting-IP")
+            or handler.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+            or handler.client_address[0])
+
+
+def _rate_check(ip: str) -> str | None:
+    """Return None if allowed, else 'ip' / 'global'."""
+    global _global_hits
+    cutoff = time.time() - 3600
+    _ip_hits[ip] = [t for t in _ip_hits[ip] if t > cutoff]
+    _global_hits = [t for t in _global_hits if t > cutoff]
+    if len(_ip_hits[ip]) >= RATE_PER_IP_HR:
+        return "ip"
+    if len(_global_hits) >= RATE_GLOBAL_HR:
+        return "global"
+    return None
+
+
+def _rate_record(ip: str) -> None:
+    now = time.time()
+    _ip_hits[ip].append(now)
+    _global_hits.append(now)
 
 
 # ── Page rendering helpers (inline HTML, branded to match the site) ─────────
@@ -286,11 +329,39 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if edition not in ("us", "china", "both"):
             edition = "both"
 
-        if not email or "@" not in email:
+        # ── Abuse guards: honeypot → browser-context → email shape → rate ───
+        # Honeypot: hidden fields a human leaves blank. Silently accept + drop.
+        if any((data.get(f) or "").strip() for f in HONEYPOT_FIELDS):
+            self.log_message("honeypot tripped ip=%s", _client_ip(self))
+            self._send(*page("Check your inbox",
+                "<h2>Check your inbox.</h2><p>If that address is valid, a "
+                "confirmation link is on its way.</p>"))
+            return
+        # A real browser submission always carries Origin or Referer; the
+        # current bot pattern is a bare API POST with neither.
+        if not (self.headers.get("Origin") or self.headers.get("Referer")):
+            self._send(*page("Forbidden", "<h2>Forbidden</h2>", status=403))
+            return
+        if not EMAIL_RE.match(email):
             self._send(*page("Invalid email",
                 "<h2>Invalid email</h2><p>Please enter a valid email address.</p>",
                 status=400))
             return
+        if email.rsplit("@", 1)[-1] in BLOCKED_DOMAINS:
+            self.log_message("blocked-domain signup dropped ip=%s email=%s", _client_ip(self), email)
+            self._send(*page("Check your inbox",
+                "<h2>Check your inbox.</h2><p>If that address is valid, a "
+                "confirmation link is on its way.</p>"))
+            return
+        ip = _client_ip(self)
+        reason = _rate_check(ip)
+        if reason:
+            self.log_message("rate-limited (%s) ip=%s email=%s", reason, ip, email)
+            self._send(*page("Slow down",
+                "<h2>One moment.</h2><p>Too many signups from your network just "
+                "now — try again shortly.</p>", status=429))
+            return
+        _rate_record(ip)
 
         try:
             sub = subs.add_subscriber(email, edition=edition,
