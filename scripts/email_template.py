@@ -2,17 +2,22 @@
 """
 email_template.py — Render the daily HTML email for briefer.news.
 
-Built for email-client compatibility: table-based layout, inline CSS,
-system font stack (no web fonts; Gmail / Apple Mail / Outlook strip
-them inconsistently). ~600px max width. Sepia + cream + ink palette
-matching the site.
+Built for email-client compatibility: table-based layout, inline CSS, system/
+serif font stack (no web fonts; Gmail / Apple Mail / Outlook strip them
+inconsistently). ~600px max width. Light-only palette to survive Gmail's
+dark-mode auto-inversion.
+
+Layout (2026-06-08 redesign): a clickable masthead (wordmark + pill both link to
+the site), the day's top 3 U.S. events and top 3 China events as two scannable
+sections — each linking to its full brief — and a prominent "read the full briefs"
+CTA. The site link is front-and-center, not buried in the footer.
 
 Usage (module):
     from email_template import render_email
-    html = render_email(us={...}, china={...}, today='2026-05-26',
-                        unsubscribe_url='https://briefer.news/unsub?t=...')
+    html = render_email(us={...}, china={...}, today='2026-06-08',
+                        unsubscribe_url='https://briefer.news/unsubscribe?t=...')
 
-CLI (writes to .run/email_preview.html for visual check in browser):
+CLI (writes to .run/email_preview.html for visual check in browser — NO send):
     python3 scripts/email_template.py
 """
 
@@ -27,17 +32,14 @@ from pathlib import Path
 
 
 # Light palette designed to survive Gmail's dark-mode auto-inversion.
-# Body background is pure white (#FFFFFF) — Gmail won't try to "smartly"
-# darken or hue-shift it. The cream (#F5EFE2) we used before got
-# misinterpreted as a "light tan we should darken." Color-scheme meta
-# tags in the <head> tell Gmail this email is light-only.
 PAPER = "#FFFFFF"          # body background — pure white, immune to dark-mode shifts
 INK = "#1A1614"            # primary text
 INK_SOFT = "#3D332C"       # subtle dividers + dek body
 INK_LIGHT = "#6B5D52"      # footer / muted text
 SEPIA = "#7A4F2E"          # accent — section labels + links
-BLACK = "#14110F"          # masthead box background
-CREAM = "#F2EBD9"          # masthead text on dark background
+BLACK = "#14110F"          # masthead box + CTA button background
+CREAM = "#F2EBD9"          # text on dark background
+SITE = "https://briefer.news/"
 
 
 def _bullet_parts(e) -> tuple[str, str]:
@@ -74,25 +76,40 @@ def extract_events(brief_html: str, n: int = 3) -> list[dict]:
 
 
 def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
-    """Compose the daily HTML email — a deliberately simple, scannable layout
-    (operator's 2026-06-01 redesign): a one-line intro ("Briefer News —
-    government data, synthesized") and the day's top 3 U.S. event leads as
-    bullets, each on its own line, then a link to the full brief.
+    """Compose the daily HTML email: a clickable masthead (→ site), the day's top
+    3 U.S. events and top 3 China events as two scannable sections each linking to
+    its full brief, and a prominent site CTA. Email-client-safe (table layout,
+    inline CSS, serif fonts, light-only to survive dark-mode inversion).
 
-    `us` needs: url (full /usa/) and events (list of event lead strings; the
-    first 3 are shown). `china` is accepted for backward compatibility with the
-    caller but intentionally NOT rendered — China still publishes on the site,
-    just not in the daily email. today is an ISO date string; unsubscribe_url is
-    the signed token URL for this subscriber.
-    """
+    `us` / `china` each need: `url` (full edition URL) and `events` (list of
+    {lead, desc}; the first 3 are shown). today is an ISO date string;
+    unsubscribe_url is the signed token URL for this subscriber."""
     today_pretty = dt.date.fromisoformat(today).strftime("%A · %B %-d, %Y").upper()
 
     def _li(e):
         lead, desc = _bullet_parts(e)
         lead_html = f'<b>{html_lib.escape(lead)}.</b> ' if lead else ''
-        return f'<li style="margin:0 0 18px;padding:0;">{lead_html}{html_lib.escape(desc)}</li>'
+        return f'<li style="margin:0 0 16px;padding:0;">{lead_html}{html_lib.escape(desc)}</li>'
 
-    bullets = "".join(_li(e) for e in us.get("events", [])[:3])
+    def _section(flag, label, data, read_label):
+        events = data.get("events", [])[:3]
+        if not events:
+            return ""
+        bullets = "".join(_li(e) for e in events)
+        return f"""
+        <tr><td style="padding:26px 28px 0;">
+          <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.20em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:8px;font-weight:600;">{flag}&nbsp; {label}</div>
+        </td></tr>
+        <tr><td style="padding:16px 28px 2px;">
+          <ul style="margin:0;padding:0 0 0 22px;font-size:17px;line-height:1.5;color:{INK};">{bullets}</ul>
+        </td></tr>
+        <tr><td style="padding:2px 28px 6px;">
+          <a href="{data['url']}" style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:12px;letter-spacing:0.08em;color:{SEPIA};text-decoration:none;font-weight:600;">{read_label} &rarr;</a>
+        </td></tr>"""
+
+    us_section = _section("&#127482;&#127480;", "United States", us, "Full U.S. brief")
+    china_section = _section("&#127464;&#127475;", "China", china, "Full China brief")
+
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -103,96 +120,81 @@ def render_email(us: dict, china: dict, today: str, unsubscribe_url: str) -> str
 <title>Briefer News — {today_pretty}</title>
 <style>
   :root {{ color-scheme: only light; supported-color-schemes: only light; }}
-  /* Force light treatment even in dark-mode-forcing clients */
   body, table, td {{ color-scheme: only light !important; }}
 </style>
 </head>
 <body style="margin:0;padding:0;background:{PAPER};font-family:Georgia,'Times New Roman',serif;color:{INK};-webkit-font-smoothing:antialiased;">
-
-<!-- Email-client wrapper: centered table for max-width control -->
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{PAPER};">
-  <tr>
-    <td align="center" style="padding:24px 12px;">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
+  <tr><td align="center" style="padding:24px 12px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;">
 
-        <!-- Masthead — inset dark box; tagline IS the intro -->
-        <tr><td style="padding:8px 0 18px;">
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
-            <tr><td style="background:{BLACK};color:{CREAM};padding:30px 28px 26px;text-align:center;border-radius:3px;">
+      <!-- Masthead — wordmark AND pill both link to the site -->
+      <tr><td style="padding:8px 0 6px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+          <tr><td style="background:{BLACK};padding:30px 28px 26px;text-align:center;border-radius:3px;">
+            <a href="{SITE}" style="text-decoration:none;">
               <div style="font-family:Georgia,'Times New Roman',serif;font-size:32px;font-weight:600;letter-spacing:0.01em;line-height:1;color:{CREAM};">Briefer News</div>
-              <div style="font-style:italic;font-size:14px;color:#C9BFA7;letter-spacing:0.02em;margin-top:12px;">Government data, synthesized.</div>
-            </td></tr>
-          </table>
-        </td></tr>
+            </a>
+            <div style="font-style:italic;font-size:14px;color:#C9BFA7;letter-spacing:0.02em;margin-top:11px;">Government data, synthesized.</div>
+            <a href="{SITE}" style="display:inline-block;margin-top:16px;font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.18em;color:{CREAM};text-decoration:none;border:1px solid #4A4036;border-radius:3px;padding:8px 18px;">VISIT BRIEFER.NEWS &rarr;</a>
+          </td></tr>
+        </table>
+      </td></tr>
 
-        <!-- Date stamp -->
-        <tr><td style="padding:18px 28px 0;text-align:right;font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.22em;color:{SEPIA};">
-          {today_pretty}
-        </td></tr>
+      <!-- Date stamp -->
+      <tr><td style="padding:16px 28px 0;text-align:right;font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.22em;color:{SEPIA};">{today_pretty}</td></tr>
+      {us_section}
+      {china_section}
 
-        <!-- Lead-in label -->
-        <tr><td style="padding:16px 28px 0;">
-          <div style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:{SEPIA};border-bottom:1px solid {INK_SOFT};padding-bottom:8px;font-weight:600;">Today · top developments</div>
-        </td></tr>
+      <!-- Prominent CTA -->
+      <tr><td align="center" style="padding:30px 28px 8px;">
+        <a href="{SITE}" style="display:inline-block;background:{BLACK};color:{CREAM};padding:14px 32px;border-radius:3px;font-family:Menlo,Monaco,'Courier New',monospace;font-size:12px;letter-spacing:0.16em;text-transform:uppercase;font-weight:600;text-decoration:none;">Read the full briefs &rarr;</a>
+      </td></tr>
 
-        <!-- Three bullets, each on its own line -->
-        <tr><td style="padding:18px 28px 4px;">
-          <ul style="margin:0;padding:0 0 0 22px;font-size:18px;line-height:1.5;color:{INK};">
-            {bullets}
-          </ul>
-        </td></tr>
+      <!-- Footer -->
+      <tr><td style="padding:24px 28px 32px;border-top:1px solid {INK_SOFT};">
+        <p style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.12em;color:{INK_LIGHT};line-height:1.6;margin:18px 0 12px;text-align:center;">
+          <a href="{SITE}" style="color:{INK_LIGHT};text-decoration:none;">briefer.news</a> &nbsp;&middot;&nbsp;
+          <a href="https://briefer.news/about/" style="color:{INK_LIGHT};text-decoration:none;">about</a> &nbsp;&middot;&nbsp;
+          <a href="https://briefer.news/sources/" style="color:{INK_LIGHT};text-decoration:none;">sources</a> &nbsp;&middot;&nbsp;
+          <a href="https://briefer.news/usa/weekly/" style="color:{INK_LIGHT};text-decoration:none;">weekly digest</a>
+        </p>
+        <p style="font-size:11px;color:{INK_LIGHT};line-height:1.5;margin:0;text-align:center;">
+          You're getting this because you subscribed at briefer.news. <a href="{unsubscribe_url}" style="color:{INK_LIGHT};text-decoration:underline;">Unsubscribe</a> (one click, no questions).
+        </p>
+      </td></tr>
 
-        <!-- Read the full brief -->
-        <tr><td style="padding:14px 28px 30px;">
-          <a href="{us['url']}" style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:13px;letter-spacing:0.08em;color:{SEPIA};text-decoration:none;font-weight:600;">Read today's full brief →</a>
-        </td></tr>
-
-        <!-- Footer -->
-        <tr><td style="padding:22px 28px 32px;border-top:1px solid {INK_SOFT};">
-          <p style="font-family:Menlo,Monaco,'Courier New',monospace;font-size:10px;letter-spacing:0.12em;color:{INK_LIGHT};line-height:1.6;margin:0 0 12px;text-align:center;">
-            <a href="https://briefer.news/" style="color:{INK_LIGHT};text-decoration:none;">briefer.news</a>
-            &nbsp;·&nbsp;
-            <a href="https://briefer.news/about/" style="color:{INK_LIGHT};text-decoration:none;">about</a>
-            &nbsp;·&nbsp;
-            <a href="https://briefer.news/sources/" style="color:{INK_LIGHT};text-decoration:none;">sources</a>
-            &nbsp;·&nbsp;
-            <a href="https://briefer.news/usa/weekly/" style="color:{INK_LIGHT};text-decoration:none;">weekly digest</a>
-          </p>
-          <p style="font-size:11px;color:{INK_LIGHT};line-height:1.5;margin:0;text-align:center;">
-            You're getting this because you subscribed at briefer.news. <a href="{unsubscribe_url}" style="color:{INK_LIGHT};text-decoration:underline;">Unsubscribe</a> (one click, no questions).
-          </p>
-        </td></tr>
-
-      </table>
-    </td>
-  </tr>
+    </table>
+  </td></tr>
 </table>
-
 </body>
 </html>"""
 
 
 def render_text_fallback(us: dict, china: dict, today: str, unsubscribe_url: str) -> str:
-    """Plain-text version (US-only, matching the simplified HTML): intro + the
-    day's top 3 U.S. event leads as bullets. Some spam filters and minimalist
-    clients show this instead of the HTML. `china` is unused (see render_email)."""
+    """Plain-text version: intro + the day's top 3 U.S. and top 3 China event
+    leads. Some spam filters and minimalist clients show this instead of HTML."""
     today_pretty = dt.date.fromisoformat(today).strftime("%A, %B %-d, %Y")
 
     def _tb(e):
         lead, desc = _bullet_parts(e)
         return f"  • {lead}. {desc}".rstrip() if (lead and desc) else f"  • {lead or desc}"
 
-    bullets = "\n".join(_tb(e) for e in us.get('events', [])[:3])
+    def _sec(label, data):
+        evs = data.get("events", [])[:3]
+        if not evs:
+            return ""
+        body = "\n".join(_tb(e) for e in evs)
+        return f"{label}\n{body}\n  Full brief: {data['url']}\n"
+
+    us_t = _sec("UNITED STATES", us)
+    china_t = _sec("CHINA", china)
     return f"""Briefer News — Government data, synthesized.
 {today_pretty}
+Visit: {SITE}
 
-TODAY · TOP DEVELOPMENTS
-
-{bullets}
-
-Read today's full brief: {us['url']}
-
-———————————————————————————————————————————————
+{us_t}
+{china_t}———————————————————————————————————————————————
 briefer.news · about: briefer.news/about · sources: briefer.news/sources
 
 You're getting this because you subscribed at briefer.news.
@@ -212,7 +214,7 @@ def _fetch_live(edition: str) -> dict:
 
 
 def _cli() -> int:
-    """CLI: render with today's live content + write preview to .run/email_preview.html."""
+    """CLI: render with today's live content + write preview to .run/email_preview.html. No send."""
     today = dt.date.today().isoformat()
     us = _fetch_live('usa')
     china = _fetch_live('china')
@@ -226,9 +228,10 @@ def _cli() -> int:
     out_html.parent.mkdir(exist_ok=True)
     out_html.write_text(html, encoding='utf-8')
     out_text.write_text(text, encoding='utf-8')
+    print(f"  US events:    {len(us['events'])}  ({', '.join(e['lead'] for e in us['events'][:3])})")
+    print(f"  China events: {len(china['events'])}  ({', '.join(e['lead'] for e in china['events'][:3])})")
     print(f"  HTML preview: {out_html} ({out_html.stat().st_size:,} bytes)")
     print(f"  Text version: {out_text} ({out_text.stat().st_size:,} bytes)")
-    print(f"  Open the HTML in a browser to see the rendered email.")
     return 0
 
 
