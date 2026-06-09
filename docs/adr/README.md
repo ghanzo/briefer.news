@@ -30,4 +30,5 @@ architecture, editorial rules, tooling, cost/ops trade-offs. Not routine bugfixe
 - [0003](0003-deploy-from-home-mac-mini.md) — Deploy from the home M4 mini (residential IP)
 - [0004](0004-multi-edition-framework.md) — Multi-edition framework (US + China)
 - [0005](0005-editorial-self-critique-loop.md) — Editorial self-critique loop
-- [0006](0006-memex-context-graph.md) — Adopt ADRs + a Memex context graph
+- [0006](0006-memex-context-graph.md) — Adopt ADRs + a Memex context graph *(superseded by 0007)*
+- [0007](0007-remove-memex-context-graph.md) — Remove the Memex context graph; keep ADRs

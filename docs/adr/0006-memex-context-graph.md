@@ -1,8 +1,12 @@
 # 0006. Adopt ADRs + a Memex context graph
 
-- **Status:** Accepted
+- **Status:** Superseded by [0007](0007-remove-memex-context-graph.md) (2026-06-08)
 - **Date:** 2026-06-08
 - **Commit(s):** this ADR set; `scripts/{memex_client,spend_tracker,status_tracker}.py`, `scripts/daily_memex.sh`
+
+> **Superseded same day by ADR-0007.** The Memex context graph (daily loop +
+> entrypoint + auto-notes) was removed; only the ADRs (this directory) were kept.
+> This ADR is retained as the record of what was tried and why.
 
 ## Context
 Onboarding a Claude session means re-scanning the repo to rebuild context — slow

@@ -19,22 +19,10 @@ Then read `INDEX.md`. It tags every root `*.md` as [LIVE] / [REFERENCE] /
 
 ---
 
-## Context graph — orient cheaply
+## Decisions / "why"
 
-A curated **context graph** lets a session get current without re-scanning the repo
-(less context, faster, cheaper). Three layers:
-
-- **Why (past):** `docs/adr/` — Architecture Decision Records. Read these before
-  re-litigating a design choice, and **add one** for any significant decision
-  (copy `docs/adr/0000-template.md`).
-- **State (present / future / spend):** auto-updated daily in Memex with **no Claude
-  cost** (via `scripts/daily_memex.sh`, LaunchAgent `news.briefer.spend` @ 09:15) —
-  `Projects/Briefer/Status.md`, `Goals.md`, `Spend.md`; Memex hub
-  `Projects/Briefer/Context.md`.
-- **Live ops:** `make status`.
-
-For current numbers (source counts, schedule, spend) trust the **Memex notes +
-`make status`** — hand-written prose in these docs drifts. See `docs/adr/0006`.
+Architecture decisions are recorded in `docs/adr/` (read these before
+re-litigating a design choice, and add one for any significant new decision).
 
 ---
 
