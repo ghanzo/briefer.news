@@ -305,6 +305,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
+        params = urllib.parse.parse_qs(parsed.query)
+
+        # RFC 8058 one-click unsubscribe: mail clients POST here with body
+        # "List-Unsubscribe=One-Click"; the token is in the ?t= query param.
+        if path == "/unsubscribe":
+            try:
+                self.rfile.read(int(self.headers.get("Content-Length", "0") or 0))
+            except Exception:
+                pass
+            tokens = params.get("t", [])
+            if tokens:
+                subs.unsubscribe(tokens[0])
+            self._send(204, b"")
+            return
 
         if path != "/subscribe":
             self._send(*page("Not found", "<h2>Not found</h2>", status=404))

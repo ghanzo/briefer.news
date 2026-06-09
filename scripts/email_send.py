@@ -34,6 +34,7 @@ Environment (in .env at repo root):
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import json
 import re
@@ -41,6 +42,9 @@ import subprocess
 import sys
 import urllib.request
 import html as html_lib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr
 from pathlib import Path
 
 
@@ -174,25 +178,35 @@ def ses_production_enabled() -> bool:
     return out.lower() == "true"
 
 
-def send_one(env: dict, recipient: str, html_body: str, text_body: str, subject: str) -> dict:
-    """Call SES SendEmail. Returns {status, message_id|error}."""
+def _build_raw_message(from_name: str, from_addr: str, recipient: str, subject: str,
+                       text_body: str, html_body: str, list_unsub_url: str) -> bytes:
+    """multipart/alternative MIME carrying a List-Unsubscribe header (+ RFC 8058
+    one-click). SES auto-DKIM-signs it for the verified domain."""
+    msg = MIMEMultipart("alternative")
+    msg["From"] = formataddr((from_name, from_addr))
+    msg["To"] = recipient
+    msg["Subject"] = subject
+    if list_unsub_url:
+        msg["List-Unsubscribe"] = f"<{list_unsub_url}>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    msg.attach(MIMEText(text_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+    return msg.as_bytes()
+
+
+def send_one(env: dict, recipient: str, html_body: str, text_body: str, subject: str,
+             list_unsub_url: str = "") -> dict:
+    """Call SES SendEmail via Raw MIME (so the message can carry a List-Unsubscribe
+    header for Gmail). Returns {status, message_id|error}."""
     from_addr = env.get("EMAIL_FROM_ADDRESS", "news@briefer.news")
     from_name = env.get("EMAIL_FROM_NAME", "Briefer News")
     source = f'"{from_name}" <{from_addr}>'
 
-    # Use sesv2 send-email with Simple message format
+    raw = _build_raw_message(from_name, from_addr, recipient, subject, text_body, html_body, list_unsub_url)
     payload = {
         "FromEmailAddress": source,
         "Destination": {"ToAddresses": [recipient]},
-        "Content": {
-            "Simple": {
-                "Subject": {"Data": subject, "Charset": "UTF-8"},
-                "Body": {
-                    "Text": {"Data": text_body, "Charset": "UTF-8"},
-                    "Html": {"Data": html_body, "Charset": "UTF-8"},
-                },
-            }
-        },
+        "Content": {"Raw": {"Data": base64.b64encode(raw).decode("ascii")}},
     }
     payload_path = Path("/tmp/ses_payload.json")
     payload_path.write_text(json.dumps(payload))
@@ -314,7 +328,7 @@ def main(argv: list[str]) -> int:
         if args.dry_run:
             print(f"  DRY-RUN would send to {sub['email']}")
             continue
-        result = send_one(env, sub["email"], html, text, subject)
+        result = send_one(env, sub["email"], html, text, subject, unsub_url)
         log_send({"recipient": sub["email"], "subject": subject, **result})
         if result["status"] == "sent":
             sent += 1
