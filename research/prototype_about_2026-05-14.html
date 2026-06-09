@@ -298,6 +298,8 @@
         <label for="subscribe-email" class="visually-hidden">Email address</label>
         <input id="subscribe-email" name="email" type="email" required placeholder="you@somewhere.com" autocomplete="email" inputmode="email">
         <input type="hidden" name="edition" value="both">
+        <!-- honeypot: humans leave this empty; bots that fill it are dropped server-side -->
+        <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" value="">
         <button type="submit">Subscribe</button>
       </form>
       <p id="subscribeStatus" class="subscribe-status" role="status" aria-live="polite"></p>
