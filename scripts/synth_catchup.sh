@@ -1,29 +1,30 @@
 #!/bin/bash
 # synth_catchup.sh — re-runnable mid-day catch-up synth + recovery.
 #
-# Originally created 2026-05-28 to recover from a stale brief: the morning
-# synth was blocked by a backtick preflight failure, and debugging re-runs
-# exhausted the Claude Max session quota (resets 1pm PT). It produces +
-# deploys both editions' briefs and injects the weekly preview.
+# Recovers a STALE brief: re-runs both editions' synths, injects the weekly
+# preview, and rebuilds feeds/sitemap. Each synth deploys to the live site.
 #
-# It used to install a one-shot LaunchAgent and SELF-DESTRUCT (launchctl
-# bootout + rm of its own plist) after a successful US synth, so it could
-# only ever fire once — which meant healthcheck.py could detect staleness
-# but had nothing left to call. That teardown is GONE.
+# Triggered by:
+#   - healthcheck.py (06:30) when it detects a stale edition
+#   - its own LaunchAgent (news.briefer.synthcatchup) at 11:15 / 13:05 / 15:30
+#   - manually: scripts/synth_catchup.sh
 #
-# This script is now idempotent and re-runnable, intended to be invoked by
-# healthcheck.py whenever it detects a stale edition. It self-limits to at
-# most ONE real synth per calendar day via a sentinel file:
+# SELF-HEALING DESIGN (2026-06-10): the ONLY reason this skips is that today's
+# brief is already fresh. Freshness is read from the LOCALLY rendered US brief
+# (.run/daily_with_weekly_us.html) — synthesize.sh writes it only on success,
+# with today's stamp, so it is authoritative and (unlike a live curl) never
+# fooled by CloudFront cache. A failed earlier attempt NO LONGER blocks a
+# later same-day retry. The previous once-per-day ".done" sentinel DID block
+# it — which is exactly why a quota-exhausted morning could not recover after
+# the midday quota reset and had to be rescued by hand on 2026-06-10.
+# Concurrency is guarded by an atomic mkdir lock instead of that sentinel.
 #
-#     ${REPO}/.run/catchup-$(date +%Y-%m-%d).done
-#
-# If the sentinel for today exists, it logs "already ran today" and exits 0
-# without touching the synth (protects the Claude quota). Otherwise it
-# creates the sentinel and runs the catch-up.
+# (Prior bug also fixed here: the old freshness check used `date +%b` → "JUN",
+#  but the stamp is the full month "JUNE", so it always false-negatived.)
 #
 # Usage:
-#   scripts/synth_catchup.sh            # run the catch-up (once/day)
-#   scripts/synth_catchup.sh --dry-run  # check sentinel + print plan, no synth
+#   scripts/synth_catchup.sh            # recover if (and only if) stale
+#   scripts/synth_catchup.sh --dry-run  # print the plan, no synth
 
 set +e
 
@@ -34,8 +35,14 @@ DRY_RUN=false
 if [ "${1:-}" = "--dry-run" ]; then DRY_RUN=true; fi
 
 RUN_DIR="$REPO/.run"
-SENTINEL="$RUN_DIR/catchup-$(date +%Y-%m-%d).done"
 mkdir -p "$RUN_DIR"
+
+# Reliable "is today's brief done?" signal: the LOCALLY rendered US brief.
+US_LOCAL="$RUN_DIR/daily_with_weekly_us.html"
+TODAY_STAMP=$(date +"%B %-d, %Y" | tr '[:lower:]' '[:upper:]')   # e.g. "JUNE 10, 2026"
+LOCK="$RUN_DIR/catchup.lock"
+
+us_fresh() { [ -f "$US_LOCAL" ] && grep -q "stamp\">$TODAY_STAMP" "$US_LOCAL"; }
 
 # In a real run, append to a timestamped log. In a dry run, keep output on
 # stdout so the caller (and the verifier) can see the plan directly.
@@ -47,46 +54,47 @@ fi
 
 echo "==============================================================="
 echo "Synth catch-up invoked at $(date) (dry_run=$DRY_RUN)"
-echo "  sentinel: $SENTINEL"
+echo "  today stamp: $TODAY_STAMP"
 echo "==============================================================="
 
-# --- Once-per-day guard ----------------------------------------------------
-# If today's sentinel already exists, the catch-up has already fired today.
-# Re-running would burn Claude quota for no benefit, so bail out cleanly.
-if [ -f "$SENTINEL" ]; then
-  echo "already ran today (sentinel present: $SENTINEL) — nothing to do, exiting 0"
+# --- Guard 1: skip ONLY if the brief is already fresh ----------------------
+if us_fresh; then
+  echo "US brief already fresh ($TODAY_STAMP) — nothing to do, exiting 0"
   exit 0
 fi
 
 if [ "$DRY_RUN" = "true" ]; then
-  echo "DRY RUN — sentinel for today does NOT exist, so a real run WOULD:"
-  echo "  1. create sentinel: $SENTINEL"
+  echo "DRY RUN — US brief is NOT fresh, so a real run WOULD:"
+  echo "  1. acquire lock:    $LOCK"
   echo "  2. run US synth:    bash $REPO/scripts/synthesize.sh"
   echo "  3. run China synth: bash $REPO/scripts/synthesize_china.sh"
   echo "  4. inject weekly:   python3 $REPO/scripts/inject_weekly_preview.py"
   echo "  5. build feeds:     python3 $REPO/scripts/build_feeds.py"
   echo "  6. build sitemap:   python3 $REPO/scripts/build_sitemap.py"
-  echo "DRY RUN — no sentinel created, no synth run."
+  echo "DRY RUN — no lock taken, no synth run."
   exit 0
 fi
 
-# --- Claim today's slot BEFORE running -------------------------------------
-# Create the sentinel up front so that even if the synth crashes or the quota
-# is exhausted mid-run, we do not re-fire the (expensive) synth again today.
-# healthcheck.py will still detect the staleness tomorrow and retry then.
-echo "--- claiming today's catch-up slot (creating sentinel) ---"
-date '+%Y-%m-%d %H:%M:%S %Z' > "$SENTINEL"
-echo "  sentinel created: $SENTINEL"
+# --- Guard 2: concurrency lock (atomic mkdir; reclaim if >30 min stale) ----
+if [ -d "$LOCK" ] && [ -z "$(find "$LOCK" -mmin -30 2>/dev/null)" ]; then
+  echo "--- reclaiming stale lock (>30 min old) ---"
+  rmdir "$LOCK" 2>/dev/null
+fi
+if ! mkdir "$LOCK" 2>/dev/null; then
+  echo "another catch-up is already running (lock held) — exiting 0"
+  exit 0
+fi
+trap 'rmdir "$LOCK" 2>/dev/null' EXIT
+echo "--- lock acquired: $LOCK ---"
 
 # 1. US synth (most important — default landing edition)
 echo "--- US synth ---"
 bash "$REPO/scripts/synthesize.sh"
-
-# Check whether US produced a fresh brief by inspecting the live date.
-US_TODAY=$(date +"%b %-d, %Y" | tr '[:lower:]' '[:upper:]')
-US_LIVE=$(/usr/bin/curl -s https://briefer.news/usa/ | /usr/bin/grep -oE '<div class="stamp">[^<]+</div>' | /usr/bin/head -1)
-echo "  expected stamp contains: $US_TODAY"
-echo "  live stamp: $US_LIVE"
+if us_fresh; then
+  echo "  US brief rendered fresh ($TODAY_STAMP) ✓"
+else
+  echo "  US brief still NOT fresh — quota may still be limited; a later trigger will retry."
+fi
 
 # 2. China synth (only if quota survived US — synthesize_china bails
 #    on its own preflight/quota failure, leaving yesterday's brief)
@@ -101,15 +109,11 @@ echo "--- build feeds + sitemap ---"
 /usr/bin/python3 "$REPO/scripts/build_feeds.py" 2>/dev/null || echo "  (feeds skipped)"
 /usr/bin/python3 "$REPO/scripts/build_sitemap.py" 2>/dev/null || echo "  (sitemap skipped)"
 
-# 4. Re-stamp the sentinel after the run so its mtime reflects completion.
-#    (No self-teardown: this script is re-runnable; the sentinel — not a
-#     removed LaunchAgent — is what prevents a second fire today.)
-if echo "$US_LIVE" | grep -q "$US_TODAY"; then
+# 4. Final verdict (reliable local signal; lock auto-released by the EXIT trap)
+if us_fresh; then
   echo "--- US brief is fresh; catch-up succeeded ---"
-  date '+%Y-%m-%d %H:%M:%S %Z (US fresh)' > "$SENTINEL"
 else
-  echo "--- US brief NOT fresh (quota may still be limited) ---"
-  echo "    sentinel stays in place; healthcheck will retry on the next day."
+  echo "--- US brief NOT fresh; will retry on the next trigger (no sentinel blocks it now) ---"
 fi
 
 echo ""

@@ -12,13 +12,30 @@
     <string>/Users/maxgoshay/code/briefernewsapp/scripts/synth_catchup.sh</string>
   </array>
 
+  <!-- Fires at 11:15, 13:05, 15:30 to bracket the rolling Claude quota reset.
+       synth_catchup.sh is self-healing: it skips when the brief is already
+       fresh and only synthesizes when stale, so extra fires are cheap. -->
   <key>StartCalendarInterval</key>
-  <dict>
-    <key>Hour</key>
-    <integer>13</integer>
-    <key>Minute</key>
-    <integer>5</integer>
-  </dict>
+  <array>
+    <dict>
+      <key>Hour</key>
+      <integer>11</integer>
+      <key>Minute</key>
+      <integer>15</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
+      <integer>13</integer>
+      <key>Minute</key>
+      <integer>5</integer>
+    </dict>
+    <dict>
+      <key>Hour</key>
+      <integer>15</integer>
+      <key>Minute</key>
+      <integer>30</integer>
+    </dict>
+  </array>
 
   <key>RunAtLoad</key>
   <false/>
