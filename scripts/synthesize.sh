@@ -37,6 +37,9 @@ echo "════════════════════════�
 
 DOCKER=/usr/local/bin/docker
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently break the synth.
+MODEL="${SYNTH_MODEL:-claude-opus-4-8}"
 TODAY=$(date +%Y-%m-%d)
 RUN_DIR="$REPO/.run"
 mkdir -p "$RUN_DIR"
@@ -45,9 +48,24 @@ if [ ! -x "$CLAUDE" ]; then
   echo "ERROR: claude CLI not at $CLAUDE — bailing"
   exit 0
 fi
-if ! "$DOCKER" ps --format '{{.Names}}' | grep -q briefer_postgres; then
-  echo "ERROR: briefer_postgres not running — bailing"
-  exit 0
+# Postgres lives in Docker. If it's down, try to bring Docker + the containers
+# back before giving up (the 2026-06-17 outage was a wedged Docker that nothing
+# auto-recovered). A truly wedged VM still needs a host reboot; this handles the
+# common "Docker/container stopped" case.
+if ! "$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -q briefer_postgres; then
+  echo "WARN: briefer_postgres not running — attempting auto-recovery..."
+  if ! "$DOCKER" info >/dev/null 2>&1; then
+    echo "  Docker daemon down — launching Docker Desktop..."
+    open -a Docker >/dev/null 2>&1 || true
+    for _ in $(seq 1 45); do "$DOCKER" info >/dev/null 2>&1 && break; sleep 4; done
+  fi
+  "$DOCKER" start briefer_postgres briefer_nginx briefer_tunnel briefer_adminer >/dev/null 2>&1 || true
+  for _ in $(seq 1 15); do "$DOCKER" exec briefer_postgres pg_isready >/dev/null 2>&1 && break; sleep 2; done
+  if ! "$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -q briefer_postgres; then
+    echo "ERROR: briefer_postgres still down after auto-recovery (Docker may be wedged — needs a host reboot) — bailing"
+    exit 0
+  fi
+  echo "  briefer_postgres recovered; continuing."
 fi
 
 # ── Preflight: abort before the expensive synth if the pipeline is broken ───
@@ -296,7 +314,7 @@ The file content should be ONLY the JSON array, e.g. [123, 456, 789]. No preambl
 EOF
 
 echo "--- Stage 2: Claude picks ~50 articles ---"
-"$CLAUDE" -p "$(cat "$PICK_PROMPT")" --max-turns 40 --permission-mode acceptEdits
+"$CLAUDE" -p "$(cat "$PICK_PROMPT")" --model "$MODEL" --max-turns 40 --permission-mode acceptEdits
 
 if [ ! -s "$PICKED" ]; then
   echo "ERROR: claude did not write picked IDs to $PICKED — bailing"
@@ -450,7 +468,7 @@ Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it 
 EOF
 
 echo "--- Stage 4: Claude synthesizes the brief ---"
-"$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --max-turns 100 --permission-mode acceptEdits
+"$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --model "$MODEL" --max-turns 100 --permission-mode acceptEdits
 
 if [ ! -s "$OUT" ]; then
   echo "ERROR: claude did not write HTML to $OUT — bailing, leaving yesterday's brief in place"
