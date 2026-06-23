@@ -27,6 +27,7 @@ account → api.briefer.news → http://mini:8765). See EMAIL.md.
 
 from __future__ import annotations
 
+import base64
 import datetime as dt
 import http.server
 import json
@@ -38,6 +39,9 @@ import sys
 import time
 import urllib.parse
 from collections import defaultdict
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.utils import formataddr
 from pathlib import Path
 
 
@@ -166,7 +170,7 @@ def page(title: str, body_html: str, status: int = 200) -> tuple[int, bytes]:
 
 # ── SES send for confirmation email ─────────────────────────────────────────
 
-def send_confirmation(email: str, confirmation_token: str) -> bool:
+def send_confirmation(email: str, confirmation_token: str, unsubscribe_token: str = "") -> bool:
     confirm_url = f"{CONFIRM_BASE}{confirmation_token}"
     subject = "Confirm your Briefer News subscription"
     text = f"""Welcome to Briefer News.
@@ -197,16 +201,23 @@ If you didn't subscribe, ignore this email — no further messages.
 <p style="font-size:14px;color:#6B5D52;margin-top:32px;">If you didn't subscribe, ignore this email — no further messages.</p>
 </div></body></html>"""
 
+    # Raw MIME so the confirmation can carry a List-Unsubscribe one-click header
+    # for Gmail deliverability — mirrors the newsletter send (email_send.send_one).
+    msg = MIMEMultipart("alternative")
+    msg["From"] = formataddr((FROM_NAME, FROM_ADDR))
+    msg["To"] = email
+    msg["Subject"] = subject
+    if unsubscribe_token:
+        unsub_url = f"{UNSUB_BASE}{unsubscribe_token}"
+        msg["List-Unsubscribe"] = f"<{unsub_url}>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+    msg.attach(MIMEText(text, "plain", "utf-8"))
+    msg.attach(MIMEText(html, "html", "utf-8"))
+
     payload = {
         "FromEmailAddress": f'"{FROM_NAME}" <{FROM_ADDR}>',
         "Destination": {"ToAddresses": [email]},
-        "Content": {"Simple": {
-            "Subject": {"Data": subject, "Charset": "UTF-8"},
-            "Body": {
-                "Text": {"Data": text, "Charset": "UTF-8"},
-                "Html": {"Data": html, "Charset": "UTF-8"},
-            },
-        }},
+        "Content": {"Raw": {"Data": base64.b64encode(msg.as_bytes()).decode("ascii")}},
     }
     payload_path = Path("/tmp/ses_confirm_payload.json")
     payload_path.write_text(json.dumps(payload))
@@ -386,7 +397,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         # If newly created, send confirmation email
         if sub.get("status") == "pending" and sub.get("confirmation_token"):
-            ok = send_confirmation(email, sub["confirmation_token"])
+            ok = send_confirmation(email, sub["confirmation_token"], sub.get("unsubscribe_token", ""))
             if not ok:
                 self._send(*page("Send failed",
                     "<h2>Hmm, something went wrong.</h2>"
