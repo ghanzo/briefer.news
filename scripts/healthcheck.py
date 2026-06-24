@@ -109,6 +109,36 @@ def trigger_catchup(dry_run: bool = False) -> tuple[bool, str]:
     return ok, f"catchup rc={r.returncode}: {last}"
 
 
+DISTRIBUTION_ID = "EMV1VIFYTSI3U"  # briefer.news CloudFront distribution
+AWS = "/Users/maxgoshay/.local/bin/aws"
+
+
+def reinvalidate(dry_run: bool = False) -> str:
+    """Re-invalidate the viewer-facing CloudFront paths.
+
+    Handles the failure mode where the PUBLIC page is stale but the local/origin
+    brief is already fresh — a CloudFront cache/edge staleness that
+    synth_catchup.sh (which checks LOCAL freshness) would no-op on. Cheap and
+    safe to run on any healthcheck failure: re-invalidating fresh content just
+    re-fetches the same bytes.
+    """
+    paths = ["/usa/", "/usa/index.html", "/china/", "/china/index.html", "/"]
+    if dry_run:
+        return f"dry-run: would invalidate {paths}"
+    try:
+        r = subprocess.run(
+            [AWS, "cloudfront", "create-invalidation",
+             "--distribution-id", DISTRIBUTION_ID, "--paths", *paths,
+             "--query", "Invalidation.Id", "--output", "text"],
+            capture_output=True, text=True, timeout=60,
+        )
+        if r.returncode == 0:
+            return f"invalidation created: {r.stdout.strip()}"
+        return f"invalidation FAILED: {(r.stderr or '').strip()[:120]}"
+    except Exception as e:  # pragma: no cover - defensive
+        return f"invalidation error: {e}"
+
+
 def check_edition(name: str, url: str, today: datetime.date) -> tuple[bool, str]:
     code, body = fetch(url)
     if code != 200:
@@ -150,6 +180,14 @@ def main(argv: list[str] | None = None) -> int:
 
     if not all_ok:
         failures = " | ".join(r for r in results if ": OK" not in r)
+        # 0. Cache-first recovery: a stale PUBLIC page when the local brief is
+        #    fresh is a CloudFront cache/edge issue, which synth_catchup cannot
+        #    fix (it checks local freshness and no-ops). Re-invalidate first.
+        reinv_msg = reinvalidate(dry_run=dry_run)
+        reinv_line = f"[{now:%Y-%m-%d %H:%M:%S}] REINVALIDATE — {reinv_msg}"
+        print(reinv_line)
+        with log_path.open("a") as f:
+            f.write(reinv_line + "\n")
         # 1. Trigger recovery. synth_catchup.sh self-limits to one synth/day,
         #    so this is safe to call on every failure.
         recov_ok, recov_msg = trigger_catchup(dry_run=dry_run)
