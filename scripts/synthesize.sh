@@ -572,7 +572,7 @@ if aws_ready; then
   invalidate_paths \
     "CloudFront: invalidation created" \
     "CloudFront: invalidation FAILED (non-fatal)" \
-    -- "/usa/index.html" "/usa/archive/${TODAY}.html"
+    -- "/usa/" "/usa/index.html" "/usa/archive/${TODAY}.html" "/"
 else
   echo "--- Stage 6: skipped — AWS CLI unavailable or unauthenticated ---"
 fi
