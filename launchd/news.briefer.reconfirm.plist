@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>news.briefer.reconfirm</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>/Users/maxgoshay/code/briefernewsapp/scripts/reconfirm_pending.py</string>
+    <string>--since</string>
+    <string>2026-06-10</string>
+    <string>--limit</string>
+    <string>30</string>
+  </array>
+
+  <!-- Drains the ~386 approved-backlog (signups since 2026-06-10) re-confirmation
+       nudges in 30/day batches (~13 days). reconfirm_pending.py self-protects:
+       it skips anyone already nudged (so no double-emails) and ABORTS a batch if
+       the recent SES bounce rate exceeds 5% (protects sender reputation). It
+       becomes a harmless daily no-op once the backlog is drained; remove then with
+       launchctl bootout gui/$(id -u)/news.briefer.reconfirm. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>10</integer>
+    <key>Minute</key><integer>30</integer>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <false/>
+
+  <key>StandardOutPath</key>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/reconfirm-launchagent.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/maxgoshay/code/briefernewsapp/logs/reconfirm-launchagent.err</string>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/maxgoshay/code/briefernewsapp</string>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>/Users/maxgoshay/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    <key>HOME</key>
+    <string>/Users/maxgoshay</string>
+  </dict>
+</dict>
+</plist>
