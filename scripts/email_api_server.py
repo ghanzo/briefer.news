@@ -390,7 +390,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
         try:
             sub = subs.add_subscriber(email, edition=edition,
-                                     notes=f"signup via API at {dt.datetime.now().isoformat()}")
+                                     notes=f"signup via API at {dt.datetime.now().isoformat()} ip={ip}")
         except ValueError as e:
             self._send(*page("Invalid email", f"<h2>Invalid email</h2><p>{e}</p>", status=400))
             return
