@@ -279,17 +279,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     "<h2>Missing token</h2><p>This confirmation URL is incomplete. Check the link in your email.</p>",
                     status=400))
                 return
-            result = subs.confirm_subscriber(tokens[0])
-            if result:
-                self._send(*page("Confirmed",
-                    f"<h2>You're confirmed.</h2><p>Welcome, <code>{result['email']}</code>. "
-                    "Tomorrow's brief arrives at 08:30 PT.</p>"))
-            else:
-                self._send(*page("Already confirmed",
-                    "<h2>Already confirmed (or expired link)</h2>"
-                    "<p>This link has been used or has expired. If you meant to subscribe, "
-                    "<a href=\"https://briefer.news/about/\">resubscribe from briefer.news</a>.</p>",
-                    status=404))
+            # Show a confirm BUTTON (which POSTs) rather than confirming on GET.
+            # Corporate email-security scanners auto-fetch (GET) links, which was
+            # auto-confirming subscriptions in 1-2s. Requiring a human to click a
+            # button that POSTs stops those non-human confirmations.
+            tok = urllib.parse.quote(tokens[0], safe="")
+            self._send(*page("Confirm your subscription",
+                "<h2>Confirm your subscription</h2>"
+                "<p>One click to start receiving Briefer News.</p>"
+                f"<form method=\"POST\" action=\"/confirm?token={tok}\" style=\"margin:24px 0;\">"
+                "<button type=\"submit\" style=\"display:inline-block;padding:14px 28px;"
+                "background:#14110F;color:#F2EBD9;border:0;border-radius:3px;font-family:Menlo,monospace;"
+                "font-size:12px;letter-spacing:0.18em;text-transform:uppercase;font-weight:600;cursor:pointer;\">"
+                "Confirm subscription</button></form>"))
             return
 
         if path == "/unsubscribe":
@@ -329,6 +331,32 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if tokens:
                 subs.unsubscribe(tokens[0])
             self._send(204, b"")
+            return
+
+        # Confirmation happens on POST (the button on the GET /confirm page),
+        # never on GET — so email-security scanners that auto-fetch the link
+        # cannot auto-confirm. The token is in the ?token= query param.
+        if path == "/confirm":
+            try:
+                self.rfile.read(int(self.headers.get("Content-Length", "0") or 0))
+            except Exception:
+                pass
+            tokens = params.get("token", [])
+            if not tokens:
+                self._send(*page("Missing token",
+                    "<h2>Missing token</h2><p>This confirmation URL is incomplete.</p>", status=400))
+                return
+            result = subs.confirm_subscriber(tokens[0])
+            if result:
+                self._send(*page("Confirmed",
+                    f"<h2>You're confirmed.</h2><p>Welcome, <code>{result['email']}</code>. "
+                    "Tomorrow's brief arrives at 08:30 PT.</p>"))
+            else:
+                self._send(*page("Already confirmed",
+                    "<h2>Already confirmed (or expired link)</h2>"
+                    "<p>This link has been used or has expired. If you meant to subscribe, "
+                    "<a href=\"https://briefer.news/about/\">resubscribe from briefer.news</a>.</p>",
+                    status=404))
             return
 
         if path != "/subscribe":
