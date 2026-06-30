@@ -300,8 +300,10 @@
         <input type="hidden" name="edition" value="both">
         <!-- honeypot: humans leave this empty; bots that fill it are dropped server-side -->
         <input type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0" value="">
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAADtkTDXxsetcMzMt" data-theme="light" style="margin:8px 0;"></div>
         <button type="submit">Subscribe</button>
       </form>
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
       <p id="subscribeStatus" class="subscribe-status" role="status" aria-live="polite"></p>
     </section>
 
