@@ -38,6 +38,7 @@ import subprocess
 import sys
 import time
 import urllib.parse
+import urllib.request
 from collections import defaultdict
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -80,6 +81,8 @@ UNSUB_BASE = ENV.get("EMAIL_UNSUBSCRIBE_BASE", "https://api.briefer.news/unsubsc
 CONFIRM_BASE = ENV.get("EMAIL_CONFIRM_BASE", "https://api.briefer.news/confirm?token=")
 FROM_ADDR = ENV.get("EMAIL_FROM_ADDRESS", "news@briefer.news")
 FROM_NAME = ENV.get("EMAIL_FROM_NAME", "Briefer News")
+TURNSTILE_SECRET = ENV.get("TURNSTILE_SECRET", "")
+TURNSTILE_ENFORCE = ENV.get("TURNSTILE_ENFORCE", "").lower() in ("1", "true", "yes")
 
 
 # ── Abuse guards for /subscribe (added 2026-06-08 after bot signups) ─────────
@@ -169,6 +172,25 @@ def page(title: str, body_html: str, status: int = 200) -> tuple[int, bytes]:
 
 
 # ── SES send for confirmation email ─────────────────────────────────────────
+
+def _verify_turnstile(token: str, ip: str) -> bool:
+    """Verify a Cloudflare Turnstile token via siteverify. True = valid human.
+    Fails OPEN on a verifier error (don't lose real signups if CF is down);
+    fails CLOSED on a missing/invalid token (the bot case)."""
+    if not TURNSTILE_SECRET:
+        return True
+    if not token:
+        return False
+    try:
+        body = urllib.parse.urlencode(
+            {"secret": TURNSTILE_SECRET, "response": token, "remoteip": ip}).encode()
+        req = urllib.request.Request(
+            "https://challenges.cloudflare.com/turnstile/v0/siteverify", data=body)
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return bool(json.loads(r.read().decode()).get("success"))
+    except Exception:
+        return True
+
 
 def send_confirmation(email: str, confirmation_token: str, unsubscribe_token: str = "") -> bool:
     confirm_url = f"{CONFIRM_BASE}{confirmation_token}"
@@ -395,6 +417,20 @@ class Handler(http.server.BaseHTTPRequestHandler):
         if not (self.headers.get("Origin") or self.headers.get("Referer")):
             self._send(*page("Forbidden", "<h2>Forbidden</h2>", status=403))
             return
+        # Turnstile (anti-bot): real users solve the challenge in the form and
+        # the token rides along in cf-turnstile-response; bots POSTing directly
+        # have none. Soft until TURNSTILE_ENFORCE=true, so the backend can ship
+        # before the widget is live on every brief.
+        if TURNSTILE_SECRET:
+            ts_ip = _client_ip(self)
+            if not _verify_turnstile((data.get("cf-turnstile-response") or "").strip(), ts_ip):
+                if TURNSTILE_ENFORCE:
+                    self.log_message("turnstile REJECTED ip=%s email=%s", ts_ip, email)
+                    self._send(*page("Verification needed",
+                        "<h2>One more step.</h2><p>Please complete the verification box and submit again.</p>",
+                        status=403))
+                    return
+                self.log_message("turnstile would-reject (soft) ip=%s email=%s", ts_ip, email)
         if not EMAIL_RE.match(email):
             self._send(*page("Invalid email",
                 "<h2>Invalid email</h2><p>Please enter a valid email address.</p>",
