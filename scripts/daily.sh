@@ -46,16 +46,12 @@ echo "════════════════════════�
 DOCKER=/usr/local/bin/docker
 
 # Make sure Docker daemon is up. Docker Desktop on macOS auto-starts at login.
-# If it's not running, give it 60s before bailing.
-for i in 1 2 3 4 5 6; do
-  if "$DOCKER" info >/dev/null 2>&1; then
-    break
-  fi
-  echo "Docker not ready, sleeping 10s (attempt $i/6)…"
-  sleep 10
-done
-if ! "$DOCKER" info >/dev/null 2>&1; then
-  echo "Docker is not running after 60s. Aborting."
+# docker_engine_recover also handles the app-alive-engine-dead wedge (the
+# 2026-07-17 VirtioFS deadlock) by hard-restarting Docker Desktop — the old
+# wait-60s-and-abort here left the corpus empty for the 02:30 synth.
+. "$REPO/scripts/lib/docker_recovery.sh"
+if ! docker_engine_recover "$DOCKER"; then
+  echo "Docker engine unrecoverable. Aborting."
   exit 1
 fi
 

@@ -46,15 +46,13 @@ if [ ! -x "$CLAUDE" ]; then
 fi
 # Postgres lives in Docker. If it's down, try to bring Docker + the containers
 # back before giving up (the 2026-06-17 outage was a wedged Docker that nothing
-# auto-recovered). A truly wedged VM still needs a host reboot; this handles the
-# common "Docker/container stopped" case.
+# auto-recovered; the 2026-07-17 VirtioFS wedge was app-alive-engine-dead,
+# which relaunching alone can't fix — docker_engine_recover escalates to a
+# hard restart of Docker Desktop for that shape).
 if ! "$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -q briefer_postgres; then
   echo "WARN: briefer_postgres not running — attempting auto-recovery..."
-  if ! "$DOCKER" info >/dev/null 2>&1; then
-    echo "  Docker daemon down — launching Docker Desktop..."
-    open -a Docker >/dev/null 2>&1 || true
-    for _ in $(seq 1 45); do "$DOCKER" info >/dev/null 2>&1 && break; sleep 4; done
-  fi
+  . "$REPO/scripts/lib/docker_recovery.sh"
+  docker_engine_recover "$DOCKER" || true
   "$DOCKER" start briefer_postgres briefer_nginx briefer_tunnel briefer_adminer >/dev/null 2>&1 || true
   for _ in $(seq 1 15); do "$DOCKER" exec briefer_postgres pg_isready >/dev/null 2>&1 && break; sleep 2; done
   if ! "$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -q briefer_postgres; then
