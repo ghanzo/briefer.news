@@ -17,7 +17,7 @@
   <key>EnvironmentVariables</key>
   <dict>
     <key>BRIEFER_FRESHNESS_IGNORE</key>
-    <string>ARPA-E — News &amp; Insights, CFPB — Newsroom, Court of International Trade, Australia DFAT — Departmental Media Releases, Joint Chiefs of Staff, State Dept — Treaties (TIAS)</string>
+    <string>ARPA-E — News &amp; Insights, CFPB — Newsroom, Court of International Trade, Australia DFAT — Departmental Media Releases, Joint Chiefs of Staff, State Dept — Treaties (TIAS), G7 Council Material (Canada presidency feed)</string>
   </dict>
 
   <key>StartCalendarInterval</key>
