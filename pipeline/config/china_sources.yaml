@@ -125,7 +125,9 @@ sources:
     domain: miit.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "https://www.miit.gov.cn/xwdt/index.html"
-    link_pattern: "/xwdt/[a-z]+/[a-z]+/202[5-9]\\d{2}/t\\d{8}_\\d+\\.html"
+    # MIIT migrated to the art/YYYY/art_<hex>.html CMS scheme; the old
+    # /202512/t20251231_123.html pattern matched nothing from day one.
+    link_pattern: "/xwdt/(?:[a-z]+/)+art/20\\d{2}/art_[0-9a-f]+\\.html"
     category: industry_tech
     weight: high
     extractor: trafilatura
@@ -458,7 +460,9 @@ sources:
     domain: mofcom.gov.cn
     discovery_type: html_curl_cffi
     listing_url: "https://www.mofcom.gov.cn/xwfb/"
-    link_pattern: "/xwfb/art/20\\d{2}/art_[0-9a-f]+\\.html"
+    # Article URLs carry a section segment (/xwfb/ldrhd/art/2026/...); the
+    # old pattern assumed art/ hung directly off /xwfb/ and never matched.
+    link_pattern: "/xwfb/(?:[a-z]+/)*art/20\\d{2}/art_[0-9a-f]+\\.html"
     category: trade_policy
     weight: high
     extractor: pages_content
