@@ -28,6 +28,9 @@ echo "World-context generation starting at $(date)"
 echo "═══════════════════════════════════════════════════════════════"
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 TODAY=$(date +%Y-%m-%d)
 TODAY_HUMAN=$(date "+%A, %B %-d, %Y")
 RUN_DIR="$REPO/.run"
@@ -70,6 +73,7 @@ EOF
 
 echo "--- generating world context via Claude WebSearch ---"
 "$CLAUDE" -p "$(cat "$PROMPT_FILE")" \
+  --model "$MODEL" \
   --max-turns 25 \
   --permission-mode acceptEdits \
   --allowedTools WebSearch WebFetch Read Write Edit

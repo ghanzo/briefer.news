@@ -35,7 +35,7 @@ DOCKER=/usr/local/bin/docker
 CLAUDE=/Users/maxgoshay/.local/bin/claude
 # Pin the model explicitly so a changed/pulled global default (e.g. the
 # 2026-06-15 Fable-5 outage) can never silently break the synth.
-MODEL="${SYNTH_MODEL:-claude-opus-4-8}"
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 TODAY=$(date +%Y-%m-%d)
 RUN_DIR="$REPO/.run"
 mkdir -p "$RUN_DIR"

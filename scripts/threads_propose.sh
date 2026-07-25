@@ -20,6 +20,9 @@ LOG_FILE="$LOG_DIR/threads-propose-$(date +%Y%m%d).log"
 exec >> "$LOG_FILE" 2>&1
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 TODAY=$(date +%Y-%m-%d)
 RUN_DIR="$REPO/.run"
 
@@ -114,6 +117,7 @@ EOF
 
 echo "--- Stage 2: Claude analysis ---"
 "$CLAUDE" -p "$(cat "$PROMPT_FILE")" \
+  --model "$MODEL" \
   --max-turns 30 \
   --permission-mode acceptEdits \
   --allowedTools Read Write Edit

@@ -36,6 +36,9 @@ echo "════════════════════════�
 
 DOCKER=/usr/local/bin/docker
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 TODAY=$(date +%Y-%m-%d)
 RUN_DIR="$REPO/.run"
 mkdir -p "$RUN_DIR"
@@ -145,7 +148,7 @@ Save the complete HTML to ${OUT}. Do not output the HTML to stdout — write it 
 EOF
 
   echo "--- Stage 2: Claude synthesizes weekly for $edition_label ---"
-  "$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --max-turns 100 --permission-mode acceptEdits
+  "$CLAUDE" -p "$(cat "$SYNTH_PROMPT")" --model "$MODEL" --max-turns 100 --permission-mode acceptEdits
 
   if [ ! -s "$OUT" ]; then
     echo "ERROR: claude did not write HTML to $OUT — bailing this edition"

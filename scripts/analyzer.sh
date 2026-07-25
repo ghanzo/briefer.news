@@ -25,6 +25,9 @@ PROMPT="$RUN_DIR/analyzer_prompt.txt"
 OUT="$LOG_DIR/analysis-${TODAY}.md"
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "Analyzer — week of $WEEK_AGO → $TODAY"
@@ -172,6 +175,7 @@ EOF
 
 set +e
 "$CLAUDE" -p "$(/bin/cat "$PROMPT")" \
+  --model "$MODEL" \
   --allowed-tools Read,Write,Bash \
   > "$RUN_DIR/analyzer_stdout.log" 2> "$RUN_DIR/analyzer_stderr.log"
 CLAUDE_EXIT=$?

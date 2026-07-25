@@ -26,6 +26,9 @@ PROMPT="$RUN_DIR/drafter_prompt.txt"
 DRAFTS_OUT="$LOG_DIR/drafts-${TODAY}.md"
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 
 # Load only the env flags we care about — 'source' fails on .env values
 # with unquoted spaces (e.g. EMAIL_FROM_NAME=Briefer News). Grep the
@@ -252,6 +255,7 @@ EOF
 
 set +e
 "$CLAUDE" -p "$(/bin/cat "$PROMPT")" \
+  --model "$MODEL" \
   --allowed-tools Read,Write,Bash \
   > "$RUN_DIR/drafter_stdout.log" 2> "$RUN_DIR/drafter_stderr.log"
 CLAUDE_EXIT=$?

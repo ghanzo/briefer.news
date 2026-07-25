@@ -30,6 +30,9 @@ set -uo pipefail
 
 REPO=/Users/maxgoshay/code/briefernewsapp
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 RUN_DIR="$REPO/.run"
 LOG_DIR="$REPO/logs"; mkdir -p "$LOG_DIR"
 CRIT_DIR="$REPO/research/critiques"; mkdir -p "$CRIT_DIR"
@@ -117,7 +120,7 @@ Do NOT edit BRIEF_STYLE.md or lens.md. Only the two files above.
 EOF
 
 echo "Running editorial critique for ${TODAY}…"
-"$CLAUDE" -p "$(cat "$PROMPT")" --max-turns 40 --permission-mode acceptEdits \
+"$CLAUDE" -p "$(cat "$PROMPT")" --model "$MODEL" --max-turns 40 --permission-mode acceptEdits \
   --allowedTools WebSearch WebFetch Read Write Edit 2>&1 | tail -15
 
 # ── Verify both files were written; only then set the sentinel ──────────────

@@ -32,6 +32,9 @@ PROMPT="$RUN_DIR/researcher_prompt_${SLOT}.txt"
 OUT="$RESEARCH_DIR/${TODAY}-${SLOT}.md"
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "Researcher — $TODAY $SLOT"
@@ -240,6 +243,7 @@ echo "Prompt size: $PROMPT_SIZE bytes"
 
 set +e
 "$CLAUDE" -p "$(/bin/cat "$PROMPT")" \
+  --model "$MODEL" \
   --allowed-tools Read,Write,Bash \
   > "$RUN_DIR/researcher_${SLOT}_stdout.log" 2> "$RUN_DIR/researcher_${SLOT}_stderr.log"
 CLAUDE_EXIT=$?

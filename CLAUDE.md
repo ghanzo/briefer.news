@@ -70,9 +70,9 @@ publish" / "Path A only" is stale — it has been autonomous since 2026-05-09.)
 
 ---
 
-## The 18 LaunchAgents
+## The 24 LaunchAgents
 
-The running schedule is **18 LaunchAgents** on the M4 Mac mini at home. They
+The running schedule is **24 LaunchAgents** on the M4 Mac mini at home. They
 are now committed in **`launchd/`** (source of truth) and synced to
 `~/Library/LaunchAgents` via **`scripts/install_launchagents.sh`**:
 
@@ -91,19 +91,32 @@ make agents-install    # repo -> live (fresh machine / disk loss recovery)
 | 03:30 | `news.briefer.backup` | `backup_subscribers.sh` | off-box backup of email_subscribers → S3 (`briefer-news-backups`) |
 | 04:00 | `news.briefer.daily` | `daily.sh` | 3 scrapes in parallel (rss + akamai + china) + cleanup |
 | 07:00 | `news.briefer.synthesize` | `synthesize.sh` | **autonomous US synth → /usa/** |
+| 07:15 | `news.briefer.feedfreshness` | `feed_freshness.py` | watchdog: active feeds that stopped delivering |
 | 07:30 | `news.briefer.synthesize.china` | `synthesize_china.sh` | **autonomous China synth → /china/** |
+| 07:30 | `news.briefer.dmarc` | `dmarc_report.py` | ingest DMARC aggregate reports from S3 |
 | 08:00 | `news.briefer.digests` | `daily_digests.sh` | refresh rolling 7-day digest pages |
 | 08:30 | `news.briefer.morningbrief` | `morning_brief.sh` | daily site-state report |
 | 08:30 | `news.briefer.email_send` | `email_send.py` | daily email send pipeline |
 | 09:00 | `news.briefer.drafter` | `drafter.sh` | draft + auto-post growth/social copy |
+| 09:00 | `news.briefer.alertdigest` | `alert_digest.sh` | roll `alerts.log` into one daily digest email |
 | 09:30 | `news.briefer.healthcheck` | `healthcheck.py` | verify both briefs published today; alert if stale |
 | 10:00 | `news.briefer.engagement` | `x_engagement_collector.py` | snapshot X-post engagement (10:00 + 16:00) |
 | 10:00 | `news.briefer.trafficreport` | `traffic_report_daily.sh`* | daily CloudFront traffic snapshot |
+| 10:30 | `news.briefer.reconfirm` | `reconfirm_pending.py` | daily batched re-confirmation campaign (30/day) |
+| 11:15, 13:05, 15:30 | `news.briefer.synthcatchup` | `synth_catchup.sh` | self-healing retry if a morning synth was missed |
+| 14:00 | `news.briefer.critique` | `editorial_critique.sh` | editorial critique of the day's briefs |
 | 18:00 | `news.briefer.researcher` | `researcher.sh` | research what's driving traffic / channels |
 | Sun 10:00 | `news.briefer.analyzer` | `analyzer.sh` | weekly growth analysis |
 | Mon 09:00 | `news.briefer.searchreport` | `search_report_weekly.sh` | weekly Search Console snapshot |
 
 \* `news.briefer.trafficreport` runs `scripts/traffic_report_daily.sh`, which wraps `traffic_report.py`.
+
+**Model pinning.** Every Claude-invoking script passes `--model` explicitly,
+defaulting via `MODEL="${SYNTH_MODEL:-claude-opus-5}"`, so a changed or pulled
+global default (e.g. the 2026-06-15 Fable-5 outage) can never silently change
+what a job runs on. Override for a single run with
+`SYNTH_MODEL=claude-opus-4-8 make synth`. `preflight.sh` is the one script that
+touches the CLI without a pin — it only checks the binary exists.
 
 Logs land in `logs/` (gitignored): `daily-YYYYMMDD.log`, `synthesize-*.log`,
 plus per-agent `*.out.log` / `*.err.log`, and `alerts.log`.

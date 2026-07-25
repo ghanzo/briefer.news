@@ -25,6 +25,9 @@ PROMPT="$RUN_DIR/morning_brief_prompt.txt"
 OUT="$LOG_DIR/morning-brief-${TODAY}.md"
 
 CLAUDE=/Users/maxgoshay/.local/bin/claude
+# Pin the model explicitly so a changed/pulled global default (e.g. the
+# 2026-06-15 Fable-5 outage) can never silently change what this job runs on.
+MODEL="${SYNTH_MODEL:-claude-opus-5}"
 
 echo "═══════════════════════════════════════════════════════════════"
 echo "Morning brief — $TODAY"
@@ -186,7 +189,7 @@ if [ ! -x "$CLAUDE" ]; then
   exit 1
 fi
 
-"$CLAUDE" -p "$(cat "$PROMPT")" --max-turns 30 --permission-mode acceptEdits
+"$CLAUDE" -p "$(cat "$PROMPT")" --model "$MODEL" --max-turns 30 --permission-mode acceptEdits
 
 if [ ! -s "$OUT" ]; then
   echo "ERROR: claude did not write the brief — bailing"
