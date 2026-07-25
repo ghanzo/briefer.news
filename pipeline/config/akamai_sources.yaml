@@ -219,13 +219,12 @@ sources:
 
   - name: "HHS Press Releases"
     domain: hhs.gov
-    discovery_type: html_curl_cffi
-    listing_url: "https://www.hhs.gov/about/news/index.html"
-    link_pattern: "/about/news/\\d{4}/\\d{2}/\\d{2}/[a-z0-9-]+\\.html"
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.hhs.gov/rss/news.xml"
     category: health
     tier: 1
     active: true
-    notes: "Department of Health and Human Services press releases. URL pattern /about/news/YYYY/MM/DD/<slug>.html. Probed 2026-05-27: 187KB, 10 recent items in last 30 days."
+    notes: "Department of Health and Human Services press releases. Switched from the /about/news/ listing scrape to the RSS feed 2026-07-25: HHS moved press releases to /press-room/<slug>.html and made the index page client-rendered, so the listing served only 2 hardcoded March-2025 links and the old /about/news/YYYY/MM/DD/ link_pattern could never match current items (source sat at 13d-silent, 2 arts total). Probed 2026-07-25: https://www.hhs.gov/rss/news.xml returns HTTP 200, 10 items dated through 2026-07-23."
 
   - name: "FDA Press Announcements"
     domain: fda.gov
