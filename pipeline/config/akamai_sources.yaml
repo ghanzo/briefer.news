@@ -270,13 +270,12 @@ sources:
 
   - name: "NSF News"
     domain: nsf.gov
-    discovery_type: html_curl_cffi
-    listing_url: "https://www.nsf.gov/news/"
-    link_pattern: "/news/[a-z0-9-]+"
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.nsf.gov/rss/rss_www_news.xml"
     category: technology
     tier: 2
-    active: true
-    notes: "National Science Foundation news — research funding announcements, scientific results. 75KB at listing, 13 recent dated items, 14 article links."
+    active: false
+    notes: "DISABLED 2026-07-25 — duplicate of 'NSF — News' in sources.yaml, which already polls this exact RSS URL and is healthy (18 articles, latest 2026-07-24). This entry was a second NSF row scraping the /news/ listing; its article fetches began returning HTTP 202 (bot mitigation) behind a ~45s rate-limit pace, so it sat at 1 article and tripped the freshness watchdog while NSF content was in fact flowing in under the other row. Deactivated rather than re-pointed, to keep one config per feed."
 
   - name: "FCC News"
     domain: fcc.gov
@@ -290,13 +289,12 @@ sources:
 
   - name: "DOE Newsroom Articles"
     domain: energy.gov
-    discovery_type: html_curl_cffi
-    listing_url: "https://www.energy.gov/newsroom"
-    link_pattern: "/articles/[a-z0-9-]+"
+    discovery_type: rss_curl_cffi
+    rss_url: "https://www.energy.gov/rss/newsroom.xml"
     category: energy
     tier: 1
-    active: true
-    notes: "Department of Energy articles — grid policy, secretary statements, fact sheets. /newsroom is the official news landing. Pattern /articles/<slug>. 142KB at listing with fresh secretary remarks + fact sheets."
+    active: false
+    notes: "DISABLED 2026-07-25 — duplicate of 'DOE — Newsroom' in sources.yaml, which scrapes the same /newsroom landing with the playwright extractor and is healthy (21 articles, latest 2026-07-24). This entry produced zero articles in 58 days and tripped the freshness watchdog while DOE content was in fact flowing in under the other row. Deactivated rather than re-pointed, to keep one config per outlet."
   - name: "BLS — Employment Situation"
     domain: bls.gov
     discovery_type: rss_curl_cffi
