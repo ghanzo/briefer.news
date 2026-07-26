@@ -27,12 +27,13 @@ sources:
 
   - name: "CENTCOM Press Releases"
     domain: centcom.mil
-    discovery_type: dnn_articlecs
-    api_url: "https://www.centcom.mil/API/ArticleCS/Public/GetList?dpage=0&moduleID=1144"
+    discovery_type: html_curl_cffi
+    listing_url: "https://www.centcom.mil/MEDIA/PUBLIC-RELEASES/"
+    link_pattern: "/MEDIA/PUBLIC-RELEASES/Article/\\d+/[a-z0-9-]+/?"
     category: defense
     tier: 1
     active: true
-    notes: "moduleID 1144 confirmed via DNN container ID dnn_ctr1144 (user-supplied 2026-05-07). Uses div-item format, not Vue cards."
+    notes: "Switched off the DNN ArticleCS API 2026-07-26. moduleID 1144 is retired — GetList returns HTTP 200 with an empty <data></data> body, so the source logged 0 articles for 78 days without ever erroring. The surviving module IDs on the site (1220/1223 -> NEWS-ARTICLES, 41122 -> PUBLIC-RELEASES) all paginate oldest-first from 2007, so none is usable as a freshness feed. /MEDIA/PUBLIC-RELEASES/ renders server-side instead: probed 2026-07-26, 10 article links dated July 20-23 2026. Scraping the listing avoids depending on a module ID that can be retired again."
 
   - name: "Navy.mil Press Releases"
     domain: navy.mil

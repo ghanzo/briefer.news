@@ -76,11 +76,29 @@ def _wait_for_rate_limit(url: str) -> None:
 
 # ── Core fetch ───────────────────────────────────────────────────────────────
 
+# TLS fingerprints tried, in order, when the primary profile draws a 403.
+#
+# Not every Akamai tenant is tuned the same way. navy.mil (probed 2026-07-26)
+# 403s EVERY Chrome and Edge fingerprint curl_cffi offers — chrome99 through
+# chrome131, edge99, edge101 — but serves the ArticleCS API normally to an
+# older Safari one. With a single hardcoded profile that host looked
+# permanently blocked and quietly contributed zero articles for 78 days.
+# Only 403 triggers a retry: a 404/500 is the origin talking, not the WAF,
+# and re-asking with a different fingerprint would just double the load.
+_FALLBACK_PROFILES = ("safari15_5",)
+
+# domain -> the profile that last worked there. Without this every navy.mil
+# fetch pays a throwaway 403 before the retry, doubling the request count
+# against a host we already pace at 45-120s per fetch.
+_WORKING_PROFILE: dict = {}
+
+
 def akamai_fetch(url: str, impersonate: str = "chrome120", timeout: int = 30) -> Optional[str]:
     """
-    Fetch URL through curl_cffi with Chrome TLS impersonation.
+    Fetch URL through curl_cffi with browser TLS impersonation.
 
-    Returns the response text if status 200 and content looks valid,
+    Tries `impersonate` first, then falls back through _FALLBACK_PROFILES on a
+    403. Returns the response text if status 200 and content looks valid,
     None if blocked or failed. Honors per-domain rate limit.
     """
     if not CURL_CFFI_AVAILABLE:
@@ -89,23 +107,37 @@ def akamai_fetch(url: str, impersonate: str = "chrome120", timeout: int = 30) ->
 
     _wait_for_rate_limit(url)
 
-    try:
-        r = curl_requests.get(url, impersonate=impersonate, timeout=timeout)
-    except Exception as e:
-        logger.warning(f"akamai_fetch {url} threw {type(e).__name__}: {e}")
-        return None
+    domain = _domain_of(url)
+    primary = _WORKING_PROFILE.get(domain, impersonate)
+    profiles = (primary,) + tuple(
+        p for p in (impersonate,) + _FALLBACK_PROFILES if p != primary)
 
-    if r.status_code != 200:
-        logger.warning(f"akamai_fetch {url} returned HTTP {r.status_code}")
-        return None
+    for attempt, profile in enumerate(profiles):
+        try:
+            r = curl_requests.get(url, impersonate=profile, timeout=timeout)
+        except Exception as e:
+            logger.warning(f"akamai_fetch {url} threw {type(e).__name__} (profile={profile}): {e}")
+            continue
 
-    # Detect Akamai block pages — these are short responses with specific markers.
-    body = r.text
-    if len(body) < 5000 and ("Access Denied" in body or "Reference #" in body):
-        logger.warning(f"akamai_fetch {url} returned an Access Denied page — IP may be flagged")
-        return None
+        if r.status_code == 200:
+            # Detect Akamai block pages — short responses with specific markers.
+            body = r.text
+            if len(body) < 5000 and ("Access Denied" in body or "Reference #" in body):
+                logger.warning(
+                    f"akamai_fetch {url} returned an Access Denied page — IP may be flagged")
+                return None
+            if attempt:
+                logger.info(
+                    f"akamai_fetch {url} recovered with fallback TLS profile '{profile}' "
+                    f"(primary '{primary}' was refused) — pinning it for {domain}")
+            _WORKING_PROFILE[domain] = profile
+            return body
 
-    return body
+        logger.warning(f"akamai_fetch {url} returned HTTP {r.status_code} (profile={profile})")
+        if r.status_code != 403:
+            return None
+
+    return None
 
 
 # ── Article metadata extraction ──────────────────────────────────────────────
