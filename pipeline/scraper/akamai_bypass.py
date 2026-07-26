@@ -144,6 +144,16 @@ def akamai_fetch(url: str, impersonate: str = "chrome120", timeout: int = 30) ->
 
 _TITLE_SUFFIX_SEPARATORS = (" | ", " - ", " — ", " – ", " :: ")
 
+# " > " is the DNN breadcrumb separator every DoD site on that CMS emits:
+#   "CENTCOM Completes Latest Strikes Against Iran > U.S. Central Command >
+#    U.S. Central Command (CENTCOM) Official Public Releases"
+# Left out of the list above because " > " is also a legitimate comparison in
+# real headlines — CDC ships "Drinking and Driving Among High School Students
+# Aged > 16 Years", which a naive split would truncate at "Aged". The
+# breadcrumb always emits Title > Section > Site, so require 2+ occurrences.
+_BREADCRUMB_SEP = " > "
+_BREADCRUMB_MIN_OCCURRENCES = 2
+
 _META_DATE_KEYS = (
     ("property", "article:published_time"),
     ("name", "article:published_time"),
@@ -183,6 +193,8 @@ def _extract_meta_from_html(html: str) -> tuple[Optional[str], Optional[datetime
         title_tag = soup.find("title")
         if title_tag:
             raw = title_tag.get_text(strip=True)
+            if raw.count(_BREADCRUMB_SEP) >= _BREADCRUMB_MIN_OCCURRENCES:
+                raw = raw.split(_BREADCRUMB_SEP)[0].strip()
             for sep in _TITLE_SUFFIX_SEPARATORS:
                 if sep in raw:
                     raw = raw.split(sep)[0].strip()
