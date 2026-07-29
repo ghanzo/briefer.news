@@ -37,12 +37,19 @@ if [ "${1:-}" = "--dry-run" ]; then DRY_RUN=true; fi
 RUN_DIR="$REPO/.run"
 mkdir -p "$RUN_DIR"
 
-# Reliable "is today's brief done?" signal: the LOCALLY rendered US brief.
+# Reliable "is today's brief done?" signal: the LOCALLY rendered briefs.
+# BOTH editions are checked. Gating solely on the US brief meant a China-only
+# failure had no safety net at all: on 2026-07-28 the US synth succeeded, the
+# China Stage 4 died on a transient, and all four catch-up triggers logged
+# "US brief already fresh — nothing to do" and exited 0 while /china/ served
+# the previous day's brief until the next morning.
 US_LOCAL="$RUN_DIR/daily_with_weekly_us.html"
+CHINA_LOCAL="$RUN_DIR/daily_with_weekly_china.html"
 TODAY_STAMP=$(date +"%B %-d, %Y" | tr '[:lower:]' '[:upper:]')   # e.g. "JUNE 10, 2026"
 LOCK="$RUN_DIR/catchup.lock"
 
-us_fresh() { [ -f "$US_LOCAL" ] && grep -q "stamp\">$TODAY_STAMP" "$US_LOCAL"; }
+us_fresh()    { [ -f "$US_LOCAL" ]    && grep -q "stamp\">$TODAY_STAMP" "$US_LOCAL"; }
+china_fresh() { [ -f "$CHINA_LOCAL" ] && grep -q "stamp\">$TODAY_STAMP" "$CHINA_LOCAL"; }
 
 # In a real run, append to a timestamped log. In a dry run, keep output on
 # stdout so the caller (and the verifier) can see the plan directly.
@@ -57,17 +64,20 @@ echo "Synth catch-up invoked at $(date) (dry_run=$DRY_RUN)"
 echo "  today stamp: $TODAY_STAMP"
 echo "==============================================================="
 
-# --- Guard 1: skip ONLY if the brief is already fresh ----------------------
-if us_fresh; then
-  echo "US brief already fresh ($TODAY_STAMP) — nothing to do, exiting 0"
+# --- Guard 1: skip ONLY if BOTH briefs are already fresh -------------------
+if us_fresh && china_fresh; then
+  echo "US and China briefs both already fresh ($TODAY_STAMP) — nothing to do, exiting 0"
   exit 0
 fi
 
+echo "  US brief:    $(us_fresh    && echo "fresh" || echo "STALE — will re-synth")"
+echo "  China brief: $(china_fresh && echo "fresh" || echo "STALE — will re-synth")"
+
 if [ "$DRY_RUN" = "true" ]; then
-  echo "DRY RUN — US brief is NOT fresh, so a real run WOULD:"
+  echo "DRY RUN — at least one brief is NOT fresh, so a real run WOULD:"
   echo "  1. acquire lock:    $LOCK"
-  echo "  2. run US synth:    bash $REPO/scripts/synthesize.sh"
-  echo "  3. run China synth: bash $REPO/scripts/synthesize_china.sh"
+  us_fresh    || echo "  2. run US synth:    bash $REPO/scripts/synthesize.sh"
+  china_fresh || echo "  3. run China synth: bash $REPO/scripts/synthesize_china.sh"
   echo "  4. inject weekly:   python3 $REPO/scripts/inject_weekly_preview.py"
   echo "  5. build feeds:     python3 $REPO/scripts/build_feeds.py"
   echo "  6. build sitemap:   python3 $REPO/scripts/build_sitemap.py"
@@ -87,19 +97,34 @@ fi
 trap 'rmdir "$LOCK" 2>/dev/null' EXIT
 echo "--- lock acquired: $LOCK ---"
 
-# 1. US synth (most important — default landing edition)
-echo "--- US synth ---"
-bash "$REPO/scripts/synthesize.sh"
+# 1. US synth (most important — default landing edition). Skipped when the US
+#    brief is already fresh, so a China-only recovery does not pay for, or risk
+#    regressing, a good US brief.
 if us_fresh; then
-  echo "  US brief rendered fresh ($TODAY_STAMP) ✓"
+  echo "--- US synth SKIPPED (already fresh) ---"
 else
-  echo "  US brief still NOT fresh — quota may still be limited; a later trigger will retry."
+  echo "--- US synth ---"
+  bash "$REPO/scripts/synthesize.sh"
+  if us_fresh; then
+    echo "  US brief rendered fresh ($TODAY_STAMP) ✓"
+  else
+    echo "  US brief still NOT fresh — quota may still be limited; a later trigger will retry."
+  fi
 fi
 
-# 2. China synth (only if quota survived US — synthesize_china bails
-#    on its own preflight/quota failure, leaving yesterday's brief)
-echo "--- China synth ---"
-bash "$REPO/scripts/synthesize_china.sh"
+# 2. China synth (synthesize_china bails on its own preflight/quota failure,
+#    leaving yesterday's brief in place)
+if china_fresh; then
+  echo "--- China synth SKIPPED (already fresh) ---"
+else
+  echo "--- China synth ---"
+  bash "$REPO/scripts/synthesize_china.sh"
+  if china_fresh; then
+    echo "  China brief rendered fresh ($TODAY_STAMP) ✓"
+  else
+    echo "  China brief still NOT fresh — a later trigger will retry."
+  fi
+fi
 
 # 3. Weekly preview injection + feeds (post-synth steps the daily flow runs)
 echo "--- inject weekly preview ---"
@@ -110,10 +135,11 @@ echo "--- build feeds + sitemap ---"
 /usr/bin/python3 "$REPO/scripts/build_sitemap.py" 2>/dev/null || echo "  (sitemap skipped)"
 
 # 4. Final verdict (reliable local signal; lock auto-released by the EXIT trap)
-if us_fresh; then
-  echo "--- US brief is fresh; catch-up succeeded ---"
+if us_fresh && china_fresh; then
+  echo "--- both briefs fresh; catch-up succeeded ---"
 else
-  echo "--- US brief NOT fresh; will retry on the next trigger (no sentinel blocks it now) ---"
+  echo "--- NOT fully recovered (US=$(us_fresh && echo fresh || echo stale), China=$(china_fresh && echo fresh || echo stale));" \
+       "will retry on the next trigger (no sentinel blocks it now) ---"
 fi
 
 echo ""

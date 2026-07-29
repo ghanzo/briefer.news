@@ -8,7 +8,7 @@ skim **`INDEX.md`** (one-line purpose + freshness tag for every root doc).
 ## Start here
 
 ```bash
-make status      # one-screen orientation: git state, the 16 launchd jobs,
+make status      # one-screen orientation: git state, the 24 launchd jobs,
                  # today's live brief stamps + headline word counts, recent
                  # logs, last alerts. Run this first every session.
 make help        # all operator targets
@@ -38,8 +38,8 @@ Function rewrites trailing-slash URLs (`/usa/` → `/usa/index.html`). Owner:
 Max Goshay. Repo: `github.com/ghanzo/briefer.news`.
 
 Two editions ship today; the design scales to N (UK / EU / Russia planned):
-- **US edition** at `/usa/` — ~45 sources (RSS + Akamai-protected DoD), synth 07:00 PDT.
-- **China edition** at `/china/` — ~29 Chinese-gov sources, synth 07:30 PDT, English-only voices. See **`CHINA_BRIEF.md`**.
+- **US edition** at `/usa/` — ~45 sources (RSS + Akamai-protected DoD), synth 02:30 PDT.
+- **China edition** at `/china/` — ~29 Chinese-gov sources, synth 04:00 PDT, English-only voices. See **`CHINA_BRIEF.md`**.
 
 The interpretive lens is in `lens.md` (six layers, priority order: energy/
 resources, US-China axis, tech chokepoints, financial currents, human systems,
@@ -56,8 +56,8 @@ There is no manual brief-publish step. Both editions generate and deploy
 themselves end-to-end via headless Claude Code (`claude -p`), every morning,
 with no human in the loop:
 
-- `scripts/synthesize.sh` (07:00 PDT) — US brief → `/usa/`
-- `scripts/synthesize_china.sh` (07:30 PDT) — China brief → `/china/`
+- `scripts/synthesize.sh` (02:30 PDT) — US brief → `/usa/`
+- `scripts/synthesize_china.sh` (04:00 PDT) — China brief → `/china/`
 
 Each: world-context (Claude WebSearch, Stage 0) → SQL pre-filter → Claude
 picker (~50 items) → SQL fetch full text → Claude synthesizer → deploy to
@@ -87,25 +87,25 @@ make agents-install    # repo -> live (fresh machine / disk loss recovery)
 | boot / login | `news.briefer.boot` | `boot.sh` | bring-up at login (docker, nginx) |
 | boot, KeepAlive | `news.briefer.email_api` | `email_api_server.py` | long-running subscriber API (signup/unsubscribe) |
 | every 10 min | `news.briefer.email_bounce_handler` | `email_bounce_handler.py` | poll SQS for SES bounces/complaints |
-| 12:30 | `news.briefer.midday` | `daily.sh midday` | bonus daytime scrape (rss+akamai+china), NO cleanup — captures stories breaking during the day for the next morning's brief |
-| 03:30 | `news.briefer.backup` | `backup_subscribers.sh` | off-box backup of email_subscribers → S3 (`briefer-news-backups`) |
-| 04:00 | `news.briefer.daily` | `daily.sh` | 3 scrapes in parallel (rss + akamai + china) + cleanup |
-| 07:00 | `news.briefer.synthesize` | `synthesize.sh` | **autonomous US synth → /usa/** |
+| 00:30 | `news.briefer.daily` | `daily.sh` | 3 scrapes in parallel (rss + akamai + china) + cleanup |
+| 02:30 | `news.briefer.synthesize` | `synthesize.sh` | **autonomous US synth → /usa/** |
+| 04:00 | `news.briefer.synthesize.china` | `synthesize_china.sh` | **autonomous China synth → /china/** |
+| 05:00, 18:00 | `news.briefer.researcher` | `researcher.sh` | research what's driving traffic / channels |
+| 05:30 | `news.briefer.digests` | `daily_digests.sh` | refresh rolling 7-day digest pages |
+| 06:00 | `news.briefer.morningbrief` | `morning_brief.sh` | daily site-state report |
+| 06:30 | `news.briefer.healthcheck` | `healthcheck.py` | verify both briefs published today; alert if stale |
+| 06:30 | `news.briefer.drafter` | `drafter.sh` | draft + auto-post growth/social copy |
 | 07:15 | `news.briefer.feedfreshness` | `feed_freshness.py` | watchdog: active feeds that stopped delivering |
-| 07:30 | `news.briefer.synthesize.china` | `synthesize_china.sh` | **autonomous China synth → /china/** |
 | 07:30 | `news.briefer.dmarc` | `dmarc_report.py` | ingest DMARC aggregate reports from S3 |
-| 08:00 | `news.briefer.digests` | `daily_digests.sh` | refresh rolling 7-day digest pages |
-| 08:30 | `news.briefer.morningbrief` | `morning_brief.sh` | daily site-state report |
 | 08:30 | `news.briefer.email_send` | `email_send.py` | daily email send pipeline |
-| 09:00 | `news.briefer.drafter` | `drafter.sh` | draft + auto-post growth/social copy |
 | 09:00 | `news.briefer.alertdigest` | `alert_digest.sh` | roll `alerts.log` into one daily digest email |
-| 09:30 | `news.briefer.healthcheck` | `healthcheck.py` | verify both briefs published today; alert if stale |
 | 10:00 | `news.briefer.engagement` | `x_engagement_collector.py` | snapshot X-post engagement (10:00 + 16:00) |
 | 10:00 | `news.briefer.trafficreport` | `traffic_report_daily.sh`* | daily CloudFront traffic snapshot |
 | 10:30 | `news.briefer.reconfirm` | `reconfirm_pending.py` | daily batched re-confirmation campaign (30/day) |
-| 11:15, 13:05, 15:30 | `news.briefer.synthcatchup` | `synth_catchup.sh` | self-healing retry if a morning synth was missed |
+| 11:15, 13:05, 15:30 | `news.briefer.synthcatchup` | `synth_catchup.sh` | self-healing retry if either edition is stale |
+| 12:30 | `news.briefer.midday` | `daily.sh midday` | bonus daytime scrape (rss+akamai+china), NO cleanup — captures stories breaking during the day for the next morning's brief |
 | 14:00 | `news.briefer.critique` | `editorial_critique.sh` | editorial critique of the day's briefs |
-| 18:00 | `news.briefer.researcher` | `researcher.sh` | research what's driving traffic / channels |
+| 23:30 | `news.briefer.backup` | `backup_subscribers.sh` | off-box backup of email_subscribers → S3 (`briefer-news-backups`) |
 | Sun 10:00 | `news.briefer.analyzer` | `analyzer.sh` | weekly growth analysis |
 | Mon 09:00 | `news.briefer.searchreport` | `search_report_weekly.sh` | weekly Search Console snapshot |
 
@@ -130,7 +130,7 @@ residential proxies (~$50-100/mo).
 
 ## Brief pipeline overview
 
-1. **Scrape (04:00).** `daily.sh` runs three scrapes concurrently — standard
+1. **Scrape (00:30).** `daily.sh` runs three scrapes concurrently — standard
    RSS, Akamai-protected DoD (`pipeline/scraper/akamai_bypass.py` curl_cffi TLS
    impersonation), and China gov (`pipeline/scraper/china_scrape.py`) — then
    7-day cleanup. Articles land in Postgres.
