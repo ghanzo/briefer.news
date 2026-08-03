@@ -16,12 +16,31 @@
     <string>30</string>
   </array>
 
-  <!-- Drains the ~386 approved-backlog (signups since 2026-06-10) re-confirmation
-       nudges in 30/day batches (~13 days). reconfirm_pending.py self-protects:
-       it skips anyone already nudged (so no double-emails) and ABORTS a batch if
-       the recent SES bounce rate exceeds 5% (protects sender reputation). It
-       becomes a harmless daily no-op once the backlog is drained; remove then with
-       launchctl bootout gui/$(id -u)/news.briefer.reconfirm. -->
+  <!-- DISABLED 2026-08-03. Unloaded live and pinned off here so a future
+       `make agents-install` cannot resurrect it.
+
+       WHY: this was built to rescue what looked like a 724-signup backlog. It
+       is now clear that backlog was an injected list, not subscribers. 724
+       "signups" arrived in one week against ~60 real daily visitors, as a
+       steady 5-12/hour drip around the clock, and only 6 ever confirmed
+       (0.8%; genuine double opt-in runs 40-70%). They never confirm because
+       they never subscribed. The drip stopped dead the day after the
+       Turnstile widget shipped (2026-06-30), which is the tell.
+
+       So this job was mailing ~718 people who never opted in, 30/day. That is
+       an unsolicited-mail complaint vector aimed at our own SES reputation,
+       with no upside: while it ran, unsubscribes went 4 -> 7 and bounces
+       50 -> 54. The script's own 5% bounce-rate abort does not help here,
+       because complaints, not bounces, are what get sending suspended.
+
+       Do NOT re-enable against the pending pool. If a genuine re-confirmation
+       need ever arises, scope it to addresses that actually confirmed.
+
+       Original note: drained the backlog in 30/day batches; skips anyone
+       already nudged and aborts a batch above a 5% SES bounce rate. -->
+  <key>Disabled</key>
+  <true/>
+
   <key>StartCalendarInterval</key>
   <dict>
     <key>Hour</key><integer>10</integer>

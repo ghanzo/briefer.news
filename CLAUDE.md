@@ -72,7 +72,8 @@ publish" / "Path A only" is stale — it has been autonomous since 2026-05-09.)
 
 ## The 24 LaunchAgents
 
-The running schedule is **24 LaunchAgents** on the M4 Mac mini at home. They
+The running schedule is **23 active LaunchAgents** (24 plists; `reconfirm` is
+committed but disabled) on the M4 Mac mini at home. They
 are now committed in **`launchd/`** (source of truth) and synced to
 `~/Library/LaunchAgents` via **`scripts/install_launchagents.sh`**:
 
@@ -101,7 +102,7 @@ make agents-install    # repo -> live (fresh machine / disk loss recovery)
 | 09:00 | `news.briefer.alertdigest` | `alert_digest.sh` | roll `alerts.log` into one daily digest email |
 | 10:00 | `news.briefer.engagement` | `x_engagement_collector.py` | snapshot X-post engagement (10:00 + 16:00) |
 | 10:00 | `news.briefer.trafficreport` | `traffic_report_daily.sh`* | daily CloudFront traffic snapshot |
-| 10:30 | `news.briefer.reconfirm` | `reconfirm_pending.py` | daily batched re-confirmation campaign (30/day) |
+| ~~10:30~~ | `news.briefer.reconfirm` | `reconfirm_pending.py` | **DISABLED 2026-08-03** — was mailing ~718 never-opted-in addresses 30/day; see the plist comment |
 | 11:15, 13:05, 15:30 | `news.briefer.synthcatchup` | `synth_catchup.sh` | self-healing retry if either edition is stale |
 | 12:30 | `news.briefer.midday` | `daily.sh midday` | bonus daytime scrape (rss+akamai+china), NO cleanup — captures stories breaking during the day for the next morning's brief |
 | 14:00 | `news.briefer.critique` | `editorial_critique.sh` | editorial critique of the day's briefs |
