@@ -72,8 +72,17 @@ fi
 # no Claude calls. A hard failure skips the synth and leaves yesterday's brief.
 echo ""
 echo "--- Preflight ---"
-if ! bash "$REPO/scripts/preflight.sh"; then
+if ! bash "$REPO/scripts/preflight.sh" 2>&1 | tee "$RUN_DIR/preflight_us.log"; then
+  :   # exit status comes from tee; the real verdict is read from the log below
+fi
+if grep -q "^  FAIL" "$RUN_DIR/preflight_us.log" 2>/dev/null; then
   echo "ERROR: preflight failed — skipping synth, leaving yesterday's brief in place"
+  # Route it off-box. Previously this bailed with a bare echo into a log nobody
+  # reads, so a hard blocker (expired auth, dead Docker) surfaced only as
+  # healthcheck's "brief is stale" hours later — the symptom, never the cause.
+  bash "$REPO/scripts/alert.sh" crit \
+    "US synth SKIPPED — preflight failed:
+$(grep "^  FAIL" "$RUN_DIR/preflight_us.log" | head -5)" || true
   exit 0
 fi
 

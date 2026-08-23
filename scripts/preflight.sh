@@ -98,6 +98,25 @@ echo ""
 echo "[5] headless claude CLI"
 if [ -x "$CLAUDE" ] || command -v claude >/dev/null 2>&1; then
   ok "claude CLI present"
+
+  # The binary existing is NOT the same as it being usable. On 2026-08-18 the
+  # OAuth session expired and every `claude -p` job died for five days: both
+  # synths bailed at Stage 2, world-context, morning brief, threads and weekly
+  # all failed, and Aug 18-22 have no archive at all. The only thing that ever
+  # alerted was healthcheck's downstream "brief is stale" — a symptom, repeated
+  # daily, that never once named the cause. An expired session is the one
+  # failure class retries CANNOT fix: a human must run `claude /login`. So
+  # probe it here, on the very first run, and say exactly that.
+  AUTH_OUT=$("$CLAUDE" -p "Reply with exactly: ok" \
+               --model "${SYNTH_MODEL:-claude-opus-5}" 2>&1)
+  if printf '%s' "$AUTH_OUT" | grep -qiE \
+       "OAuth session expired|Failed to authenticate|authentication_error|Invalid API key|Please run /login|Credit balance is too low"; then
+    fail "claude CLI cannot authenticate — run 'claude /login' on the mini. Until then EVERY claude -p job (both synths, world-context, morning brief, critique, weekly) will keep failing and no retry can recover it. Probe said: $(printf '%s' "$AUTH_OUT" | head -c 160)"
+  elif [ -z "$AUTH_OUT" ]; then
+    warn "claude auth probe returned no output — treating as reachable, but Stage 2/4 may still fail"
+  else
+    ok "claude CLI authenticated"
+  fi
 else
   fail "claude CLI not found at $CLAUDE — Stage 2/4 cannot run"
 fi

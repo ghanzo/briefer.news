@@ -68,8 +68,16 @@ fi
 # no Claude calls. A hard failure skips the synth and leaves yesterday's brief.
 echo ""
 echo "--- Preflight ---"
-if ! bash "$REPO/scripts/preflight.sh"; then
+if ! bash "$REPO/scripts/preflight.sh" 2>&1 | tee "$RUN_DIR/preflight_china.log"; then
+  :   # exit status comes from tee; the real verdict is read from the log below
+fi
+if grep -q "^  FAIL" "$RUN_DIR/preflight_china.log" 2>/dev/null; then
   echo "ERROR: preflight failed — skipping synth, leaving yesterday's brief in place"
+  # See the note in synthesize.sh: a hard blocker must page off-box, not sit in
+  # a log while healthcheck reports the downstream symptom.
+  bash "$REPO/scripts/alert.sh" crit \
+    "China synth SKIPPED — preflight failed:
+$(grep "^  FAIL" "$RUN_DIR/preflight_china.log" | head -5)" || true
   exit 0
 fi
 
