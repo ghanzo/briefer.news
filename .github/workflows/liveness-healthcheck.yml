@@ -1,0 +1,51 @@
+# Cloud liveness check — migration pilot #1.
+#
+# The FIRST piece of the cloud migration (docs/CLOUD_MIGRATION.md): a scheduled
+# job that runs entirely off the mini, needs no secrets, and only reads the
+# public site. It proves GitHub Actions cron works for this repo before we move
+# anything with credentials.
+#
+# It also closes a real gap: during the 2026-08-18..22 auth outage, every monitor
+# that could have caught the stale brief was ITSELF running on the failing mini.
+# This one isn't — if the mini dies, this still runs and GitHub emails on failure.
+#
+# It checks the LIVE site, so it keeps working unchanged after the pipeline moves
+# to cloud — the thing it validates (are both editions current?) doesn't care
+# where synthesis runs.
+name: liveness-healthcheck
+
+on:
+  workflow_dispatch:        # run on demand from the Actions tab to see it green now
+  schedule:
+    - cron: '0 15 * * *'    # 15:00 UTC ≈ 08:00 PDT — after US+China synth and catch-up
+    - cron: '0 23 * * *'    # 23:00 UTC ≈ 16:00 PDT — a second daily check
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Both editions current?
+        run: |
+          set -uo pipefail
+          # "Today" in the site's own timezone, matching the brief stamp format
+          # e.g. "AUGUST 30, 2026". Compare against today OR yesterday, since a
+          # mid-morning check can legitimately precede that day's synth.
+          TODAY="$(TZ=America/Los_Angeles date '+%B %-d, %Y' | tr '[:lower:]' '[:upper:]')"
+          YEST="$(TZ=America/Los_Angeles date -d 'yesterday' '+%B %-d, %Y' | tr '[:lower:]' '[:upper:]')"
+          echo "today=$TODAY  yesterday=$YEST"
+
+          fail=0
+          for ed in usa china; do
+            html="$(curl -fsS --max-time 25 "https://briefer.news/${ed}/")" || {
+              echo "::error::${ed} — fetch failed"; fail=1; continue; }
+            stamp="$(printf '%s' "$html" | grep -oE 'stamp">[A-Z]+ [0-9]{1,2}, [0-9]{4}' | head -1 | sed 's/stamp">//')"
+            if [ "$stamp" = "$TODAY" ]; then
+              echo "::notice::${ed} OK — ${stamp}"
+            elif [ "$stamp" = "$YEST" ]; then
+              echo "::warning::${ed} is yesterday's brief (${stamp}) — tolerated pre-synth, not failing"
+            else
+              echo "::error::${ed} is STALE — stamp '${stamp}', expected '${TODAY}'"
+              fail=1
+            fi
+          done
+          exit $fail

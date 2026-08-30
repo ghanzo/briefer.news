@@ -60,10 +60,10 @@ thing a VM would be for.
 
 ## The two decisions that are Max's alone
 
-### Fork 1 — the 0.75% `.mil` dependency
+### Fork 1 — the 0.75% `.mil` dependency  →  DECIDED 2026-08-30: option (a)
 - **(a) Keep one tiny always-on box at home** (a Pi, or the reformatted mini) running
   *only* the 6-host `.mil` scrape, writing to the same hosted Postgres. Everything
-  else is cloud. Cost: ~0, one low-power device stays on.
+  else is cloud. Cost: ~0, one low-power device stays on.  **← chosen.**
 - **(b) Residential proxy** (~$50–100/mo) so the cloud runner can reach `.mil`. Fully
   cloud, no home device, recurring cost.
 - **(c) Drop `.mil`.** Simplest. But those 68 articles carry outsized editorial
