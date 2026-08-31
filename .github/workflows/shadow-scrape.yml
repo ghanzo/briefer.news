@@ -12,10 +12,19 @@
 # scraped today.
 #
 # The Akamai .mil scrape is deliberately absent: known-blocked, home box's job.
+#
+# 2026-08-31: verdict from run 33355317086 was clean (zero datacenter-blocked
+# sources) — promoted from manual pilot to SCHEDULED shadow: runs nightly +
+# midday against Neon in parallel with the mini's production scrapes, so we
+# can compare corpus coverage for a few days before cutover (step 4 of the
+# migration order).
 name: shadow-scrape
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '43 7 * * *'    # ≈ 00:43 PDT — mirrors the mini's 00:30 overnight scrape
+    - cron: '43 19 * * *'   # ≈ 12:43 PDT — mirrors the 12:30 midday scrape
 
 jobs:
   scrape:
@@ -53,6 +62,14 @@ jobs:
         run: |
           set -o pipefail
           python main.py --china-only 2>&1 | tee ../china-scrape.log
+
+      - name: Corpus snapshot
+        continue-on-error: true
+        run: |
+          psql "$DATABASE_URL" -t -A -c \
+            "SELECT 'articles total: ' || count(*) || ' | last 24h: ' ||
+                    count(*) FILTER (WHERE scraped_at > now() - interval '24 hours')
+             FROM articles;" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize
         run: |
