@@ -1,0 +1,39 @@
+# Cloud migration pilot — phase 1 of docs/CLOUD_MIGRATION.md.
+#
+# Proves the full cloud data path end-to-end: a GitHub-hosted runner reaching
+# the hosted Postgres (Neon) over TLS using the NEON_DATABASE_URL encrypted
+# secret, and reading real restored data. Nothing here touches production —
+# the mini's Docker Postgres remains the live database until cutover.
+#
+# Manual-trigger only while it's a pilot; the scheduled jobs come later.
+name: db-connectivity-check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hosted Postgres reachable and populated?
+        env:
+          DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::NEON_DATABASE_URL secret is not set on this repo"
+            exit 1
+          fi
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -t -A <<'SQL' | tee /tmp/counts
+          SELECT 'articles: '        || count(*) FROM articles;
+          SELECT 'sources: '         || count(*) FROM sources;
+          SELECT 'subscribers: '     || count(*) FROM email_subscribers;
+          SELECT 'newest article: '  || max(scraped_at) FROM articles;
+          SQL
+          # A restore that silently produced an empty DB should fail the check.
+          articles=$(grep -oE 'articles: [0-9]+' /tmp/counts | grep -oE '[0-9]+')
+          if [ "${articles:-0}" -lt 1000 ]; then
+            echo "::error::articles table has only ${articles:-0} rows — restore looks incomplete"
+            exit 1
+          fi
+          echo "::notice::cloud data path OK — ${articles} articles readable from the runner"
