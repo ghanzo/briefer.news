@@ -1,0 +1,81 @@
+# Cloud migration pilot — phase 2 of docs/CLOUD_MIGRATION.md.
+#
+# Runs the RSS + China scrapes on a GitHub-hosted runner, writing to the
+# hosted Postgres (Neon) — NOT production. The mini's overnight scrape and
+# database are untouched.
+#
+# What this answers: which sources tolerate a datacenter IP. The plan assumes
+# only the 6 Akamai .mil hosts need a residential IP; this validates that
+# assumption for the other ~97 sources with data. Interpret via the uploaded
+# logs (per-source discovery counts and fetch errors) — article insert counts
+# alone are misleading because the runner dedups against what the mini already
+# scraped today.
+#
+# The Akamai .mil scrape is deliberately absent: known-blocked, home box's job.
+name: shadow-scrape
+
+on:
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
+      # GROQ_API_KEY intentionally unset — filter self-disables; scraping needs no AI keys.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Install dependencies
+        run: |
+          pip install -r pipeline/requirements.txt
+          python -m playwright install --with-deps chromium
+
+      - name: RSS/web scrape (65 sources)
+        id: rss
+        working-directory: pipeline
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python main.py --scrape-only 2>&1 | tee ../rss-scrape.log
+
+      - name: China scrape (32 sources)
+        id: china
+        working-directory: pipeline
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          python main.py --china-only 2>&1 | tee ../china-scrape.log
+
+      - name: Summarize
+        run: |
+          {
+            echo "## Shadow scrape from a datacenter IP"
+            echo ""
+            echo "| Stage | Outcome |"
+            echo "|---|---|"
+            echo "| RSS/web | ${{ steps.rss.outcome }} |"
+            echo "| China | ${{ steps.china.outcome }} |"
+            echo ""
+            echo "### Error lines (blocked-source candidates)"
+            echo '```'
+            grep -ihE "error|fail|403|timeout|blocked" rss-scrape.log china-scrape.log | head -40 || echo "none"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload full logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shadow-scrape-logs
+          path: |
+            rss-scrape.log
+            china-scrape.log
+          retention-days: 14
