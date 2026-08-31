@@ -102,8 +102,13 @@ subscription login). Everything that needs neither goes to GitHub Actions.
    `db-connectivity-check` green from a runner.
 2. ~~Port one read-only job to GH Actions cron end-to-end.~~ **DONE 2026-08-30**
    — `liveness-healthcheck` on 2×-daily cron.
-3. **Shadow scrape from a runner** (`shadow-scrape.yml`) — validate which non-.mil
-   sources tolerate a datacenter IP; the failures define the home box's scrape list.
+3. ~~Shadow scrape from a runner~~ **DONE 2026-08-31, run 33355317086** —
+   RSS (65/65 discovered, 0 fetch failures) + China (all 32 ran, `blocked=False`
+   everywhere). Per-source failures are IDENTICAL from home vs datacenter
+   (MOF 14/14 both, SAMR 8/8 both, NPC 4/4 both) → source-side quirks, not IP
+   blocks. **The home-box scrape roster is exactly the 6 Akamai `.mil` hosts —
+   the plan's 0.75% assumption is validated.** (Side finding: MOF News has
+   never extracted successfully from anywhere — repair independently.)
 4. Port the non-Claude jobs to GH Actions cron, writing to Neon, in shadow first.
 5. Re-point the home box's Claude jobs + `.mil` scrape at Neon.
 6. Cut over: final dump → Neon, enable cloud crons, disable the launchd
