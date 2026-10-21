@@ -1,11 +1,69 @@
 # Cloud migration — getting Briefer off the always-on Mac
 
-**Status:** IN PROGRESS — 2026-08-30. Both forks decided; hosted PG live and
-proven from a runner; shadow-scrape pilot in flight.
-**Goal:** the scheduled non-Claude pipeline runs in the cloud, driven from the
-GitHub repo. One small home box remains for the two things that can't move
-cheaply: the `.mil` scrape (residential IP) and the Claude jobs (subscription
-auth — Fork 2). Any laptop can clone and operate everything.
+**Status: production remains hybrid; migration not completed (verified 2026-10-21).**
+
+Max requested moving everything feasible off the M4 without increasing spending.
+The public site is on S3/CloudFront, but the Mac still generates/publishes both
+editions, stores the production database, runs newsletter jobs and serves the
+subscription API through Cloudflare Tunnel. Windows has stopped legacy containers;
+Omarchy was offline during the audit. Do not infer that those copies are current.
+
+The GitHub/Neon scraper is a shadow, not production. On October 21 both scrape
+steps failed because SQLAlchemy selected the undeclared psycopg 3 driver. The
+workflow still showed green because the steps used continue-on-error without a
+final gate. This change explicitly selects the installed psycopg2 driver for bare
+PostgreSQL URLs and makes incomplete runs fail. The separate connectivity check
+reports database size and freshness using aggregate-only queries.
+
+## No-additional-spend migration gates
+
+1. **Repair and verify the existing shadow.** Use standard Linux GitHub runners
+   in this public repository. Run the connectivity check and both scrapes; compare
+   coverage with the Mac. No retained scrape artifacts are needed; use run logs.
+2. **Confirm the actual Neon plan and capacity before production cutover.** The
+   Mac database measured 70 MB. Neon currently advertises 1 GB storage and 100
+   CU-hours per project/month on Free, but the account's selected plan, current
+   usage, transfer quota and growth must be verified. Keep scale-to-zero; avoid
+   constant polling that keeps compute awake. Do not enable paid overages.
+3. **Make database access portable.** Synthesis SQL and subscriber helpers still
+   execute psql inside a named local Docker container. Replace this dependency
+   with a protected remote PostgreSQL connection, test against a disposable DB,
+   then migrate the live data with a verified backup and a single-writer cutover.
+   Never overwrite current subscriber states with the old Neon shadow copy.
+4. **Move ordinary jobs first.** RSS/China ingestion, maintenance, health checks,
+   reporting and backups can run in GitHub Actions. Keep existing SES/S3 services;
+   cloud execution does not make their existing usage charges disappear. Move
+   newsletter sending only after unsubscribe, bounce/complaint handling and
+   duplicate-send protection work against the same production database.
+5. **Move the subscription API.** A free-tier Worker is a candidate, but the
+   current Python HTTP server is not a drop-in Worker. Preserve confirmation,
+   unsubscribe, suppression, throttling and secret handling; validate these before
+   changing DNS/tunnel routing. Confirm shared-account limits before deployment.
+6. **Pilot Claude generation with existing subscription authentication.** Official
+   Claude Code GitHub Actions supports CLAUDE_CODE_OAUTH_TOKEN from setup-token.
+   The old claim that subscription authentication forces home execution is no
+   longer a sufficient reason to retain the Mac. The repository currently lacks
+   that secret. Use subscription quota only, no API billing fallback; verify quota
+   and unattended token renewal. First run without publishing or sending mail.
+7. **Keep only the residential-source worker if still needed.** The six .mil
+   hosts were previously blocked from cloud IPs. Recheck before the final cutover.
+   An M4 is not intrinsically required: a smaller existing home machine may do,
+   provided its runtime and reliability are proven. Do not buy proxies/hardware
+   or remove those sources without a separate decision.
+8. **Retire local services only after verified replacement.** Observe successful
+   cloud runs, rehearse rollback, disable duplicate schedules, then retire Docker
+   Postgres/nginx and the tunnel once nothing depends on them. Existing public
+   pages staying online is not proof the publishing or subscription system works.
+
+Evidence: [October 21 shadow failure](https://github.com/ghanzo/briefer.news/actions/runs/39606045060).
+Current provider references (checked October 21):
+[GitHub billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions),
+[Neon pricing](https://neon.com/pricing),
+[Claude subscription authentication](https://code.claude.com/docs/en/github-actions),
+[Workers limits](https://developers.cloudflare.com/workers/platform/limits/).
+
+The sections below retain the original August plan and decisions as history;
+the verified status and gates above take precedence.
 
 ---
 

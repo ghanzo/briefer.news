@@ -5,6 +5,7 @@ from sqlalchemy import (
     create_engine, Column, Integer, String, Text, Float,
     Boolean, DateTime, Date, ForeignKey, Index,
 )
+from sqlalchemy.engine import make_url
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 from sqlalchemy.sql import func
@@ -13,7 +14,11 @@ Base = declarative_base()
 
 
 def get_engine():
-    url = os.environ["DATABASE_URL"]
+    url = make_url(os.environ["DATABASE_URL"])
+    # SQLAlchemy 2.1 defaults bare PostgreSQL URLs to psycopg 3.
+    # Our declared dependency is psycopg2; keep that driver explicit.
+    if url.drivername == "postgresql":
+        url = url.set(drivername="postgresql+psycopg2")
     return create_engine(url, pool_pre_ping=True, pool_size=5, max_overflow=10)
 
 
