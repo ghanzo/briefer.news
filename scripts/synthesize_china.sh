@@ -53,7 +53,7 @@ if ! "$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -q briefer_postgres; 
   echo "WARN: briefer_postgres not running — attempting auto-recovery..."
   . "$REPO/scripts/lib/docker_recovery.sh"
   docker_engine_recover "$DOCKER" || true
-  "$DOCKER" start briefer_postgres briefer_nginx briefer_tunnel briefer_adminer >/dev/null 2>&1 || true
+  "$DOCKER" start briefer_postgres briefer_nginx briefer_tunnel >/dev/null 2>&1 || true
   for _ in $(seq 1 15); do "$DOCKER" exec briefer_postgres pg_isready >/dev/null 2>&1 && break; sleep 2; done
   if ! "$DOCKER" ps --format '{{.Names}}' 2>/dev/null | grep -q briefer_postgres; then
     echo "ERROR: briefer_postgres still down after auto-recovery (Docker may be wedged — needs a host reboot) — bailing"

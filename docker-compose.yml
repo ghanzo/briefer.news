@@ -22,11 +22,13 @@ services:
 
   # ── DB Admin UI ───────────────────────────────────────────────────────────────
   adminer:
-    image: adminer:latest
+    # Verified PHP 8.4.27: fixes CVE-2026-109618 and CVE-2026-109619.
+    image: adminer@sha256:eb3a6f381409ea3da5157b69537dad391fe705623a74f468957384dfe579e02a
     container_name: briefer_adminer
-    restart: unless-stopped
+    restart: "no"
+    profiles: [admin]
     ports:
-      - "5050:8080"
+      - "127.0.0.1:5050:8080"
     depends_on:
       postgres:
         condition: service_healthy
