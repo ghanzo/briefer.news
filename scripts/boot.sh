@@ -5,7 +5,7 @@
 # RunAtLoad=true. Runs on user login.
 #
 # Belt-and-suspenders on top of Docker's `restart: unless-stopped` on
-# postgres + nginx + adminer — explicitly waits for the Docker daemon
+# postgres + nginx — explicitly waits for the Docker daemon
 # to be ready, then `docker compose up -d` to start the persistent
 # services. The `pipeline` service is profile-tagged (profiles: [manual])
 # so it won't auto-start here; only the LaunchAgents at 04:00 / 07:00 /
@@ -45,8 +45,8 @@ echo "Docker Engine ready."
 # have started them, but `compose up -d` is idempotent and reconciles
 # any drift between docker-compose.yml and running containers.
 echo ""
-echo "Bringing up postgres + nginx (adminer is auto)..."
-"$DOCKER" compose up -d postgres nginx adminer 2>&1
+echo "Bringing up postgres + nginx (adminer is manual-only)..."
+"$DOCKER" compose up -d postgres nginx 2>&1
 
 echo ""
 echo "Current container state:"

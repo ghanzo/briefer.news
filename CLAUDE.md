@@ -196,8 +196,10 @@ make healthcheck    # stale-brief check
 
 ## Docker stack
 
-`docker compose up -d` brings up `postgres` (5433) + `adminer` (5050) + `nginx`
-(80). The `pipeline` service is profile-tagged (`profiles: [manual]`) so it does
+`docker compose up -d` brings up `postgres` (5433), `nginx` (80), and the
+API tunnel. Adminer is patched, digest-pinned and manual-only under the `admin`
+profile, bound to `127.0.0.1:5050` with no restart policy. Boot and synthesis
+recovery must not start it. See `docs/ADMINER-SECURITY.md` for temporary access. The `pipeline` service is profile-tagged (`profiles: [manual]`) so it does
 NOT auto-start; it's invoked on demand via `docker compose run --rm pipeline …`.
 Validate source yamls after editing:
 
