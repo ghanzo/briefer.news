@@ -29,6 +29,9 @@ jobs:
           SELECT 'sources: '         || count(*) FROM sources;
           SELECT 'subscribers: '     || count(*) FROM email_subscribers;
           SELECT 'newest article: '  || max(scraped_at) FROM articles;
+          SELECT 'database bytes: ' || pg_database_size(current_database());
+          SELECT 'articles last 24h: ' || count(*) FROM articles
+            WHERE scraped_at > now() - interval '24 hours';
           SQL
           # A restore that silently produced an empty DB should fail the check.
           articles=$(grep -oE 'articles: [0-9]+' /tmp/counts | grep -oE '[0-9]+')
