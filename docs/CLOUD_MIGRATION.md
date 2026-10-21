@@ -13,7 +13,10 @@ steps failed because SQLAlchemy selected the undeclared psycopg 3 driver. The
 workflow still showed green because the steps used continue-on-error without a
 final gate. This change explicitly selects the installed psycopg2 driver for bare
 PostgreSQL URLs and makes incomplete runs fail. The separate connectivity check
-reports database size and freshness using aggregate-only queries.
+reports database size and freshness using aggregate-only queries. The October 21
+branch run passed connectivity and measured Neon at 112,762,880 bytes (~108 MiB),
+but its newest article was September 24 and its last-24-hour insert count was zero.
+Connectivity success is not a production-readiness verdict.
 
 ## No-additional-spend migration gates
 
