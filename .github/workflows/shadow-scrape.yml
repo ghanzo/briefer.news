@@ -26,6 +26,13 @@ on:
     - cron: '43 7 * * *'    # ≈ 00:43 PDT — mirrors the mini's 00:30 overnight scrape
     - cron: '43 19 * * *'   # ≈ 12:43 PDT — mirrors the 12:30 midday scrape
 
+permissions:
+  contents: read
+
+concurrency:
+  group: briefer-shadow-scrape
+  cancel-in-progress: false
+
 jobs:
   scrape:
     runs-on: ubuntu-latest
@@ -64,14 +71,18 @@ jobs:
           python main.py --china-only 2>&1 | tee ../china-scrape.log
 
       - name: Corpus snapshot
+        id: corpus
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: |
-          psql "$DATABASE_URL" -t -A -c \
+          set -euo pipefail
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -t -A -c \
             "SELECT 'articles total: ' || count(*) || ' | last 24h: ' ||
                     count(*) FILTER (WHERE scraped_at > now() - interval '24 hours')
              FROM articles;" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize
+        if: ${{ !cancelled() }}
         run: |
           {
             echo "## Shadow scrape from a datacenter IP"
@@ -87,12 +98,16 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload full logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: shadow-scrape-logs
-          path: |
-            rss-scrape.log
-            china-scrape.log
-          retention-days: 14
+      - name: Require both scrapes and database snapshot
+        if: ${{ !cancelled() }}
+        env:
+          RSS_OUTCOME: ${{ steps.rss.outcome }}
+          CHINA_OUTCOME: ${{ steps.china.outcome }}
+          CORPUS_OUTCOME: ${{ steps.corpus.outcome }}
+        run: |
+          for outcome in "$RSS_OUTCOME" "$CHINA_OUTCOME" "$CORPUS_OUTCOME"; do
+            if [ "$outcome" != "success" ]; then
+              echo "::error::Cloud shadow scrape is incomplete; do not cut over production."
+              exit 1
+            fi
+          done
